@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "InvoiceFine",
+    "slug": "invoicefine",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "invoicefine",
+    "plugins": ["expo-router"],
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
