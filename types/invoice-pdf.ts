@@ -1,0 +1,3 @@
+import type { InvoicePageSize } from './business';
+export type InvoicePdfLine={description:string;sku:string|null;unit:string|null;quantityScaled:number;unitPricePaise:number;discountPaise:number;gstRateBasisPoints:number;lineTotalPaise:number};
+export type InvoicePdfData={invoiceNumber:string;invoiceDate:string;dueDate:string|null;customerName:string|null;customerAddress:string|null;customerGstin:string|null;businessName:string;businessAddress:string;businessPhone:string;businessGstin:string|null;subtotalPaise:number;discountPaise:number;cgstPaise:number;sgstPaise:number;igstPaise:number;roundingPaise:number;totalPaise:number;notes:string|null;pageSize:InvoicePageSize;lines:InvoicePdfLine[]};

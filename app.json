@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "InvoiceFine",
+    "slug": "invoicefine",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "invoicefine",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow InvoiceFine to select a business logo and signature.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-sharing"
+    ],
+    "android": {
+      "predictiveBackGestureEnabled": false,
+      "allowBackup": true
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
