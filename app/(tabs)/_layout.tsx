@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { strings } from '@/constants/strings';
 import { theme } from '@/constants/theme';
+import { useAppPalette } from '@/hooks/useAppPalette';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -29,13 +30,14 @@ function createTabIcon(active: IconName, inactive: IconName) {
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const palette = useAppPalette();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.muted,
         tabBarHideOnKeyboard: true,
         tabBarLabelStyle: theme.typography.tabLabel,
         tabBarItemStyle: {
@@ -45,8 +47,8 @@ export default function TabsLayout() {
           height: theme.layout.tabBarHeight + insets.bottom,
           paddingTop: theme.spacing[2],
           paddingBottom: Math.max(insets.bottom, theme.spacing[2]),
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
+          backgroundColor: palette.surface,
+          borderTopColor: palette.border,
           borderTopWidth: theme.layout.borderWidth,
           elevation: 0,
         },

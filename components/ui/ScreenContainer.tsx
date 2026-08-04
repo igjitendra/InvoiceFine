@@ -11,11 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { theme } from '@/constants/theme';
+import { useAppPalette } from '@/hooks/useAppPalette';
 
 type ScreenContainerProps = PropsWithChildren<{
   contentContainerStyle?: StyleProp<ViewStyle>;
   scroll?: boolean;
   keyboardAware?: boolean;
+  backgroundColor?: string;
 }>;
 
 export function ScreenContainer({
@@ -23,7 +25,10 @@ export function ScreenContainer({
   contentContainerStyle,
   scroll = true,
   keyboardAware = false,
+  backgroundColor,
 }: ScreenContainerProps) {
+  const palette = useAppPalette();
+  const resolvedBackground = backgroundColor ?? palette.background;
   const content = scroll ? (
     <ScrollView
       contentContainerStyle={[styles.content, contentContainerStyle]}
@@ -38,7 +43,7 @@ export function ScreenContainer({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: resolvedBackground }]} edges={['top', 'left', 'right']}>
       {keyboardAware ? (
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}

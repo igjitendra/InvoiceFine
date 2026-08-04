@@ -19,7 +19,7 @@ import {
 } from '@/lib/validation';
 import type { Customer, CustomerInput } from '@/types/customer';
 
-type CustomerFormProps = { customer?: Customer };
+type CustomerFormProps = { customer?: Customer; onSaved?: () => void; onCancel?: () => void };
 
 const emptyValues: CustomerInput = {
   name: '', phone: '', email: '', gstin: '', stateCode: '', billingAddress: '', notes: '',
@@ -37,7 +37,7 @@ function valuesFromCustomer(customer: Customer): CustomerInput {
   };
 }
 
-export function CustomerForm({ customer }: CustomerFormProps) {
+export function CustomerForm({ customer, onSaved, onCancel }: CustomerFormProps) {
   const router = useRouter();
   const editing = customer !== undefined;
   const { control, handleSubmit, formState: { isSubmitting } } = useForm<CustomerInput>({
@@ -53,7 +53,7 @@ export function CustomerForm({ customer }: CustomerFormProps) {
           strings.customers.messages.updateSuccessTitle,
           strings.customers.messages.updateSuccessDescription,
         );
-        router.back();
+        if (onSaved) onSaved(); else router.back();
       } else {
         await createCustomer(values);
         router.back();
@@ -92,7 +92,7 @@ export function CustomerForm({ customer }: CustomerFormProps) {
   return (
     <ScreenContainer keyboardAware contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back}>
+        <Pressable accessibilityRole="button" onPress={() => onCancel ? onCancel() : router.back()} style={styles.back}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary} />
         </Pressable>
         <Text style={styles.title}>{editing ? strings.customers.editTitle : strings.customers.newTitle}</Text>

@@ -44,6 +44,17 @@ async function createUuid(database: SQLiteDatabase): Promise<string> {
   return row.id;
 }
 
+export async function listRecentlySoldItemIds(limit = 6): Promise<string[]> {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<IdRow>(
+    `SELECT ii.item_id AS id FROM invoice_items ii
+     JOIN invoices i ON i.id = ii.invoice_id
+     WHERE ii.item_id IS NOT NULL AND i.status IN ('finalized','partially_paid','paid','overdue')
+     GROUP BY ii.item_id ORDER BY MAX(i.updated_at) DESC LIMIT ?`, limit,
+  );
+  return rows.map((row) => row.id);
+}
+
 export async function getInvoiceDraftBusinessStateCode(): Promise<string | null> {
   const database = await getDatabase();
   const row = await database.getFirstAsync<{ state_code: string | null }>(
