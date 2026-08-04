@@ -1,1 +1,7 @@
-import{useChartPalette,type ChartPalette}from'@/components/charts/palette';export type AppPalette=ChartPalette;export function useAppPalette():AppPalette{return useChartPalette()}
+import { useChartPalette, type ChartPalette } from '@/components/charts/palette';
+
+export type AppPalette = ChartPalette;
+
+export function useAppPalette(): AppPalette {
+  return useChartPalette();
+}
