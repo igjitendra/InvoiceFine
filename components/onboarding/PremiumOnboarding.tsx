@@ -47,10 +47,15 @@ const productCategories = [
   "Reseller",
 ];
 const serviceCategories = [
-  "Repair",
+  "Mobile Repair",
+  "Computer Repair",
+  "Digital Agency",
+  "Freelancer",
+  "Salon",
+  "Plumber",
+  "AC Service",
   "Professional",
   "Creative",
-  "Digital",
   "Education",
   "Healthcare",
   "Beauty",

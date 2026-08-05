@@ -1,6 +1,6 @@
 # InvoiceFine Project Status
 
-_Last updated: 2026-08-04_
+_Last updated: 2026-08-05_
 
 ## Product identity
 
@@ -40,7 +40,9 @@ Milestones 0–13 are implemented in source:
 7. Swipe fast actions and haptics — implemented in source; physical-phone verification pending
 8. Code quality and runtime stability — recent minified source formatted and app render error boundary added; physical-phone verification pending
 9. Coral visual theme — larger typography, rounded surfaces, centralized accessible light/dark palette, and main-tab screen conversion; More header overlap and Invoice/Customer live light-mode readability corrected from phone screenshots; physical-phone re-verification pending
-10. Premium onboarding foundation — 15-step setup, business-mode persistence, dynamic Products/Services/Catalog and Reports tabs, business-mode item filtering, premium preferences, and Legal & Data hub implemented in source; vertical-specific invoice fields and physical-phone verification pending
+10. Premium onboarding and vertical workflows — 15-step setup, dynamic business mode, Reports tab, Legal & Data hub, Migration 4 vertical details, category-specific invoice forms, transactional draft persistence, finalized display, and PDF export implemented in source; physical-phone verification pending
+11. Data safety and restore — underlying integrity/restore source retained, but backup/restore is postponed for this release; active preview controls are replaced by Coming Soon and destructive deletion remains safety-locked
+12. Complete light/dark consistency — all remaining static app/component theme colors converted to live palette; Expenses, forms, profiles, invoice/payment screens, selected states, secondary text, and legal/data surfaces corrected; physical-phone verification pending
 
 ## Reports currently supported
 
@@ -55,8 +57,8 @@ Charts use SQLite aggregates and `react-native-svg`; no heavy chart library is a
 
 ## Theme and interaction
 
-- Automatic light/dark theme
-- Material 3-inspired surfaces and contrast
+- Automatic light/dark theme with live palette on every text-bearing UI component
+- Material 3-inspired surfaces with WCAG AA core text contrast
 - Safe-area/status-bar handling
 - native-driver transitions
 - accessible reduced-motion skeletons

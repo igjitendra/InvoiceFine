@@ -67,15 +67,29 @@ A high-contrast coral identity, larger typography, rounded cards, theme-aware sh
 
 Fifteen focused setup screens now capture business type/category, identity, contact and tax details, invoice template/page size, future-ready currency choice, prefixes, payment terms/methods, UPI QR, signature, notification preferences, permission guidance, and a ready summary. Product/Service/Both changes the Catalog tab label and filters available catalog and invoice items. Reports is now a bottom tab; settings remain reachable from Reports. Legal and local-data policy pages are included. Camera permission remains disabled during onboarding.
 
-### Phase 10B — Vertical Business Workflows — not started
+### Phase 10B.1 — Vertical Workflow Foundation — source implemented
 
-Add repair, agency, freelancer, salon, plumber, and AC-service fields through versioned schema, invoice snapshots, edit forms, PDF output, validation, and tests. Do not add UI-only fields that would be lost during finalization.
+Migration 4 adds one-to-one, cascade-safe vertical details for draft and finalized invoices, plus typed workflow/category resolution.
+
+### Phase 10B.2 — Vertical Invoice Integration — source implemented
+
+Repair, digital agency, freelancer, salon, plumber, and AC-service fields now appear in the invoice builder according to the saved category. Details save inside the draft transaction, reload during editing, remain linked after finalization, render on finalized invoice screens, and export in A4/4×6 PDFs. Dedicated persistence, cascade, calculation-regression, and PDF tests pass. Physical-phone verification remains required.
 
 ## Next planned work
 
-### Phase 11 — Data safety and portability — not started
+### Phase 11A — Integrity-Checked JSON Export — source implemented
 
-Design before coding:
+The Legal & Data screen now performs SQLite integrity validation, exports all business tables with schema version and table counts, adds a deterministic corruption checksum, previews the manifest, and shares JSON through the Android share sheet. Text sharing is size-limited to avoid Android intent failures. No destructive operation is enabled.
+
+### Phase 11B.1 — Atomic JSON Restore — source implemented
+
+A pasted InvoiceFine JSON backup now receives checksum, row-cell, table-count, schema-version, and business-profile preflight validation. Restore stays disabled until the current database has been prepared and shared as a safety backup and the user types `RESTORE`. Replacement runs in one exclusive transaction with deferred foreign keys, trusted live-schema columns, foreign-key checks, SQLite integrity checks, and automatic rollback on any failure. Logo, QR, and signature image files are not bundled; only their saved URI references are restored. Physical-phone recovery verification remains required.
+
+### Phase 11B.2 — Native File Import/Export — postponed
+
+Backup/restore is postponed for the current release. Error-producing preview controls are hidden and replaced by an explicit Coming Soon state; Delete Local Data remains safety-locked. Existing backup/restore source is retained for later verified work. Native `.json` files must eventually use exact Expo SDK 57-compatible `expo-file-system` and `expo-document-picker` versions rather than guessed APIs.
+
+Remaining design requirements:
 
 - user-controlled export package
 - encrypted/signed backup format
@@ -87,7 +101,11 @@ Design before coding:
 
 Do not implement export without restore and integrity checks in the same approved scope.
 
-### Phase 12 — Release stabilization — not started
+### Phase 12A — Complete Light/Dark UI Consistency — source implemented
+
+All remaining direct `theme.colors` usage in app/components was removed. Expenses, Add Expense, Catalog form, Business Profile, Customer details, Finalized Invoice, Payments, Customer Ledger, startup/placeholder states, image fields, and dashboard placeholder now consume the live palette. Selected controls use solid accessible states, secondary text contrast was raised, soft-surface text tokens were added, and unfinished backup controls are disabled. Source audit reports zero static theme-color files and WCAG AA palette contrast; physical-phone visual verification remains required.
+
+### Phase 12B — Release stabilization — not started
 
 - negative-stock policy and finalization guard
 - pagination/large-data performance audit

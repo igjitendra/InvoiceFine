@@ -12,6 +12,10 @@ Text UUID IDs, integer paise, centrally scaled quantities, ISO dates/timestamps,
 
 Business identity/contact/GST, logo/signature/payment QR URIs, invoice prefix/next number, currency, tax setting, and `invoice_page_size` (`a4` or `4x6`, default `a4`). Migration 3 adds business type/category, owner/website/PAN/state/pincode, GST type, invoice template, estimate/quotation prefixes, payment terms/methods, notification preferences, and onboarding completion state.
 
+### `invoice_vertical_details`
+
+Migration 4 stores one workflow-specific JSON snapshot per invoice for repair, agency, freelancer, salon, plumber, AC-service, or general workflows. The row is linked by invoice ID, survives draft finalization, and is removed automatically when its invoice is deleted.
+
 ### `customers`
 
 Identity/contact/GST/state/address/notes, archive flag, timestamps.

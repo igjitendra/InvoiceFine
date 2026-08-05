@@ -1,10 +1,7 @@
+import type { VerticalInvoiceDetails } from "./vertical-workflow";
+
 export type InvoiceRecordStatus =
-  | 'draft'
-  | 'finalized'
-  | 'partially_paid'
-  | 'paid'
-  | 'overdue'
-  | 'cancelled';
+  "draft" | "finalized" | "partially_paid" | "paid" | "overdue" | "cancelled";
 
 export type FinalizedInvoiceLine = {
   description: string;
@@ -27,6 +24,7 @@ export type FinalizedInvoiceSummary = {
   totalPaise: number;
   paidPaise: number;
   lines: FinalizedInvoiceLine[];
+  verticalDetails: VerticalInvoiceDetails | null;
 };
 
 export type FinalizationResult = {

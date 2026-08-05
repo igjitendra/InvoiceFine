@@ -10,8 +10,10 @@ export type AppPalette = {
   primary: string;
   primaryPressed: string;
   primarySoft: string;
+  primarySoftText: string;
   textOnPrimary: string;
   positive: string;
+  positiveSoft: string;
   warning: string;
   danger: string;
   dangerPressed: string;
@@ -32,8 +34,10 @@ export function createAppPalette(dark: boolean): AppPalette {
         primary: "#D93632",
         primaryPressed: "#BE2826",
         primarySoft: "#3A2222",
+        primarySoftText: "#FF9A96",
         textOnPrimary: "#FFFFFF",
         positive: "#4AD99A",
+        positiveSoft: "#17382B",
         warning: "#FFB84D",
         danger: "#FF626B",
         dangerPressed: "#E64952",
@@ -55,14 +59,16 @@ export function createAppPalette(dark: boolean): AppPalette {
         surface: "#FFFFFF",
         surfaceVariant: "#F1F1F3",
         text: "#19191B",
-        muted: "#74747C",
+        muted: "#686870",
         border: "#E5E5E8",
         borderStrong: "#D7D7DB",
         primary: "#D93632",
         primaryPressed: "#BE2826",
         primarySoft: "#FDE9E8",
+        primarySoftText: "#A61F1C",
         textOnPrimary: "#FFFFFF",
         positive: "#168557",
+        positiveSoft: "#E3F5EC",
         warning: "#C77800",
         danger: "#D9363E",
         dangerPressed: "#BE2830",

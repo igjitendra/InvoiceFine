@@ -1,19 +1,20 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { SQLiteDatabase } from "expo-sqlite";
 
-import { getDatabase } from '@/db/database';
-import { runInTransaction } from '@/db/transaction';
-import { calculateInvoice } from '@/lib/invoice-calculations';
+import { getDatabase } from "@/db/database";
+import { runInTransaction } from "@/db/transaction";
+import { calculateInvoice } from "@/lib/invoice-calculations";
+import { loadVerticalDetails } from "@/db/repositories/vertical-invoice-details";
 import type {
   FinalizationResult,
   FinalizedInvoiceSummary,
   InvoiceRecordStatus,
-} from '@/types/invoice-finalization';
+} from "@/types/invoice-finalization";
 
 type IdRow = { id: string };
 type InvoiceRow = {
   id: string;
   invoice_number: string;
-  kind: 'tax_invoice' | 'non_tax_invoice';
+  kind: "tax_invoice" | "non_tax_invoice";
   status: InvoiceRecordStatus;
   customer_id: string | null;
   paid_paise: number;
@@ -45,7 +46,7 @@ type CustomerRow = {
 type LineRow = {
   id: string;
   item_id: string | null;
-  item_type: 'product' | 'service';
+  item_type: "product" | "service";
   quantity_scaled: number;
   unit_price_paise: number;
   discount_paise: number;
@@ -83,25 +84,27 @@ async function createUuid(database: SQLiteDatabase): Promise<string> {
       substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' ||
       lower(hex(randomblob(6))) AS id
   `);
-  if (!row) throw new Error('Unable to generate an ID.');
+  if (!row) throw new Error("Unable to generate an ID.");
   return row.id;
 }
 
 function formatInvoiceNumber(prefix: string, nextNumber: number): string {
   const normalizedPrefix = prefix.trim().toUpperCase();
   if (!/^[A-Z0-9/-]{2,10}$/.test(normalizedPrefix)) {
-    throw new Error('Invoice prefix is invalid.');
+    throw new Error("Invoice prefix is invalid.");
   }
   if (!Number.isSafeInteger(nextNumber) || nextNumber <= 0) {
-    throw new Error('Next invoice number is invalid.');
+    throw new Error("Next invoice number is invalid.");
   }
-  return `${normalizedPrefix}-${String(nextNumber).padStart(4, '0')}`;
+  return `${normalizedPrefix}-${String(nextNumber).padStart(4, "0")}`;
 }
 
-export async function getInvoiceStatus(id: string): Promise<InvoiceRecordStatus | null> {
+export async function getInvoiceStatus(
+  id: string,
+): Promise<InvoiceRecordStatus | null> {
   const database = await getDatabase();
   const row = await database.getFirstAsync<{ status: InvoiceRecordStatus }>(
-    'SELECT status FROM invoices WHERE id = ?',
+    "SELECT status FROM invoices WHERE id = ?",
     id,
   );
   return row?.status ?? null;
@@ -115,18 +118,19 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
        FROM invoices WHERE id = ?`,
       id,
     );
-    if (!invoice) throw new Error('Invoice is unavailable.');
-    if (invoice.status === 'finalized') {
+    if (!invoice) throw new Error("Invoice is unavailable.");
+    if (invoice.status === "finalized") {
       return { invoiceNumber: invoice.invoice_number, alreadyFinalized: true };
     }
-    if (invoice.status !== 'draft') throw new Error('Only a draft invoice can be finalized.');
+    if (invoice.status !== "draft")
+      throw new Error("Only a draft invoice can be finalized.");
 
     const business = await transaction.getFirstAsync<BusinessRow>(
       `SELECT id, business_name, gstin, state_code, address, phone, email, logo_uri,
         signature_uri, payment_qr_uri, currency_code, invoice_prefix, next_invoice_number
        FROM business_settings LIMIT 1`,
     );
-    if (!business) throw new Error('Business profile is required.');
+    if (!business) throw new Error("Business profile is required.");
     const customer = invoice.customer_id
       ? await transaction.getFirstAsync<CustomerRow>(
           `SELECT id, name, phone, email, gstin, state_code, billing_address
@@ -134,7 +138,8 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
           invoice.customer_id,
         )
       : null;
-    if (invoice.customer_id && !customer) throw new Error('Selected customer is unavailable.');
+    if (invoice.customer_id && !customer)
+      throw new Error("Selected customer is unavailable.");
 
     const lines = await transaction.getAllAsync<LineRow>(
       `SELECT id, item_id, item_type, quantity_scaled, unit_price_paise,
@@ -165,7 +170,7 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
       const line = lines[index];
       const calculatedLine = calculation.lines[index];
       if (!line || !calculatedLine) {
-        throw new Error('Invoice line calculation is unavailable.');
+        throw new Error("Invoice line calculation is unavailable.");
       }
       await transaction.runAsync(
         `UPDATE invoice_items SET taxable_paise = ?, cgst_paise = ?, sgst_paise = ?,
@@ -178,8 +183,9 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
         line.id,
         id,
       );
-      if (line.item_type !== 'product') continue;
-      if (!line.item_id) throw new Error('A product line must reference a catalog product.');
+      if (line.item_type !== "product") continue;
+      if (!line.item_id)
+        throw new Error("A product line must reference a catalog product.");
       const updated = await transaction.runAsync(
         `UPDATE items SET current_stock_scaled = current_stock_scaled - ?, updated_at = ?
          WHERE id = ? AND type = 'product' AND is_archived = 0`,
@@ -187,7 +193,7 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
         timestamp,
         line.item_id,
       );
-      if (updated.changes !== 1) throw new Error('A product is unavailable.');
+      if (updated.changes !== 1) throw new Error("A product is unavailable.");
       await transaction.runAsync(
         `INSERT INTO stock_movements (
           id, item_id, type, quantity_delta_scaled, reference_type, reference_id,
@@ -243,7 +249,8 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
       timestamp,
       id,
     );
-    if (updatedInvoice.changes !== 1) throw new Error('Invoice finalization did not complete.');
+    if (updatedInvoice.changes !== 1)
+      throw new Error("Invoice finalization did not complete.");
 
     const numbering = await transaction.runAsync(
       `UPDATE business_settings SET next_invoice_number = next_invoice_number + 1,
@@ -252,7 +259,8 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
       business.id,
       business.next_invoice_number,
     );
-    if (numbering.changes !== 1) throw new Error('Invoice number allocation did not complete.');
+    if (numbering.changes !== 1)
+      throw new Error("Invoice number allocation did not complete.");
     return { invoiceNumber, alreadyFinalized: false };
   });
 }
@@ -265,10 +273,12 @@ export async function cancelFinalizedInvoice(id: string): Promise<boolean> {
        FROM invoices WHERE id = ?`,
       id,
     );
-    if (!invoice) throw new Error('Invoice is unavailable.');
-    if (invoice.status === 'cancelled') return false;
-    if (invoice.status !== 'finalized') throw new Error('Only an unpaid finalized invoice can be cancelled.');
-    if (invoice.paid_paise !== 0) throw new Error('An invoice with payments cannot be cancelled.');
+    if (!invoice) throw new Error("Invoice is unavailable.");
+    if (invoice.status === "cancelled") return false;
+    if (invoice.status !== "finalized")
+      throw new Error("Only an unpaid finalized invoice can be cancelled.");
+    if (invoice.paid_paise !== 0)
+      throw new Error("An invoice with payments cannot be cancelled.");
 
     const movements = await transaction.getAllAsync<StockMovementRow>(
       `SELECT item_id, quantity_delta_scaled FROM stock_movements
@@ -278,9 +288,10 @@ export async function cancelFinalizedInvoice(id: string): Promise<boolean> {
     const timestamp = new Date().toISOString();
     for (const movement of movements) {
       const reversalQuantity = -movement.quantity_delta_scaled;
-      if (reversalQuantity <= 0) throw new Error('Stock reversal quantity is invalid.');
+      if (reversalQuantity <= 0)
+        throw new Error("Stock reversal quantity is invalid.");
       await transaction.runAsync(
-        'UPDATE items SET current_stock_scaled = current_stock_scaled + ?, updated_at = ? WHERE id = ?',
+        "UPDATE items SET current_stock_scaled = current_stock_scaled + ?, updated_at = ? WHERE id = ?",
         reversalQuantity,
         timestamp,
         movement.item_id,
@@ -304,7 +315,8 @@ export async function cancelFinalizedInvoice(id: string): Promise<boolean> {
       timestamp,
       id,
     );
-    if (result.changes !== 1) throw new Error('Invoice cancellation did not complete.');
+    if (result.changes !== 1)
+      throw new Error("Invoice cancellation did not complete.");
     return true;
   });
 }
@@ -326,6 +338,7 @@ export async function loadFinalizedInvoiceSummary(
      FROM invoice_items WHERE invoice_id = ? ORDER BY sort_order ASC`,
     id,
   );
+  const verticalDetails = await loadVerticalDetails(id);
   return {
     id: row.id,
     invoiceNumber: row.invoice_number,
@@ -340,6 +353,7 @@ export async function loadFinalizedInvoiceSummary(
     roundingPaise: row.rounding_paise,
     totalPaise: row.total_paise,
     paidPaise: row.paid_paise,
+    verticalDetails,
     lines: lineRows.map((line) => ({
       description: line.description_snapshot,
       quantityScaled: line.quantity_scaled,

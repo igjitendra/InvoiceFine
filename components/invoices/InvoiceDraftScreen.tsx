@@ -32,6 +32,13 @@ import type { InvoiceDraftLine } from "@/types/invoice-draft";
 import type { InvoiceKind } from "@/types/invoice";
 
 import { SelectionModal, type SelectionOption } from "./SelectionModal";
+import { VerticalDetailsCard } from "./VerticalDetailsCard";
+import { getCurrentWorkflow } from "@/db/repositories/vertical-invoice-details";
+import {
+  createEmptyVerticalDetails,
+  type VerticalDetailKey,
+  type VerticalInvoiceDetails,
+} from "@/types/vertical-workflow";
 
 type DraftFormValues = {
   kind: InvoiceKind;
@@ -111,6 +118,8 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
     null,
   );
   const [lines, setLines] = useState<EditableLine[]>([]);
+  const [verticalDetails, setVerticalDetails] =
+    useState<VerticalInvoiceDetails | null>(null);
   const [businessStateCode, setBusinessStateCode] = useState<string | null>(
     null,
   );
@@ -145,6 +154,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       getInvoiceDraftBusinessStateCode(),
       listRecentlySoldItemIds(),
       draftId ? loadInvoiceDraft(draftId) : Promise.resolve(null),
+      getCurrentWorkflow(),
     ])
       .then(
         ([
@@ -153,6 +163,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           stateCode,
           loadedRecentItemIds,
           draft,
+          workflow,
         ]) => {
           if (!active) return;
           setCustomers(loadedCustomers);
@@ -164,6 +175,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
             return;
           }
           if (draft) {
+            setVerticalDetails(
+              draft.verticalDetails ??
+                (workflow === "general"
+                  ? null
+                  : createEmptyVerticalDetails(workflow)),
+            );
             setSelectedCustomer(
               loadedCustomers.find(
                 (customer) => customer.id === draft.customerId,
@@ -178,6 +195,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
               dueDate: draft.dueDate ?? "",
               notes: draft.notes ?? "",
             });
+          } else {
+            setVerticalDetails(
+              workflow === "general"
+                ? null
+                : createEmptyVerticalDetails(workflow),
+            );
           }
         },
       )
@@ -322,6 +345,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
         dueDate: values.dueDate.trim() || null,
         notes: values.notes.trim() || null,
         lines: parsedLines,
+        verticalDetails,
       });
       Alert.alert(
         strings.invoiceDrafts.savedTitle,
@@ -610,6 +634,16 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
             ))
           )}
         </Card>
+        {verticalDetails ? (
+          <VerticalDetailsCard
+            details={verticalDetails}
+            onChange={(key: VerticalDetailKey, value: string) =>
+              setVerticalDetails((current) =>
+                current ? { ...current, [key]: value } : current,
+              )
+            }
+          />
+        ) : null}
         <Card style={styles.card}>
           <Text style={styles.section}>{strings.invoiceDrafts.totals}</Text>
           {calculation ? (
@@ -794,7 +828,7 @@ function createStyles(palette: AppPalette) {
       backgroundColor: palette.primarySoft,
       borderRadius: theme.radii.small,
     },
-    linkText: { color: palette.primary, ...theme.typography.label },
+    linkText: { color: palette.primarySoftText, ...theme.typography.label },
     itemCount: { color: palette.muted, ...theme.typography.caption },
     helper: { color: palette.muted, ...theme.typography.secondary },
     line: {

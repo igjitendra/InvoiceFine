@@ -1,10 +1,11 @@
-import type { InvoiceRecordStatus } from './invoice-finalization';
-import type { InvoiceKind } from './invoice';
+import type { InvoiceRecordStatus } from "./invoice-finalization";
+import type { InvoiceKind } from "./invoice";
+import type { VerticalInvoiceDetails } from "./vertical-workflow";
 
 export type InvoiceDraftLine = {
   id: string;
   itemId: string | null;
-  itemType: 'product' | 'service';
+  itemType: "product" | "service";
   description: string;
   sku: string | null;
   unitName: string | null;
@@ -26,6 +27,7 @@ export type InvoiceDraft = {
   notes: string | null;
   businessStateCode: string | null;
   lines: InvoiceDraftLine[];
+  verticalDetails: VerticalInvoiceDetails | null;
 };
 
 export type InvoiceDraftInput = {
@@ -36,6 +38,7 @@ export type InvoiceDraftInput = {
   dueDate: string | null;
   notes: string | null;
   lines: InvoiceDraftLine[];
+  verticalDetails: VerticalInvoiceDetails | null;
 };
 
 export type InvoiceDraftListItem = {

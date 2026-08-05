@@ -168,7 +168,7 @@ function createStyles(palette: AppPalette) {
     },
     option: { color: palette.text, ...theme.typography.body },
     recent: {
-      color: palette.primary,
+      color: palette.primarySoftText,
       backgroundColor: palette.primarySoft,
       paddingHorizontal: theme.spacing[2],
       paddingVertical: 2,
