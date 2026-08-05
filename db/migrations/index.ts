@@ -1,9 +1,10 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { SQLiteDatabase } from "expo-sqlite";
 
-import type { MigrationRecord } from '@/types/database';
+import type { MigrationRecord } from "@/types/database";
 
-import { initialSchemaMigration } from './0001-initial-schema';
-import { invoicePageSizeMigration } from './0002-invoice-page-size';
+import { initialSchemaMigration } from "./0001-initial-schema";
+import { invoicePageSizeMigration } from "./0002-invoice-page-size";
+import { premiumOnboardingMigration } from "./0003-premium-onboarding";
 
 export type DatabaseMigration = {
   name: string;
@@ -11,7 +12,11 @@ export type DatabaseMigration = {
   version: number;
 };
 
-const migrations: readonly DatabaseMigration[] = [initialSchemaMigration, invoicePageSizeMigration];
+const migrations: readonly DatabaseMigration[] = [
+  initialSchemaMigration,
+  invoicePageSizeMigration,
+  premiumOnboardingMigration,
+];
 
 const migrationTableSql = `
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -25,7 +30,7 @@ export async function runMigrations(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(migrationTableSql);
 
   const appliedMigrations = await database.getAllAsync<MigrationRecord>(
-    'SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC',
+    "SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC",
   );
   const appliedVersions = new Set(
     appliedMigrations.map((migration: MigrationRecord) => migration.version),
@@ -38,15 +43,17 @@ export async function runMigrations(database: SQLiteDatabase): Promise<void> {
 
     await database.withExclusiveTransactionAsync(
       async (transaction: SQLiteDatabase) => {
-      await transaction.execAsync(migration.sql);
-      await transaction.runAsync(
-        `INSERT INTO schema_migrations (version, name, applied_at)
+        await transaction.execAsync(migration.sql);
+        await transaction.runAsync(
+          `INSERT INTO schema_migrations (version, name, applied_at)
          VALUES (?, ?, ?)`,
-        migration.version,
-        migration.name,
-        new Date().toISOString(),
-      );
-        await transaction.execAsync(`PRAGMA user_version = ${migration.version}`);
+          migration.version,
+          migration.name,
+          new Date().toISOString(),
+        );
+        await transaction.execAsync(
+          `PRAGMA user_version = ${migration.version}`,
+        );
       },
     );
   }

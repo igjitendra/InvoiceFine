@@ -1,1 +1,5 @@
-import{useColorScheme}from'react-native';export type ChartPalette={dark:boolean;background:string;surface:string;surfaceVariant:string;text:string;muted:string;border:string;primary:string;positive:string;warning:string;danger:string;colors:string[]};export function useChartPalette():ChartPalette{const dark=useColorScheme()==='dark';return{dark,background:dark?'#0F172A':'#F6F7F9',surface:dark?'#172033':'#FFFFFF',surfaceVariant:dark?'#26344D':'#EEF2F7',text:dark?'#F8FAFC':'#111827',muted:dark?'#CBD5E1':'#64748B',border:dark?'#475569':'#E2E8F0',primary:dark?'#60A5FA':'#2563EB',positive:dark?'#4ADE80':'#16A34A',warning:dark?'#FBBF24':'#D97706',danger:dark?'#FB7185':'#DC2626',colors:dark?['#60A5FA','#4ADE80','#FBBF24','#C084FC','#FB7185','#22D3EE','#F472B6','#94A3B8']:['#2563EB','#16A34A','#F59E0B','#7C3AED','#DC2626','#0891B2','#DB2777','#64748B']}}
+import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
+export type ChartPalette = AppPalette;
+export function useChartPalette(): ChartPalette {
+  return useAppPalette();
+}

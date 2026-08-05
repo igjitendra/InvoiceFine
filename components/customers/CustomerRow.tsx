@@ -1,8 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 
-import { theme } from '@/constants/theme';
-import type { Customer } from '@/types/customer';
+import { PressableScale } from "@/components/ui/PressableScale";
+import { theme } from "@/constants/theme";
+import { useAppPalette } from "@/hooks/useAppPalette";
+import type { Customer } from "@/types/customer";
 
 type CustomerRowProps = {
   customer: Customer;
@@ -10,36 +12,65 @@ type CustomerRowProps = {
 };
 
 export function CustomerRow({ customer, onPress }: CustomerRowProps) {
+  const palette = useAppPalette();
   const secondary = customer.phone ?? customer.email ?? customer.gstin;
+  const initial = customer.name.trim().charAt(0).toUpperCase();
+
   return (
-    <Pressable
+    <PressableScale
+      haptic="selection"
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      wrapperStyle={styles.wrapper}
+      style={[
+        styles.row,
+        { backgroundColor: palette.surface, borderColor: palette.border },
+      ]}
     >
-      <View style={styles.copy}>
-        <Text numberOfLines={1} style={styles.name}>{customer.name}</Text>
-        {secondary ? <Text numberOfLines={1} style={styles.secondary}>{secondary}</Text> : null}
+      <View style={[styles.avatar, { backgroundColor: palette.primarySoft }]}>
+        <Text style={[styles.avatarText, { color: palette.primary }]}>
+          {initial}
+        </Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-    </Pressable>
+      <View style={styles.copy}>
+        <Text numberOfLines={1} style={[styles.name, { color: palette.text }]}>
+          {customer.name}
+        </Text>
+        {secondary ? (
+          <Text
+            numberOfLines={1}
+            style={[styles.secondary, { color: palette.muted }]}
+          >
+            {secondary}
+          </Text>
+        ) : null}
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={palette.muted} />
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: { marginHorizontal: 16, marginBottom: 10 },
   row: {
-    minHeight: 72,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing[3],
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
-    backgroundColor: theme.colors.surface,
-    borderBottomColor: theme.colors.border,
-    borderBottomWidth: theme.layout.borderWidth,
+    minHeight: 82,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderRadius: 20,
   },
-  pressed: { backgroundColor: theme.colors.primarySoft },
-  copy: { flex: 1, gap: theme.spacing[1] },
-  name: { color: theme.colors.textPrimary, ...theme.typography.body },
-  secondary: { color: theme.colors.textSecondary, ...theme.typography.secondary },
+  avatar: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 17,
+  },
+  avatarText: { fontSize: 20, lineHeight: 25, fontWeight: "700" },
+  copy: { flex: 1, gap: 3 },
+  name: { ...theme.typography.body, fontWeight: "700" },
+  secondary: { ...theme.typography.secondary },
 });

@@ -1,7 +1,6 @@
-import { useChartPalette, type ChartPalette } from '@/components/charts/palette';
-
-export type AppPalette = ChartPalette;
-
+import { useColorScheme } from "react-native";
+import { createAppPalette, type AppPalette } from "@/constants/palette";
+export type { AppPalette } from "@/constants/palette";
 export function useAppPalette(): AppPalette {
-  return useChartPalette();
+  return createAppPalette(useColorScheme() === "dark");
 }

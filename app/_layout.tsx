@@ -1,25 +1,29 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, useColorScheme } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { DatabaseStartupState } from '@/components/ui/DatabaseStartupState';
-import { theme } from '@/constants/theme';
-import { useDatabaseInitialization } from '@/hooks/useDatabaseInitialization';
+import { AppErrorBoundary } from "@/components/ui/AppErrorBoundary";
+import { DatabaseStartupState } from "@/components/ui/DatabaseStartupState";
+import { useAppPalette } from "@/hooks/useAppPalette";
+import { useDatabaseInitialization } from "@/hooks/useDatabaseInitialization";
 
 function RootNavigator() {
   const { retry, status } = useDatabaseInitialization();
-  if (status !== 'ready') return <DatabaseStartupState onRetry={retry} status={status} />;
+  if (status !== "ready")
+    return <DatabaseStartupState onRetry={retry} status={status} />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 export default function RootLayout() {
-  const dark = useColorScheme() === 'dark';
-  const backgroundColor = dark ? '#0F172A' : theme.colors.surface;
+  const palette = useAppPalette();
+  const backgroundColor = palette.background;
   return (
     <SafeAreaProvider style={[styles.provider, { backgroundColor }]}>
-      <StatusBar style={dark ? 'light' : 'dark'} />
-      <RootNavigator />
+      <StatusBar style={palette.dark ? "light" : "dark"} />
+      <AppErrorBoundary>
+        <RootNavigator />
+      </AppErrorBoundary>
     </SafeAreaProvider>
   );
 }

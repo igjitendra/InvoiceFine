@@ -1,1 +1,33 @@
-import{StyleSheet,View}from'react-native';import{SkeletonBlock,SkeletonPulse}from'@/components/ui/Skeleton';export function CatalogSkeleton(){return <SkeletonPulse style={styles.root}>{[0,1,2,3].map(x=><View key={x} style={styles.card}><SkeletonBlock width={52} height={52} radius={16}/><View style={styles.copy}><View style={styles.row}><SkeletonBlock width="54%" height={20}/><SkeletonBlock width="25%" height={20}/></View><SkeletonBlock width="72%" height={14}/><SkeletonBlock width="60%" height={28} radius={99}/></View></View>)}</SkeletonPulse>}const styles=StyleSheet.create({root:{paddingTop:4,paddingBottom:120,gap:12},card:{minHeight:126,marginHorizontal:16,padding:16,flexDirection:'row',gap:12},copy:{flex:1,gap:10},row:{flexDirection:'row',justifyContent:'space-between'}});
+import { StyleSheet, View } from "react-native";
+import { SkeletonBlock, SkeletonPulse } from "@/components/ui/Skeleton";
+export function CatalogSkeleton() {
+  return (
+    <SkeletonPulse style={styles.root}>
+      {[0, 1, 2, 3].map((x) => (
+        <View key={x} style={styles.card}>
+          <SkeletonBlock width={52} height={52} radius={16} />
+          <View style={styles.copy}>
+            <View style={styles.row}>
+              <SkeletonBlock width="54%" height={20} />
+              <SkeletonBlock width="25%" height={20} />
+            </View>
+            <SkeletonBlock width="72%" height={14} />
+            <SkeletonBlock width="60%" height={28} radius={99} />
+          </View>
+        </View>
+      ))}
+    </SkeletonPulse>
+  );
+}
+const styles = StyleSheet.create({
+  root: { paddingTop: 4, paddingBottom: 120, gap: 12 },
+  card: {
+    minHeight: 126,
+    marginHorizontal: 16,
+    padding: 16,
+    flexDirection: "row",
+    gap: 12,
+  },
+  copy: { flex: 1, gap: 10 },
+  row: { flexDirection: "row", justifyContent: "space-between" },
+});

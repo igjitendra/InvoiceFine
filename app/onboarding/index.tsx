@@ -1,5 +1,5 @@
-import { BusinessProfileForm } from '@/components/forms/BusinessProfileForm';
+import { PremiumOnboarding } from "@/components/onboarding/PremiumOnboarding";
 
-export default function OnboardingScreen() {
-  return <BusinessProfileForm />;
+export default function OnboardingRoute() {
+  return <PremiumOnboarding />;
 }

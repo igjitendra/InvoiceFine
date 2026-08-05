@@ -1,31 +1,40 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState, type ComponentProps } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState, type ComponentProps } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Card } from '@/components/ui/Card';
-import { DashboardSkeleton } from './DashboardSkeleton';
-import { FadeInView } from '@/components/ui/FadeInView';
-import { PressableScale } from '@/components/ui/PressableScale';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Input } from '@/components/ui/Input';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { routes } from '@/constants/routes';
-import { strings } from '@/constants/strings';
-import { theme } from '@/constants/theme';
-import { loadDashboardData } from '@/db/repositories/dashboard';
-import { formatPaise } from '@/lib/currency';
-import { scaledToInput } from '@/lib/quantity';
-import type { DashboardData, DashboardPeriod } from '@/types/dashboard';
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { FadeInView } from "@/components/ui/FadeInView";
+import { Input } from "@/components/ui/Input";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { routes } from "@/constants/routes";
+import { strings } from "@/constants/strings";
+import { theme } from "@/constants/theme";
+import { loadDashboardData } from "@/db/repositories/dashboard";
+import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
+import { formatPaise } from "@/lib/currency";
+import { scaledToInput } from "@/lib/quantity";
+import type { DashboardData, DashboardPeriod } from "@/types/dashboard";
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
+type IconName = ComponentProps<typeof Ionicons>["name"];
+type MetricTone = "primary" | "positive" | "warning" | "purple";
 
-function today() { return new Date().toISOString().slice(0, 10); }
-function monthStart() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`; }
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function monthStart() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+}
 
 export function DashboardScreen() {
+  const palette = useAppPalette();
   const router = useRouter();
-  const [period, setPeriod] = useState<DashboardPeriod>('today');
+  const [period, setPeriod] = useState<DashboardPeriod>("today");
   const [start, setStart] = useState(today());
   const [end, setEnd] = useState(today());
   const [data, setData] = useState<DashboardData | null>(null);
@@ -34,102 +43,553 @@ export function DashboardScreen() {
   const [attempt, setAttempt] = useState(0);
 
   const load = useCallback(async () => {
-    setLoading(true); setError(false);
-    try { setData(await loadDashboardData(start, end)); }
-    catch { setError(true); }
-    finally { setLoading(false); }
-  }, [start, end, attempt]);
+    setLoading(true);
+    setError(false);
+    try {
+      setData(await loadDashboardData(start, end));
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [attempt, end, start]);
 
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  useFocusEffect(useCallback(() => void load(), [load]));
 
   function choose(next: DashboardPeriod) {
     setPeriod(next);
-    if (next === 'today') { setStart(today()); setEnd(today()); }
-    if (next === 'month') { setStart(monthStart()); setEnd(today()); }
+    if (next === "today") {
+      setStart(today());
+      setEnd(today());
+    } else if (next === "month") {
+      setStart(monthStart());
+      setEnd(today());
+    }
   }
 
   if (loading && !data) return <DashboardSkeleton />;
-  if (error && !data) return <ScreenContainer scroll={false}><EmptyState title={strings.reports.errorTitle} description={strings.reports.errorDescription} icon="warning-outline" actionLabel={strings.common.retry} onAction={() => setAttempt((value) => value + 1)} /></ScreenContainer>;
+  if (error && !data) {
+    return (
+      <ScreenContainer scroll={false}>
+        <EmptyState
+          title={strings.reports.errorTitle}
+          description={strings.reports.errorDescription}
+          icon="warning-outline"
+          actionLabel={strings.common.retry}
+          onAction={() => setAttempt((value) => value + 1)}
+        />
+      </ScreenContainer>
+    );
+  }
 
   const totals = data?.totals;
+
   return (
-    <ScreenContainer contentContainerStyle={styles.content}>
-      <FadeInView style={styles.animatedContent}>
-      <View style={styles.brandHeader}>
-        <View style={styles.brandMark}><Ionicons name="receipt" size={24} color={theme.colors.textOnPrimary} /></View>
-        <View style={styles.brandCopy}><Text style={styles.brand}>{strings.ux.brand}</Text><Text style={styles.tagline}>{strings.ux.tagline}</Text></View>
-      </View>
+    <ScreenContainer>
+      <FadeInView style={styles.content}>
+        <View style={styles.header}>
+          <View
+            style={[styles.brandMark, { backgroundColor: palette.primary }]}
+          >
+            <Ionicons name="receipt" size={26} color={palette.textOnPrimary} />
+          </View>
+          <View style={styles.headerCopy}>
+            <Text style={[styles.title, { color: palette.text }]}>
+              {strings.ux.brand}
+            </Text>
+            <Text style={[styles.subtitle, { color: palette.muted }]}>
+              {strings.ux.tagline}
+            </Text>
+          </View>
+        </View>
 
-      <PressableScale accessibilityRole="button" onPress={() => router.push(routes.invoiceNew)} style={styles.heroAction}>
-        <View style={styles.heroIcon}><Ionicons name="add" size={30} color={theme.colors.primary} /></View>
-        <View style={styles.heroCopy}><Text style={styles.heroTitle}>{strings.ux.createInvoice}</Text><Text style={styles.heroCaption}>Fast billing, stock update and professional PDF</Text></View>
-        <Ionicons name="arrow-forward" size={24} color={theme.colors.textOnPrimary} />
-      </PressableScale>
+        <PressableScale
+          haptic="medium"
+          accessibilityRole="button"
+          onPress={() => router.push(routes.invoiceNew)}
+          style={[styles.hero, { backgroundColor: palette.primary }]}
+        >
+          <View
+            style={[
+              styles.heroIcon,
+              { backgroundColor: palette.textOnPrimary },
+            ]}
+          >
+            <Ionicons name="add" size={30} color={palette.primary} />
+          </View>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroTitle}>{strings.ux.createInvoice}</Text>
+            <Text style={styles.heroCaption}>
+              {strings.ux.dashboardHeroDescription}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={26} color="#FFFFFF" />
+        </PressableScale>
 
-      <Text style={styles.sectionTitle}>{strings.ux.quickActions}</Text>
-      <View style={styles.quickGrid}>
-        <QuickAction icon="person-add-outline" label={strings.ux.addCustomer} onPress={() => router.push(routes.customerNew)} />
-        <QuickAction icon="cube-outline" label={strings.ux.addProduct} onPress={() => router.push(routes.catalogItemNew)} />
-        <QuickAction icon="time-outline" label={strings.ux.pendingPayments} badge={totals?.receivablesPaise ? formatPaise(totals.receivablesPaise) : undefined} onPress={() => router.push(routes.invoices)} />
-      </View>
+        <Text style={[styles.sectionTitle, { color: palette.text }]}>
+          {strings.ux.quickActions}
+        </Text>
+        <View style={styles.quickGrid}>
+          <QuickAction
+            icon="person-add-outline"
+            label={strings.ux.addCustomer}
+            onPress={() => router.push(routes.customerNew)}
+          />
+          <QuickAction
+            icon="cube-outline"
+            label={strings.ux.addProduct}
+            onPress={() => router.push(routes.catalogItemNew)}
+          />
+          <QuickAction
+            icon="time-outline"
+            label={strings.ux.pendingPayments}
+            badge={
+              totals?.receivablesPaise
+                ? formatPaise(totals.receivablesPaise)
+                : undefined
+            }
+            onPress={() => router.push(routes.invoices)}
+          />
+        </View>
 
-      <View style={styles.periods}>
-        {(['today', 'month', 'custom'] as DashboardPeriod[]).map((item) => (
-          <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: period === item }} onPress={() => choose(item)} style={[styles.period, period === item && styles.periodActive]}>
-            <Text style={[styles.periodText, period === item && styles.periodTextActive]}>{strings.reports[item]}</Text>
-          </Pressable>
-        ))}
-      </View>
+        <View
+          style={[styles.periods, { backgroundColor: palette.surfaceVariant }]}
+        >
+          {(["today", "month", "custom"] as DashboardPeriod[]).map((item) => {
+            const selected = period === item;
+            return (
+              <Pressable
+                key={item}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => choose(item)}
+                style={[
+                  styles.period,
+                  selected && { backgroundColor: palette.primary },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.periodText,
+                    { color: selected ? "#FFFFFF" : palette.muted },
+                  ]}
+                >
+                  {strings.reports[item]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-      {period === 'custom' ? <Card style={styles.customCard}><Input label={strings.reports.startDate} value={start} onChangeText={setStart} /><Input label={strings.reports.endDate} value={end} onChangeText={setEnd} /><Pressable accessibilityRole="button" onPress={() => void load()}><Text style={styles.link}>{strings.reports.apply}</Text></Pressable></Card> : null}
+        {period === "custom" ? (
+          <Card style={styles.customCard}>
+            <Input
+              label={strings.reports.startDate}
+              value={start}
+              onChangeText={setStart}
+            />
+            <Input
+              label={strings.reports.endDate}
+              value={end}
+              onChangeText={setEnd}
+            />
+            <Pressable accessibilityRole="button" onPress={() => void load()}>
+              <Text style={[styles.link, { color: palette.primary }]}>
+                {strings.reports.apply}
+              </Text>
+            </Pressable>
+          </Card>
+        ) : null}
 
-      <View style={styles.metricGrid}>
-        <Metric icon="wallet-outline" label={period === 'today' ? "Today's sales" : strings.reports.sales} value={formatPaise(totals?.salesPaise ?? 0)} tone="blue" />
-        <Metric icon="cash-outline" label={strings.reports.received} value={formatPaise(totals?.receivedPaise ?? 0)} tone="green" />
-        <Metric icon="time-outline" label={strings.reports.receivables} value={formatPaise(totals?.receivablesPaise ?? 0)} tone="amber" onPress={() => router.push(routes.invoices)} />
-        <Metric icon="trending-up-outline" label={strings.reports.net} value={formatPaise(totals?.netProfitPaise ?? 0)} tone="purple" />
-      </View>
+        <View style={styles.metricGrid}>
+          <Metric
+            icon="wallet-outline"
+            label={period === "today" ? "Today's sales" : strings.reports.sales}
+            value={formatPaise(totals?.salesPaise ?? 0)}
+            tone="primary"
+          />
+          <Metric
+            icon="cash-outline"
+            label={strings.reports.received}
+            value={formatPaise(totals?.receivedPaise ?? 0)}
+            tone="positive"
+          />
+          <Metric
+            icon="time-outline"
+            label={strings.reports.receivables}
+            value={formatPaise(totals?.receivablesPaise ?? 0)}
+            tone="warning"
+            onPress={() => router.push(routes.invoices)}
+          />
+          <Metric
+            icon="trending-up-outline"
+            label={strings.reports.net}
+            value={formatPaise(totals?.netProfitPaise ?? 0)}
+            tone="purple"
+          />
+        </View>
 
-      <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>{strings.reports.recentInvoices}</Text><Pressable accessibilityRole="button" onPress={() => router.push(routes.invoices)}><Text style={styles.link}>{strings.ux.viewAll}</Text></Pressable></View>
-      <Card style={styles.listCard}>
-        {data?.recentInvoices.length ? data.recentInvoices.map((invoice, index) => (
-          <Pressable key={invoice.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/invoice/[id]', params: { id: invoice.id } })} style={[styles.listRow, index > 0 && styles.divider]}>
-            <View style={styles.rowIcon}><Ionicons name="document-text-outline" size={20} color={theme.colors.primary} /></View>
-            <View style={styles.rowCopy}><Text style={styles.rowTitle}>{invoice.invoiceNumber}</Text><Text style={styles.rowMeta}>{invoice.customerName ?? 'Cash customer'} · {invoice.invoiceDate}</Text></View>
-            <View style={styles.rowEnd}><Text style={styles.rowAmount}>{formatPaise(invoice.totalPaise)}</Text><Ionicons name="chevron-forward" size={18} color={theme.colors.disabled} /></View>
-          </Pressable>
-        )) : <Text style={styles.emptyText}>{strings.reports.noInvoices}</Text>}
-      </Card>
+        <SectionHeader
+          title={strings.reports.recentInvoices}
+          onPress={() => router.push(routes.invoices)}
+        />
+        <Card style={styles.listCard}>
+          {data?.recentInvoices.length ? (
+            data.recentInvoices.map((invoice, index) => (
+              <Pressable
+                key={invoice.id}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/invoice/[id]",
+                    params: { id: invoice.id },
+                  })
+                }
+                style={[
+                  styles.listRow,
+                  index > 0 && {
+                    borderTopWidth: 1,
+                    borderTopColor: palette.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.rowIcon,
+                    { backgroundColor: palette.primarySoft },
+                  ]}
+                >
+                  <Ionicons
+                    name="document-text-outline"
+                    size={21}
+                    color={palette.primary}
+                  />
+                </View>
+                <View style={styles.rowCopy}>
+                  <Text style={[styles.rowTitle, { color: palette.text }]}>
+                    {invoice.invoiceNumber}
+                  </Text>
+                  <Text style={[styles.rowMeta, { color: palette.muted }]}>
+                    {invoice.customerName ?? "Cash customer"} ·{" "}
+                    {invoice.invoiceDate}
+                  </Text>
+                </View>
+                <Text style={[styles.rowAmount, { color: palette.text }]}>
+                  {formatPaise(invoice.totalPaise)}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={palette.muted}
+                />
+              </Pressable>
+            ))
+          ) : (
+            <Text style={[styles.emptyText, { color: palette.muted }]}>
+              {strings.reports.noInvoices}
+            </Text>
+          )}
+        </Card>
 
-      <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>{strings.ux.needsAttention}</Text><Pressable accessibilityRole="button" onPress={() => router.push(routes.catalog)}><Text style={styles.link}>{strings.ux.viewAll}</Text></Pressable></View>
-      <Card style={styles.listCard}>
-        {data?.lowStockItems.length ? data.lowStockItems.map((item, index) => (
-          <Pressable key={item.id} accessibilityRole="button" onPress={() => router.push({ pathname: '/catalog-item/[id]', params: { id: item.id } })} style={[styles.listRow, index > 0 && styles.divider]}>
-            <View style={[styles.rowIcon, styles.warningIcon]}><Ionicons name="alert-outline" size={20} color={theme.colors.warning} /></View>
-            <View style={styles.rowCopy}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowMeta}>Low-stock threshold {scaledToInput(item.thresholdScaled)}</Text></View>
-            <Text style={styles.stockText}>{scaledToInput(item.currentStockScaled)} {item.unitName ?? ''} {strings.ux.stockLeft}</Text>
-          </Pressable>
-        )) : <Text style={styles.emptyText}>{strings.reports.noLowStock}</Text>}
-      </Card>
+        <SectionHeader
+          title={strings.ux.needsAttention}
+          onPress={() => router.push(routes.catalog)}
+        />
+        <Card style={styles.listCard}>
+          {data?.lowStockItems.length ? (
+            data.lowStockItems.map((item, index) => (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/catalog-item/[id]",
+                    params: { id: item.id },
+                  })
+                }
+                style={[
+                  styles.listRow,
+                  index > 0 && {
+                    borderTopWidth: 1,
+                    borderTopColor: palette.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.rowIcon,
+                    { backgroundColor: palette.dark ? "#3D3018" : "#FFF1D6" },
+                  ]}
+                >
+                  <Ionicons
+                    name="alert-outline"
+                    size={21}
+                    color={palette.warning}
+                  />
+                </View>
+                <View style={styles.rowCopy}>
+                  <Text style={[styles.rowTitle, { color: palette.text }]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.rowMeta, { color: palette.muted }]}>
+                    Low-stock threshold {scaledToInput(item.thresholdScaled)}
+                  </Text>
+                </View>
+                <Text style={[styles.stock, { color: palette.warning }]}>
+                  {scaledToInput(item.currentStockScaled)} {item.unitName ?? ""}
+                </Text>
+              </Pressable>
+            ))
+          ) : (
+            <Text style={[styles.emptyText, { color: palette.muted }]}>
+              {strings.reports.noLowStock}
+            </Text>
+          )}
+        </Card>
       </FadeInView>
     </ScreenContainer>
   );
 }
 
-function QuickAction({ icon, label, badge, onPress }: { icon: IconName; label: string; badge?: string; onPress: () => void }) {
-  return <PressableScale accessibilityRole="button" onPress={onPress} wrapperStyle={styles.quickWrapper} style={styles.quickAction}><View style={styles.quickIcon}><Ionicons name={icon} size={22} color={theme.colors.primary} /></View><Text style={styles.quickLabel}>{label}</Text>{badge ? <Text numberOfLines={1} style={styles.quickBadge}>{badge}</Text> : null}</PressableScale>;
+function SectionHeader({
+  title,
+  onPress,
+}: {
+  title: string;
+  onPress: () => void;
+}) {
+  const palette = useAppPalette();
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionTitle, { color: palette.text }]}>
+        {title}
+      </Text>
+      <Pressable accessibilityRole="button" onPress={onPress}>
+        <Text style={[styles.link, { color: palette.primary }]}>
+          {strings.ux.viewAll}
+        </Text>
+      </Pressable>
+    </View>
+  );
 }
-function Metric({ icon, label, value, tone, onPress }: { icon: IconName; label: string; value: string; tone: 'blue' | 'green' | 'amber' | 'purple'; onPress?: () => void }) {
-  const body = <><View style={[styles.metricIcon, styles[`${tone}Tone`]]}><Ionicons name={icon} size={20} color={styles[`${tone}Text`].color} /></View><Text style={styles.metricLabel}>{label}</Text><Text numberOfLines={1} adjustsFontSizeToFit style={styles.metricValue}>{value}</Text></>;
-  return onPress ? <Pressable accessibilityRole="button" onPress={onPress} style={styles.metric}>{body}</Pressable> : <View style={styles.metric}>{body}</View>;
+
+function QuickAction({
+  icon,
+  label,
+  badge,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  badge?: string;
+  onPress: () => void;
+}) {
+  const palette = useAppPalette();
+  return (
+    <PressableScale
+      haptic="selection"
+      accessibilityRole="button"
+      onPress={onPress}
+      wrapperStyle={styles.quickWrapper}
+      style={[
+        styles.quickAction,
+        { backgroundColor: palette.surface, borderColor: palette.border },
+      ]}
+    >
+      <View
+        style={[styles.quickIcon, { backgroundColor: palette.primarySoft }]}
+      >
+        <Ionicons name={icon} size={23} color={palette.primary} />
+      </View>
+      <Text style={[styles.quickLabel, { color: palette.text }]}>{label}</Text>
+      {badge ? (
+        <Text
+          numberOfLines={1}
+          style={[styles.quickBadge, { color: palette.warning }]}
+        >
+          {badge}
+        </Text>
+      ) : null}
+    </PressableScale>
+  );
+}
+
+function toneColors(palette: AppPalette, tone: MetricTone) {
+  if (tone === "positive")
+    return {
+      color: palette.positive,
+      soft: palette.dark ? "#17382B" : "#E3F5EC",
+    };
+  if (tone === "warning")
+    return {
+      color: palette.warning,
+      soft: palette.dark ? "#3D3018" : "#FFF1D6",
+    };
+  if (tone === "purple")
+    return {
+      color: palette.dark ? "#C084FC" : "#7C3AED",
+      soft: palette.dark ? "#352348" : "#F1E8FF",
+    };
+  return { color: palette.primary, soft: palette.primarySoft };
+}
+
+function Metric({
+  icon,
+  label,
+  value,
+  tone,
+  onPress,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  tone: MetricTone;
+  onPress?: () => void;
+}) {
+  const palette = useAppPalette();
+  const colors = toneColors(palette, tone);
+  const body = (
+    <>
+      <View style={[styles.metricIcon, { backgroundColor: colors.soft }]}>
+        <Ionicons name={icon} size={21} color={colors.color} />
+      </View>
+      <Text style={[styles.metricLabel, { color: palette.muted }]}>
+        {label}
+      </Text>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={[styles.metricValue, { color: palette.text }]}
+      >
+        {value}
+      </Text>
+    </>
+  );
+  const cardStyle = [
+    styles.metric,
+    { backgroundColor: palette.surface, borderColor: palette.border },
+  ];
+  return onPress ? (
+    <Pressable accessibilityRole="button" onPress={onPress} style={cardStyle}>
+      {body}
+    </Pressable>
+  ) : (
+    <View style={cardStyle}>{body}</View>
+  );
 }
 
 const styles = StyleSheet.create({
-  content: { gap: theme.spacing[4] }, animatedContent: { gap: theme.spacing[4] }, brandHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing[3] }, brandMark: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.primary }, brandCopy: { flex: 1 }, brand: { color: theme.colors.textPrimary, fontSize: 26, lineHeight: 32, fontWeight: '700' }, tagline: { color: theme.colors.textSecondary, ...theme.typography.secondary },
-  heroAction: { minHeight: 104, padding: theme.spacing[4], flexDirection: 'row', alignItems: 'center', gap: theme.spacing[3], backgroundColor: theme.colors.primary, borderRadius: 20 }, heroPressed: { backgroundColor: theme.colors.primaryPressed }, heroIcon: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.surface }, heroCopy: { flex: 1 }, heroTitle: { color: theme.colors.textOnPrimary, fontSize: 21, lineHeight: 27, fontWeight: '700' }, heroCaption: { color: '#DBEAFE', ...theme.typography.caption, marginTop: theme.spacing[1] },
-  sectionTitle: { color: theme.colors.textPrimary, ...theme.typography.sectionTitle }, sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, link: { color: theme.colors.primary, ...theme.typography.label },
-  quickGrid: { flexDirection: 'row', gap: theme.spacing[2] }, quickWrapper: { flex: 1 }, quickAction: { minHeight: 112, flex: 1, padding: theme.spacing[3], alignItems: 'center', justifyContent: 'center', gap: theme.spacing[2], backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 16 }, quickPressed: { backgroundColor: theme.colors.primarySoft }, quickIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.primarySoft }, quickLabel: { color: theme.colors.textPrimary, textAlign: 'center', ...theme.typography.label }, quickBadge: { color: theme.colors.warning, ...theme.typography.caption },
-  periods: { flexDirection: 'row', padding: theme.spacing[1], gap: theme.spacing[1], backgroundColor: theme.colors.border, borderRadius: 12 }, period: { minHeight: theme.layout.minimumTouchTarget, flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 9 }, periodActive: { backgroundColor: theme.colors.surface }, periodText: { color: theme.colors.textSecondary, ...theme.typography.label }, periodTextActive: { color: theme.colors.primary, fontWeight: '700' }, customCard: { gap: theme.spacing[3] },
-  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing[2] }, metric: { minHeight: 132, flexBasis: '47%', flexGrow: 1, padding: theme.spacing[4], backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: 18 }, metricIcon: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing[3] }, metricLabel: { color: theme.colors.textSecondary, ...theme.typography.secondary }, metricValue: { color: theme.colors.textPrimary, ...theme.typography.cardValue, marginTop: theme.spacing[1] }, blueTone: { backgroundColor: '#DBEAFE' }, blueText: { color: '#1D4ED8' }, greenTone: { backgroundColor: '#DCFCE7' }, greenText: { color: '#15803D' }, amberTone: { backgroundColor: '#FEF3C7' }, amberText: { color: '#B45309' }, purpleTone: { backgroundColor: '#F3E8FF' }, purpleText: { color: '#7E22CE' },
-  listCard: { padding: 0, overflow: 'hidden' }, listRow: { minHeight: 72, padding: theme.spacing[3], flexDirection: 'row', alignItems: 'center', gap: theme.spacing[3] }, divider: { borderTopWidth: 1, borderTopColor: theme.colors.border }, rowIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.primarySoft }, warningIcon: { backgroundColor: '#FEF3C7' }, rowCopy: { flex: 1 }, rowTitle: { color: theme.colors.textPrimary, ...theme.typography.label }, rowMeta: { color: theme.colors.textSecondary, ...theme.typography.caption, marginTop: theme.spacing[1] }, rowEnd: { alignItems: 'flex-end', flexDirection: 'row', gap: theme.spacing[1] }, rowAmount: { color: theme.colors.textPrimary, ...theme.typography.label }, stockText: { color: theme.colors.warning, ...theme.typography.label }, emptyText: { padding: theme.spacing[4], color: theme.colors.textSecondary, ...theme.typography.body },
+  content: { gap: 20 },
+  header: { flexDirection: "row", alignItems: "center", gap: 14 },
+  brandMark: {
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerCopy: { flex: 1 },
+  title: { fontSize: 34, lineHeight: 40, fontWeight: "700" },
+  subtitle: { ...theme.typography.secondary },
+  hero: {
+    minHeight: 112,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    borderRadius: 24,
+  },
+  heroIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroCopy: { flex: 1 },
+  heroTitle: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "700",
+  },
+  heroCaption: { color: "#FFE8E6", ...theme.typography.caption, marginTop: 4 },
+  sectionTitle: { ...theme.typography.sectionTitle },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  link: { ...theme.typography.label, fontWeight: "700" },
+  quickGrid: { flexDirection: "row", gap: 8 },
+  quickWrapper: { flex: 1 },
+  quickAction: {
+    minHeight: 120,
+    flex: 1,
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 20,
+  },
+  quickIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickLabel: { textAlign: "center", ...theme.typography.label },
+  quickBadge: { ...theme.typography.caption },
+  periods: { flexDirection: "row", padding: 4, gap: 4, borderRadius: 16 },
+  period: {
+    minHeight: 46,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 13,
+  },
+  periodText: { ...theme.typography.label, fontWeight: "700" },
+  customCard: { gap: 14 },
+  metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  metric: {
+    minHeight: 142,
+    flexBasis: "47%",
+    flexGrow: 1,
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 22,
+  },
+  metricIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  metricLabel: { ...theme.typography.secondary },
+  metricValue: { ...theme.typography.cardValue, marginTop: 4 },
+  listCard: { padding: 0, overflow: "hidden" },
+  listRow: {
+    minHeight: 78,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  rowIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowCopy: { flex: 1 },
+  rowTitle: { ...theme.typography.label, fontWeight: "700" },
+  rowMeta: { ...theme.typography.caption, marginTop: 3 },
+  rowAmount: { ...theme.typography.label, fontWeight: "700" },
+  stock: { ...theme.typography.label, fontWeight: "700" },
+  emptyText: { padding: 18, ...theme.typography.body },
 });

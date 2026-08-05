@@ -1,29 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import type { ComponentProps } from 'react';
-import type { ColorValue } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import type { ComponentProps } from "react";
+import type { ColorValue } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { strings } from '@/constants/strings';
-import { theme } from '@/constants/theme';
-import { useAppPalette } from '@/hooks/useAppPalette';
+import { strings } from "@/constants/strings";
+import { theme } from "@/constants/theme";
+import { useAppPalette } from "@/hooks/useAppPalette";
+import { useBusinessType } from "@/hooks/useBusinessType";
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
+type IconName = ComponentProps<typeof Ionicons>["name"];
+type IconProps = { color: ColorValue; focused: boolean; size: number };
 
-type TabIconProps = {
-  color: ColorValue;
-  focused: boolean;
-  size: number;
-};
-
-function createTabIcon(active: IconName, inactive: IconName) {
-  return function TabIcon({ color, focused, size }: TabIconProps) {
+function icon(active: IconName, inactive: IconName) {
+  return function TabIcon({ color, focused, size }: IconProps) {
     return (
-      <Ionicons
-        name={focused ? active : inactive}
-        color={color}
-        size={size}
-      />
+      <Ionicons name={focused ? active : inactive} color={color} size={size} />
     );
   };
 }
@@ -31,6 +23,13 @@ function createTabIcon(active: IconName, inactive: IconName) {
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const palette = useAppPalette();
+  const businessType = useBusinessType();
+  const catalogTitle =
+    businessType === "product"
+      ? strings.tabs.products
+      : businessType === "service"
+        ? strings.tabs.services
+        : strings.tabs.catalog;
 
   return (
     <Tabs
@@ -40,16 +39,14 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: palette.muted,
         tabBarHideOnKeyboard: true,
         tabBarLabelStyle: theme.typography.tabLabel,
-        tabBarItemStyle: {
-          minHeight: theme.layout.minimumTouchTarget,
-        },
+        tabBarItemStyle: { minHeight: 44 },
         tabBarStyle: {
-          height: theme.layout.tabBarHeight + insets.bottom,
-          paddingTop: theme.spacing[2],
-          paddingBottom: Math.max(insets.bottom, theme.spacing[2]),
+          height: 66 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 8),
           backgroundColor: palette.surface,
           borderTopColor: palette.border,
-          borderTopWidth: theme.layout.borderWidth,
+          borderTopWidth: 1,
           elevation: 0,
         },
       }}
@@ -58,37 +55,41 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: strings.tabs.dashboard,
-          tabBarIcon: createTabIcon('grid', 'grid-outline'),
+          tabBarIcon: icon("grid", "grid-outline"),
         }}
       />
       <Tabs.Screen
         name="invoices"
         options={{
           title: strings.tabs.invoices,
-          tabBarIcon: createTabIcon('document-text', 'document-text-outline'),
+          tabBarIcon: icon("document-text", "document-text-outline"),
+        }}
+      />
+      <Tabs.Screen
+        name="catalog"
+        options={{
+          title: catalogTitle,
+          tabBarIcon: icon(
+            businessType === "service" ? "construct" : "cube",
+            businessType === "service" ? "construct-outline" : "cube-outline",
+          ),
         }}
       />
       <Tabs.Screen
         name="customers"
         options={{
           title: strings.tabs.customers,
-          tabBarIcon: createTabIcon('people', 'people-outline'),
+          tabBarIcon: icon("people", "people-outline"),
         }}
       />
       <Tabs.Screen
-        name="catalog"
+        name="reports"
         options={{
-          title: strings.tabs.catalog,
-          tabBarIcon: createTabIcon('cube', 'cube-outline'),
+          title: strings.tabs.reports,
+          tabBarIcon: icon("bar-chart", "bar-chart-outline"),
         }}
       />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: strings.tabs.more,
-          tabBarIcon: createTabIcon('menu', 'menu-outline'),
-        }}
-      />
+      <Tabs.Screen name="more" options={{ href: null }} />
     </Tabs>
   );
 }

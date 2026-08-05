@@ -1,1 +1,447 @@
-import{Ionicons}from'@expo/vector-icons';import{useEffect,useMemo,useState,type ReactNode}from'react';import{Alert,Pressable,StyleSheet,Text,View}from'react-native';import{BarChart}from'@/components/charts/BarChart';import{ChartSurface}from'@/components/charts/ChartSurface';import{DonutChart}from'@/components/charts/DonutChart';import{HorizontalBarChart}from'@/components/charts/HorizontalBarChart';import{LineChart}from'@/components/charts/LineChart';import{useChartPalette}from'@/components/charts/palette';import{ReportFilters}from'@/components/reports/ReportFilters';import{LoadingState}from'@/components/ui/LoadingState';import{ScreenContainer}from'@/components/ui/ScreenContainer';import{strings}from'@/constants/strings';import{loadReportAnalytics}from'@/db/repositories/report-analytics';import{formatPaise}from'@/lib/currency';import{scaledToInput}from'@/lib/quantity';import type{ChartDatum}from'@/types/chart';import type{ReportAnalytics}from'@/types/report-analytics';function sixMonthsAgo(){const d=new Date();d.setMonth(d.getMonth()-5);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`}function today(){return new Date().toISOString().slice(0,10)}function monthEnd(month:string){const[y,m]=month.split('-').map(Number);return new Date(Date.UTC(y??0,m??1,0)).toISOString().slice(0,10)}export default function ReportsScreen(){const palette=useChartPalette(),[start,setStart]=useState(sixMonthsAgo()),[end,setEnd]=useState(today()),[data,setData]=useState<ReportAnalytics|null>(null),[loading,setLoading]=useState(true),[selected,setSelected]=useState<string|null>(null);async function load(a=start,b=end){setLoading(true);try{setData(await loadReportAnalytics(a,b))}catch{Alert.alert(strings.expenses.errorTitle,strings.analytics.refreshError)}finally{setLoading(false)}}useEffect(()=>{void load()},[]);const monthlySales=useMemo<ChartDatum[]>(()=>data?.monthly.slice(-6).map(x=>({id:x.month,label:x.month.slice(5),value:x.salesPaise,meta:formatPaise(x.salesPaise)}))??[],[data]);const monthlyProfit=useMemo<ChartDatum[]>(()=>data?.monthly.slice(-6).map(x=>({id:x.month,label:x.month.slice(5),value:x.profitPaise,meta:formatPaise(x.profitPaise)}))??[],[data]);const expenses=useMemo<ChartDatum[]>(()=>data?.expenses.map((x,i)=>({id:x.category,label:x.category,value:x.amountPaise,color:palette.colors[i%palette.colors.length],meta:formatPaise(x.amountPaise)}))??[],[data,palette.colors]);const products=useMemo<ChartDatum[]>(()=>data?.topProducts.map(x=>({id:x.itemId??x.name,label:x.name,value:x.salesPaise,meta:`${scaledToInput(x.quantityScaled)} ${strings.analytics.sold}`}))??[],[data]);const categories=useMemo<ChartDatum[]>(()=>data?.salesByCategory.map(x=>({id:x.category,label:x.category,value:x.salesPaise,meta:formatPaise(x.salesPaise)}))??[],[data]);const payments=useMemo<ChartDatum[]>(()=>data?[{id:'paid',label:strings.analytics.paid,value:data.paymentStatus.paidPaise,color:palette.positive,meta:formatPaise(data.paymentStatus.paidPaise)},{id:'pending',label:strings.analytics.pending,value:data.paymentStatus.pendingPaise,color:palette.warning,meta:formatPaise(data.paymentStatus.pendingPaise)}]:[],[data,palette.positive,palette.warning]);async function selectMonth(item:ChartDatum){const month=item.id;setSelected(month);setStart(`${month}-01`);setEnd(monthEnd(month));await load(`${month}-01`,monthEnd(month))}function select(item:ChartDatum){setSelected(`${item.label} · ${item.meta??formatPaise(item.value)}`)}async function clear(){const a=sixMonthsAgo(),b=today();setStart(a);setEnd(b);setSelected(null);await load(a,b)}return <ScreenContainer backgroundColor={palette.background} contentContainerStyle={[styles.content,{backgroundColor:palette.background}]}><View><Text style={[styles.title,{color:palette.text}]}>{strings.analytics.title}</Text><Text style={[styles.subtitle,{color:palette.muted}]}>{strings.analytics.subtitle}</Text></View><View style={[styles.filters,{backgroundColor:palette.surface,borderColor:palette.border}]}><ReportFilters start={start} end={end} onStartChange={setStart} onEndChange={setEnd} onApply={()=>void load()} loading={loading} palette={palette}/></View>{selected?<Pressable accessibilityRole="button" onPress={()=>void clear()} style={[styles.selection,{backgroundColor:palette.surfaceVariant}]}><Ionicons name="funnel" size={16} color={palette.primary}/><Text style={[styles.selectionText,{color:palette.text}]}>{strings.analytics.selected}: {selected}</Text><Text style={[styles.clear,{color:palette.primary}]}>{strings.analytics.clearFilter}</Text></Pressable>:null}{loading&&!data?<LoadingState/>:data?<><View style={styles.metrics}><Metric label={strings.expenses.sales} value={data.summary.salesRevenuePaise} color={palette.primary} palette={palette}/><Metric label={strings.expenses.gross} value={data.summary.grossProfitPaise} color={palette.positive} palette={palette}/><Metric label={strings.expenses.totalExpenses} value={data.summary.expensesPaise} color={palette.warning} palette={palette}/><Metric label={strings.expenses.net} value={data.summary.netProfitPaise} color={data.summary.netProfitPaise<0?palette.danger:palette.positive} palette={palette}/></View><ChartSurface title={strings.analytics.monthlySales} subtitle="Tap a point to filter that month" palette={palette}>{monthlySales.length?<LineChart data={monthlySales} palette={palette} onSelect={item=>void selectMonth(item)}/>:<Empty palette={palette}/>}</ChartSurface><ChartSurface title={strings.analytics.monthlyProfit} palette={palette}>{monthlyProfit.length?<BarChart data={monthlyProfit} palette={palette} onSelect={item=>void selectMonth(item)}/>:<Empty palette={palette}/>}</ChartSurface><ChartSurface title={strings.analytics.expenseBreakdown} palette={palette}><ChartSplit><DonutChart data={expenses} palette={palette} centerLabel={strings.analytics.categories} onSelect={select}/><Legend data={expenses} palette={palette}/></ChartSplit></ChartSurface><ChartSurface title={strings.analytics.topProducts} palette={palette}>{products.length?<HorizontalBarChart data={products} palette={palette} onSelect={select}/>:<Empty palette={palette}/>}</ChartSurface><ChartSurface title={strings.analytics.salesByCategory} palette={palette}>{categories.length?<HorizontalBarChart data={categories} palette={palette} onSelect={select}/>:<Empty palette={palette}/>}</ChartSurface><ChartSurface title={strings.analytics.paymentStatus} palette={palette}><ChartSplit><DonutChart data={payments} palette={palette} centerLabel="status" onSelect={select}/><Legend data={payments} palette={palette}/></ChartSplit></ChartSurface></>:null}</ScreenContainer>}function Metric({label,value,color,palette}:{label:string;value:number;color:string;palette:ReturnType<typeof useChartPalette>}){return <View style={[styles.metric,{backgroundColor:palette.surface,borderColor:palette.border}]}><View style={[styles.metricDot,{backgroundColor:color}]}/><Text style={[styles.metricLabel,{color:palette.muted}]}>{label}</Text><Text adjustsFontSizeToFit numberOfLines={1} style={[styles.metricValue,{color:palette.text}]}>{formatPaise(value)}</Text></View>}function ChartSplit({children}:{children:ReactNode}){return <View style={styles.split}>{children}</View>}function Legend({data,palette}:{data:ChartDatum[];palette:ReturnType<typeof useChartPalette>}){const total=data.reduce((n,x)=>n+x.value,0);return <View style={styles.legend}>{data.map((x,i)=><Pressable key={x.id} style={styles.legendRow}><View style={[styles.legendDot,{backgroundColor:x.color??palette.colors[i%palette.colors.length]}]}/><Text numberOfLines={1} style={[styles.legendName,{color:palette.muted}]}>{x.label}</Text><Text style={[styles.legendValue,{color:palette.text}]}>{total?Math.round(x.value/total*100):0}%</Text></Pressable>)}</View>}function Empty({palette}:{palette:ReturnType<typeof useChartPalette>}){return <View style={styles.empty}><Ionicons name="bar-chart-outline" size={28} color={palette.muted}/><Text style={{color:palette.muted}}>{strings.analytics.noChartData}</Text></View>}const styles=StyleSheet.create({content:{gap:16},title:{fontSize:28,lineHeight:34,fontWeight:'700'},subtitle:{fontSize:14,lineHeight:20,marginTop:4},filters:{padding:16,gap:12,borderWidth:1,borderRadius:20},dateRow:{flexDirection:'row',gap:8},dateInput:{flex:1},selection:{minHeight:48,paddingHorizontal:12,flexDirection:'row',alignItems:'center',gap:8,borderRadius:14},selectionText:{flex:1,fontSize:12},clear:{fontSize:12,fontWeight:'700'},metrics:{flexDirection:'row',flexWrap:'wrap',gap:8},metric:{minHeight:104,flexBasis:'47%',flexGrow:1,padding:16,borderWidth:1,borderRadius:18},metricDot:{width:8,height:8,borderRadius:99,marginBottom:10},metricLabel:{fontSize:12},metricValue:{fontSize:20,lineHeight:26,fontWeight:'700',marginTop:4},split:{flexDirection:'row',alignItems:'center',gap:12},legend:{flex:1,gap:8},legendRow:{flexDirection:'row',alignItems:'center',gap:7},legendDot:{width:9,height:9,borderRadius:99},legendName:{flex:1,fontSize:11},legendValue:{fontSize:11,fontWeight:'700'},empty:{minHeight:130,alignItems:'center',justifyContent:'center',gap:8}});
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { BarChart } from "@/components/charts/BarChart";
+import { ChartSurface } from "@/components/charts/ChartSurface";
+import { DonutChart } from "@/components/charts/DonutChart";
+import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
+import { LineChart } from "@/components/charts/LineChart";
+import { useChartPalette } from "@/components/charts/palette";
+import { ReportFilters } from "@/components/reports/ReportFilters";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { strings } from "@/constants/strings";
+import { loadReportAnalytics } from "@/db/repositories/report-analytics";
+import { formatPaise } from "@/lib/currency";
+import { scaledToInput } from "@/lib/quantity";
+import type { ChartDatum } from "@/types/chart";
+import type { ReportAnalytics } from "@/types/report-analytics";
+function sixMonthsAgo() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 5);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+function monthEnd(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(y ?? 0, m ?? 1, 0)).toISOString().slice(0, 10);
+}
+export default function ReportsScreen() {
+  const router = useRouter();
+  const palette = useChartPalette(),
+    [start, setStart] = useState(sixMonthsAgo()),
+    [end, setEnd] = useState(today()),
+    [data, setData] = useState<ReportAnalytics | null>(null),
+    [loading, setLoading] = useState(true),
+    [selected, setSelected] = useState<string | null>(null);
+  async function load(a = start, b = end) {
+    setLoading(true);
+    try {
+      setData(await loadReportAnalytics(a, b));
+    } catch {
+      Alert.alert(strings.expenses.errorTitle, strings.analytics.refreshError);
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    void load();
+  }, []);
+  const monthlySales = useMemo<ChartDatum[]>(
+    () =>
+      data?.monthly.slice(-6).map((x) => ({
+        id: x.month,
+        label: x.month.slice(5),
+        value: x.salesPaise,
+        meta: formatPaise(x.salesPaise),
+      })) ?? [],
+    [data],
+  );
+  const monthlyProfit = useMemo<ChartDatum[]>(
+    () =>
+      data?.monthly.slice(-6).map((x) => ({
+        id: x.month,
+        label: x.month.slice(5),
+        value: x.profitPaise,
+        meta: formatPaise(x.profitPaise),
+      })) ?? [],
+    [data],
+  );
+  const expenses = useMemo<ChartDatum[]>(
+    () =>
+      data?.expenses.map((x, i) => ({
+        id: x.category,
+        label: x.category,
+        value: x.amountPaise,
+        color: palette.colors[i % palette.colors.length],
+        meta: formatPaise(x.amountPaise),
+      })) ?? [],
+    [data, palette.colors],
+  );
+  const products = useMemo<ChartDatum[]>(
+    () =>
+      data?.topProducts.map((x) => ({
+        id: x.itemId ?? x.name,
+        label: x.name,
+        value: x.salesPaise,
+        meta: `${scaledToInput(x.quantityScaled)} ${strings.analytics.sold}`,
+      })) ?? [],
+    [data],
+  );
+  const categories = useMemo<ChartDatum[]>(
+    () =>
+      data?.salesByCategory.map((x) => ({
+        id: x.category,
+        label: x.category,
+        value: x.salesPaise,
+        meta: formatPaise(x.salesPaise),
+      })) ?? [],
+    [data],
+  );
+  const payments = useMemo<ChartDatum[]>(
+    () =>
+      data
+        ? [
+            {
+              id: "paid",
+              label: strings.analytics.paid,
+              value: data.paymentStatus.paidPaise,
+              color: palette.positive,
+              meta: formatPaise(data.paymentStatus.paidPaise),
+            },
+            {
+              id: "pending",
+              label: strings.analytics.pending,
+              value: data.paymentStatus.pendingPaise,
+              color: palette.warning,
+              meta: formatPaise(data.paymentStatus.pendingPaise),
+            },
+          ]
+        : [],
+    [data, palette.positive, palette.warning],
+  );
+  async function selectMonth(item: ChartDatum) {
+    const month = item.id;
+    setSelected(month);
+    setStart(`${month}-01`);
+    setEnd(monthEnd(month));
+    await load(`${month}-01`, monthEnd(month));
+  }
+  function select(item: ChartDatum) {
+    setSelected(`${item.label} · ${item.meta ?? formatPaise(item.value)}`);
+  }
+  async function clear() {
+    const a = sixMonthsAgo(),
+      b = today();
+    setStart(a);
+    setEnd(b);
+    setSelected(null);
+    await load(a, b);
+  }
+  return (
+    <ScreenContainer
+      backgroundColor={palette.background}
+      contentContainerStyle={[
+        styles.content,
+        { backgroundColor: palette.background },
+      ]}
+    >
+      <View style={styles.headerRow}>
+        <View style={styles.titleCopy}>
+          <Text style={[styles.title, { color: palette.text }]}>
+            {strings.analytics.title}
+          </Text>
+          <Text style={[styles.subtitle, { color: palette.muted }]}>
+            {strings.analytics.subtitle}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityLabel="Open business settings"
+          accessibilityRole="button"
+          onPress={() => router.push("/(tabs)/more")}
+          style={[
+            styles.settings,
+            { backgroundColor: palette.surface, borderColor: palette.border },
+          ]}
+        >
+          <Ionicons name="settings-outline" size={22} color={palette.text} />
+        </Pressable>
+      </View>
+      <View
+        style={[
+          styles.filters,
+          { backgroundColor: palette.surface, borderColor: palette.border },
+        ]}
+      >
+        <ReportFilters
+          start={start}
+          end={end}
+          onStartChange={setStart}
+          onEndChange={setEnd}
+          onApply={() => void load()}
+          loading={loading}
+          palette={palette}
+        />
+      </View>
+      {selected ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => void clear()}
+          style={[
+            styles.selection,
+            { backgroundColor: palette.surfaceVariant },
+          ]}
+        >
+          <Ionicons name="funnel" size={16} color={palette.primary} />
+          <Text style={[styles.selectionText, { color: palette.text }]}>
+            {strings.analytics.selected}: {selected}
+          </Text>
+          <Text style={[styles.clear, { color: palette.primary }]}>
+            {strings.analytics.clearFilter}
+          </Text>
+        </Pressable>
+      ) : null}
+      {loading && !data ? (
+        <LoadingState />
+      ) : data ? (
+        <>
+          <View style={styles.metrics}>
+            <Metric
+              label={strings.expenses.sales}
+              value={data.summary.salesRevenuePaise}
+              color={palette.primary}
+              palette={palette}
+            />
+            <Metric
+              label={strings.expenses.net}
+              value={data.summary.netProfitPaise}
+              color={palette.positive}
+              palette={palette}
+            />
+          </View>
+          <ChartSurface
+            title={strings.analytics.monthlySales}
+            subtitle="Tap a point to filter that month"
+            palette={palette}
+          >
+            {monthlySales.length ? (
+              <LineChart
+                data={monthlySales}
+                palette={palette}
+                onSelect={(item) => void selectMonth(item)}
+              />
+            ) : (
+              <Empty palette={palette} />
+            )}
+          </ChartSurface>
+          <ChartSurface
+            title={strings.analytics.monthlyProfit}
+            palette={palette}
+          >
+            {monthlyProfit.length ? (
+              <BarChart
+                data={monthlyProfit}
+                palette={palette}
+                onSelect={(item) => void selectMonth(item)}
+              />
+            ) : (
+              <Empty palette={palette} />
+            )}
+          </ChartSurface>
+          <ChartSurface
+            title={strings.analytics.expenseBreakdown}
+            palette={palette}
+          >
+            <ChartSplit>
+              <DonutChart
+                data={expenses}
+                palette={palette}
+                centerLabel={strings.analytics.categories}
+                onSelect={select}
+              />
+              <Legend data={expenses} palette={palette} />
+            </ChartSplit>
+          </ChartSurface>
+          <ChartSurface title={strings.analytics.topProducts} palette={palette}>
+            {products.length ? (
+              <HorizontalBarChart
+                data={products}
+                palette={palette}
+                onSelect={select}
+              />
+            ) : (
+              <Empty palette={palette} />
+            )}
+          </ChartSurface>
+          <ChartSurface
+            title={strings.analytics.salesByCategory}
+            palette={palette}
+          >
+            {categories.length ? (
+              <HorizontalBarChart
+                data={categories}
+                palette={palette}
+                onSelect={select}
+              />
+            ) : (
+              <Empty palette={palette} />
+            )}
+          </ChartSurface>
+          <ChartSurface
+            title={strings.analytics.paymentStatus}
+            palette={palette}
+          >
+            <ChartSplit>
+              <DonutChart
+                data={payments}
+                palette={palette}
+                centerLabel="status"
+                onSelect={select}
+              />
+              <Legend data={payments} palette={palette} />
+            </ChartSplit>
+          </ChartSurface>
+        </>
+      ) : null}
+    </ScreenContainer>
+  );
+}
+function Metric({
+  label,
+  value,
+  color,
+  palette,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  palette: ReturnType<typeof useChartPalette>;
+}) {
+  return (
+    <View
+      style={[
+        styles.metric,
+        { backgroundColor: palette.surface, borderColor: palette.border },
+      ]}
+    >
+      <View style={[styles.metricDot, { backgroundColor: color }]} />
+      <Text style={[styles.metricLabel, { color: palette.muted }]}>
+        {label}
+      </Text>
+      <Text
+        adjustsFontSizeToFit
+        numberOfLines={1}
+        style={[styles.metricValue, { color: palette.text }]}
+      >
+        {formatPaise(value)}
+      </Text>
+    </View>
+  );
+}
+function ChartSplit({ children }: { children: ReactNode }) {
+  return <View style={styles.split}>{children}</View>;
+}
+function Legend({
+  data,
+  palette,
+}: {
+  data: ChartDatum[];
+  palette: ReturnType<typeof useChartPalette>;
+}) {
+  const total = data.reduce((n, x) => n + x.value, 0);
+  return (
+    <View style={styles.legend}>
+      {data.map((x, i) => (
+        <Pressable key={x.id} style={styles.legendRow}>
+          <View
+            style={[
+              styles.legendDot,
+              {
+                backgroundColor:
+                  x.color ?? palette.colors[i % palette.colors.length],
+              },
+            ]}
+          />
+          <Text
+            numberOfLines={1}
+            style={[styles.legendName, { color: palette.muted }]}
+          >
+            {x.label}
+          </Text>
+          <Text style={[styles.legendValue, { color: palette.text }]}>
+            {total ? Math.round((x.value / total) * 100) : 0}%
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+function Empty({ palette }: { palette: ReturnType<typeof useChartPalette> }) {
+  return (
+    <View style={styles.empty}>
+      <Ionicons name="bar-chart-outline" size={28} color={palette.muted} />
+      <Text style={{ color: palette.muted }}>
+        {strings.analytics.noChartData}
+      </Text>
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  content: { gap: 16 },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  titleCopy: { flex: 1 },
+  settings: {
+    width: 46,
+    height: 46,
+    borderWidth: 1,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: { fontSize: 28, lineHeight: 34, fontWeight: "700" },
+  subtitle: { fontSize: 14, lineHeight: 20, marginTop: 4 },
+  filters: { padding: 16, gap: 12, borderWidth: 1, borderRadius: 20 },
+  dateRow: { flexDirection: "row", gap: 8 },
+  dateInput: { flex: 1 },
+  selection: {
+    minHeight: 48,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 14,
+  },
+  selectionText: { flex: 1, fontSize: 12 },
+  clear: { fontSize: 12, fontWeight: "700" },
+  metrics: { flexDirection: "row", gap: 8 },
+  metric: {
+    minHeight: 104,
+    flex: 1,
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 18,
+  },
+  metricDot: { width: 8, height: 8, borderRadius: 99, marginBottom: 10 },
+  metricLabel: { fontSize: 12 },
+  metricValue: {
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  split: { flexDirection: "row", alignItems: "center", gap: 12 },
+  legend: { flex: 1, gap: 8 },
+  legendRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  legendDot: { width: 9, height: 9, borderRadius: 99 },
+  legendName: { flex: 1, fontSize: 11 },
+  legendValue: { fontSize: 11, fontWeight: "700" },
+  empty: {
+    minHeight: 130,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+});

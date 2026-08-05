@@ -1,1 +1,26 @@
-import{ActivityIndicator,StyleSheet,Text,View}from'react-native';import{strings}from'@/constants/strings';import{theme}from'@/constants/theme';import{useAppPalette}from'@/hooks/useAppPalette';export function LoadingState({label=strings.common.loading}:{label?:string}){const p=useAppPalette();return <View accessibilityLiveRegion="polite" style={styles.container}><ActivityIndicator size="large" color={p.primary}/><Text style={[styles.label,{color:p.muted}]}>{label}</Text></View>}const styles=StyleSheet.create({container:{minHeight:160,alignItems:'center',justifyContent:'center',gap:theme.spacing[3]},label:{...theme.typography.secondary}});
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { strings } from "@/constants/strings";
+import { theme } from "@/constants/theme";
+import { useAppPalette } from "@/hooks/useAppPalette";
+export function LoadingState({
+  label = strings.common.loading,
+}: {
+  label?: string;
+}) {
+  const p = useAppPalette();
+  return (
+    <View accessibilityLiveRegion="polite" style={styles.container}>
+      <ActivityIndicator size="large" color={p.primary} />
+      <Text style={[styles.label, { color: p.muted }]}>{label}</Text>
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  container: {
+    minHeight: 160,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  label: { ...theme.typography.secondary },
+});

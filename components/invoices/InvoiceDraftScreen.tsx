@@ -1,35 +1,37 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Controller, useForm, useWatch } from 'react-hook-form';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
 
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Input } from '@/components/ui/Input';
-import { LoadingState } from '@/components/ui/LoadingState';
-import { ScreenContainer } from '@/components/ui/ScreenContainer';
-import { strings } from '@/constants/strings';
-import { theme } from '@/constants/theme';
-import { listCatalogItems } from '@/db/repositories/catalog';
-import { listCustomers } from '@/db/repositories/customers';
-import { finalizeInvoice } from '@/db/repositories/invoice-finalization';
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { strings } from "@/constants/strings";
+import { theme } from "@/constants/theme";
+import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
+import { useBusinessType } from "@/hooks/useBusinessType";
+import { listCatalogItems } from "@/db/repositories/catalog";
+import { listCustomers } from "@/db/repositories/customers";
+import { finalizeInvoice } from "@/db/repositories/invoice-finalization";
 import {
   getInvoiceDraftBusinessStateCode,
   listRecentlySoldItemIds,
   loadInvoiceDraft,
   saveInvoiceDraft,
-} from '@/db/repositories/invoice-drafts';
-import { formatPaise, paiseToInput, parseRupeesToPaise } from '@/lib/currency';
-import { calculateInvoice } from '@/lib/invoice-calculations';
-import { parseQuantityToScaled, scaledToInput } from '@/lib/quantity';
-import type { CatalogItem } from '@/types/catalog';
-import type { Customer } from '@/types/customer';
-import type { InvoiceDraftLine } from '@/types/invoice-draft';
-import type { InvoiceKind } from '@/types/invoice';
+} from "@/db/repositories/invoice-drafts";
+import { formatPaise, paiseToInput, parseRupeesToPaise } from "@/lib/currency";
+import { calculateInvoice } from "@/lib/invoice-calculations";
+import { parseQuantityToScaled, scaledToInput } from "@/lib/quantity";
+import type { CatalogItem } from "@/types/catalog";
+import type { Customer } from "@/types/customer";
+import type { InvoiceDraftLine } from "@/types/invoice-draft";
+import type { InvoiceKind } from "@/types/invoice";
 
-import { SelectionModal, type SelectionOption } from './SelectionModal';
+import { SelectionModal, type SelectionOption } from "./SelectionModal";
 
 type DraftFormValues = {
   kind: InvoiceKind;
@@ -59,10 +61,16 @@ function today(): string {
 function validDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
 }
 
-function toEditableLine(line: InvoiceDraftLine, items: CatalogItem[]): EditableLine {
+function toEditableLine(
+  line: InvoiceDraftLine,
+  items: CatalogItem[],
+): EditableLine {
   const matching = items.find((item) => item.id === line.itemId);
   const item: CatalogItem = matching ?? {
     id: line.itemId ?? line.id,
@@ -79,8 +87,8 @@ function toEditableLine(line: InvoiceDraftLine, items: CatalogItem[]): EditableL
     currentStockScaled: 0,
     lowStockThresholdScaled: 0,
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
+    createdAt: "",
+    updatedAt: "",
   };
   return {
     key: nextLineKey(),
@@ -93,59 +101,95 @@ function toEditableLine(line: InvoiceDraftLine, items: CatalogItem[]): EditableL
 
 export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
   const router = useRouter();
+  const palette = useAppPalette();
+  const businessType = useBusinessType();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [recentItemIds, setRecentItemIds] = useState<string[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
   const [lines, setLines] = useState<EditableLine[]>([]);
-  const [businessStateCode, setBusinessStateCode] = useState<string | null>(null);
+  const [businessStateCode, setBusinessStateCode] = useState<string | null>(
+    null,
+  );
   const [customerModal, setCustomerModal] = useState(false);
   const [itemModal, setItemModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
-  const { control, handleSubmit, reset, formState: { isSubmitting } } = useForm<DraftFormValues>({
-    defaultValues: { kind: 'non_tax_invoice', invoiceDate: today(), dueDate: '', notes: '' },
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<DraftFormValues>({
+    defaultValues: {
+      kind: "non_tax_invoice",
+      invoiceDate: today(),
+      dueDate: "",
+      notes: "",
+    },
   });
-  const kind = useWatch({ control, name: 'kind' });
+  const kind = useWatch({ control, name: "kind" });
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setLoadError(false);
     void Promise.all([
-      listCustomers(''),
-      listCatalogItems('', 'all'),
+      listCustomers(""),
+      listCatalogItems("", "all"),
       getInvoiceDraftBusinessStateCode(),
       listRecentlySoldItemIds(),
       draftId ? loadInvoiceDraft(draftId) : Promise.resolve(null),
-    ]).then(([loadedCustomers, loadedItems, stateCode, loadedRecentItemIds, draft]) => {
-      if (!active) return;
-      setCustomers(loadedCustomers);
-      setItems(loadedItems);
-      setBusinessStateCode(stateCode);
-      setRecentItemIds(loadedRecentItemIds);
-      if (draftId && !draft) {
-        setLoadError(true);
-        return;
-      }
-      if (draft) {
-        setSelectedCustomer(loadedCustomers.find((customer) => customer.id === draft.customerId) ?? null);
-        setLines(draft.lines.map((line) => toEditableLine(line, loadedItems)));
-        reset({
-          kind: draft.kind,
-          invoiceDate: draft.invoiceDate,
-          dueDate: draft.dueDate ?? '',
-          notes: draft.notes ?? '',
-        });
-      }
-    }).catch(() => {
-      if (active) setLoadError(true);
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
+    ])
+      .then(
+        ([
+          loadedCustomers,
+          loadedItems,
+          stateCode,
+          loadedRecentItemIds,
+          draft,
+        ]) => {
+          if (!active) return;
+          setCustomers(loadedCustomers);
+          setItems(loadedItems);
+          setBusinessStateCode(stateCode);
+          setRecentItemIds(loadedRecentItemIds);
+          if (draftId && !draft) {
+            setLoadError(true);
+            return;
+          }
+          if (draft) {
+            setSelectedCustomer(
+              loadedCustomers.find(
+                (customer) => customer.id === draft.customerId,
+              ) ?? null,
+            );
+            setLines(
+              draft.lines.map((line) => toEditableLine(line, loadedItems)),
+            );
+            reset({
+              kind: draft.kind,
+              invoiceDate: draft.invoiceDate,
+              dueDate: draft.dueDate ?? "",
+              notes: draft.notes ?? "",
+            });
+          }
+        },
+      )
+      .catch(() => {
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [draftId, reset]);
 
   const parsedLines = useMemo(() => {
@@ -154,7 +198,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       const quantityScaled = parseQuantityToScaled(line.quantity);
       const unitPricePaise = parseRupeesToPaise(line.unitPrice);
       const discountPaise = parseRupeesToPaise(line.discount);
-      if (quantityScaled === null || quantityScaled <= 0 || unitPricePaise === null || discountPaise === null) {
+      if (
+        quantityScaled === null ||
+        quantityScaled <= 0 ||
+        unitPricePaise === null ||
+        discountPaise === null
+      ) {
         return null;
       }
       result.push({
@@ -201,32 +250,67 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       const existing = current.find((line) => line.item.id === item.id);
       if (existing) {
         const quantity = parseQuantityToScaled(existing.quantity) ?? 0;
-        return current.map((line) => line.key === existing.key ? { ...line, quantity: scaledToInput(quantity + 1000) } : line);
+        return current.map((line) =>
+          line.key === existing.key
+            ? { ...line, quantity: scaledToInput(quantity + 1000) }
+            : line,
+        );
       }
-      return [...current, { key: nextLineKey(), item, quantity: '1', unitPrice: paiseToInput(item.sellingPricePaise), discount: '0.00' }];
+      return [
+        ...current,
+        {
+          key: nextLineKey(),
+          item,
+          quantity: "1",
+          unitPrice: paiseToInput(item.sellingPricePaise),
+          discount: "0.00",
+        },
+      ];
     });
     setItemModal(false);
   }
 
-  function updateLine(key: string, field: 'quantity' | 'unitPrice' | 'discount', value: string) {
-    setLines((current) => current.map((line) => line.key === key ? { ...line, [field]: value } : line));
+  function updateLine(
+    key: string,
+    field: "quantity" | "unitPrice" | "discount",
+    value: string,
+  ) {
+    setLines((current) =>
+      current.map((line) =>
+        line.key === key ? { ...line, [field]: value } : line,
+      ),
+    );
   }
 
   function stepQuantity(key: string, direction: -1 | 1) {
-    setLines((current) => current.map((line) => {
-      if (line.key !== key) return line;
-      const quantity = parseQuantityToScaled(line.quantity) ?? 1000;
-      return { ...line, quantity: scaledToInput(Math.max(1000, quantity + direction * 1000)) };
-    }));
+    setLines((current) =>
+      current.map((line) => {
+        if (line.key !== key) return line;
+        const quantity = parseQuantityToScaled(line.quantity) ?? 1000;
+        return {
+          ...line,
+          quantity: scaledToInput(Math.max(1000, quantity + direction * 1000)),
+        };
+      }),
+    );
   }
 
   const submit = handleSubmit(async (values) => {
-    if (!validDate(values.invoiceDate) || (values.dueDate.length > 0 && !validDate(values.dueDate))) {
-      Alert.alert(strings.invoiceDrafts.saveErrorTitle, strings.invoiceDrafts.invalidDate);
+    if (
+      !validDate(values.invoiceDate) ||
+      (values.dueDate.length > 0 && !validDate(values.dueDate))
+    ) {
+      Alert.alert(
+        strings.invoiceDrafts.saveErrorTitle,
+        strings.invoiceDrafts.invalidDate,
+      );
       return;
     }
     if (!parsedLines || parsedLines.length === 0 || !calculation) {
-      Alert.alert(strings.invoiceDrafts.saveErrorTitle, strings.invoiceDrafts.invalidLines);
+      Alert.alert(
+        strings.invoiceDrafts.saveErrorTitle,
+        strings.invoiceDrafts.invalidLines,
+      );
       return;
     }
     try {
@@ -239,73 +323,513 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
         notes: values.notes.trim() || null,
         lines: parsedLines,
       });
-      Alert.alert(strings.invoiceDrafts.savedTitle, strings.invoiceDrafts.savedDescription);
-      if (!draftId) router.replace({ pathname: '/invoice/[id]', params: { id } });
+      Alert.alert(
+        strings.invoiceDrafts.savedTitle,
+        strings.invoiceDrafts.savedDescription,
+      );
+      if (!draftId)
+        router.replace({ pathname: "/invoice/[id]", params: { id } });
     } catch {
-      Alert.alert(strings.invoiceDrafts.saveErrorTitle, strings.invoiceDrafts.saveErrorDescription);
+      Alert.alert(
+        strings.invoiceDrafts.saveErrorTitle,
+        strings.invoiceDrafts.saveErrorDescription,
+      );
     }
   });
 
   function confirmFinalize() {
     if (!draftId || finalizing) return;
-    Alert.alert(strings.finalization.finalizeTitle, strings.finalization.finalizeDescription, [
-      { text: strings.common.cancel, style: 'cancel' },
-      { text: strings.finalization.finalize, onPress: () => {
-        setFinalizing(true);
-        void finalizeInvoice(draftId)
-          .then((result) => {
-            Alert.alert(strings.finalization.finalizedTitle, result.invoiceNumber);
-            router.replace('/(tabs)/invoices');
-          })
-          .catch(() => Alert.alert(strings.finalization.finalizeErrorTitle, strings.finalization.finalizeErrorDescription))
-          .finally(() => setFinalizing(false));
-      } },
-    ]);
+    Alert.alert(
+      strings.finalization.finalizeTitle,
+      strings.finalization.finalizeDescription,
+      [
+        { text: strings.common.cancel, style: "cancel" },
+        {
+          text: strings.finalization.finalize,
+          onPress: () => {
+            setFinalizing(true);
+            void finalizeInvoice(draftId)
+              .then((result) => {
+                Alert.alert(
+                  strings.finalization.finalizedTitle,
+                  result.invoiceNumber,
+                );
+                router.replace("/(tabs)/invoices");
+              })
+              .catch(() =>
+                Alert.alert(
+                  strings.finalization.finalizeErrorTitle,
+                  strings.finalization.finalizeErrorDescription,
+                ),
+              )
+              .finally(() => setFinalizing(false));
+          },
+        },
+      ],
+    );
   }
 
-  if (loading) return <ScreenContainer scroll={false}><LoadingState /></ScreenContainer>;
-  if (loadError) return <ScreenContainer scroll={false}><EmptyState title={strings.invoiceDrafts.detailErrorTitle} description={strings.invoiceDrafts.detailErrorDescription} icon="warning-outline" /></ScreenContainer>;
+  if (loading)
+    return (
+      <ScreenContainer scroll={false}>
+        <LoadingState />
+      </ScreenContainer>
+    );
+  if (loadError)
+    return (
+      <ScreenContainer scroll={false}>
+        <EmptyState
+          title={strings.invoiceDrafts.detailErrorTitle}
+          description={strings.invoiceDrafts.detailErrorDescription}
+          icon="warning-outline"
+        />
+      </ScreenContainer>
+    );
 
   const customerOptions: SelectionOption[] = [
-    { id: '__none__', title: strings.invoiceDrafts.noCustomer },
-    ...customers.map((customer) => ({ id: customer.id, title: customer.name, subtitle: customer.phone ?? undefined })),
+    { id: "__none__", title: strings.invoiceDrafts.noCustomer },
+    ...customers.map((customer) => ({
+      id: customer.id,
+      title: customer.name,
+      subtitle: customer.phone ?? undefined,
+    })),
   ];
-  const itemOptions: SelectionOption[] = [...items]
+  const itemOptions: SelectionOption[] = items
+    .filter((item) => businessType === "both" || item.type === businessType)
     .sort((a, b) => {
-      const aIndex = recentItemIds.indexOf(a.id); const bIndex = recentItemIds.indexOf(b.id);
+      const aIndex = recentItemIds.indexOf(a.id);
+      const bIndex = recentItemIds.indexOf(b.id);
       if (aIndex === -1 && bIndex === -1) return a.name.localeCompare(b.name);
-      if (aIndex === -1) return 1; if (bIndex === -1) return -1; return aIndex - bIndex;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
     })
     .map((item) => ({
       id: item.id,
       title: item.name,
-      subtitle: `${formatPaise(item.sellingPricePaise)} · ${item.type === 'product' ? `Stock ${scaledToInput(item.currentStockScaled)}` : strings.catalog.types[item.type]}`,
-      keywords: `${item.sku ?? ''} ${item.barcode ?? ''} ${item.brand ?? ''}`,
+      subtitle: `${formatPaise(item.sellingPricePaise)} · ${item.type === "product" ? `Stock ${scaledToInput(item.currentStockScaled)}` : strings.catalog.types[item.type]}`,
+      keywords: `${item.sku ?? ""} ${item.barcode ?? ""} ${item.brand ?? ""}`,
       recent: recentItemIds.includes(item.id),
     }));
 
-  return <>
-    <ScreenContainer keyboardAware contentContainerStyle={styles.content}>
-      <View style={styles.header}><Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back}><Ionicons name="arrow-back" size={24} color={theme.colors.textPrimary}/></Pressable><Text style={styles.title}>{draftId ? strings.invoiceDrafts.editTitle : strings.invoiceDrafts.newTitle}</Text></View>
-      <Card style={styles.card}>
-        <Text style={styles.section}>{strings.invoiceDrafts.invoiceType}</Text>
-        <Controller control={control} name="kind" render={({field})=><View style={styles.segment}><Pressable accessibilityRole="button" onPress={()=>field.onChange('non_tax_invoice')} style={[styles.segmentButton,field.value==='non_tax_invoice'&&styles.segmentActive]}><Text style={[styles.segmentText,field.value==='non_tax_invoice'&&styles.segmentTextActive]}>{strings.invoiceDrafts.nonTaxInvoice}</Text></Pressable><Pressable accessibilityRole="button" onPress={()=>field.onChange('tax_invoice')} style={[styles.segmentButton,field.value==='tax_invoice'&&styles.segmentActive]}><Text style={[styles.segmentText,field.value==='tax_invoice'&&styles.segmentTextActive]}>{strings.invoiceDrafts.taxInvoice}</Text></Pressable></View>}/>
-        <Controller control={control} name="invoiceDate" render={({field})=><Input label={strings.invoiceDrafts.invoiceDate} helperText={strings.invoiceDrafts.dateHelper} value={field.value} onChangeText={field.onChange} keyboardType="numbers-and-punctuation"/>}/>
-        <Controller control={control} name="dueDate" render={({field})=><Input label={strings.invoiceDrafts.dueDate} helperText={`${strings.invoiceDrafts.optional} · ${strings.invoiceDrafts.dateHelper}`} value={field.value} onChangeText={field.onChange} keyboardType="numbers-and-punctuation"/>}/>
-      </Card>
-      <Card style={styles.card}><Text style={styles.section}>{strings.invoiceDrafts.customer}</Text><Pressable accessibilityRole="button" onPress={()=>setCustomerModal(true)} style={styles.selector}><Text style={styles.selectorText}>{selectedCustomer?.name??strings.invoiceDrafts.noCustomer}</Text><Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary}/></Pressable></Card>
-      <Card style={styles.card}><View style={styles.sectionRow}><View><Text style={styles.section}>{strings.invoiceDrafts.lineItems}</Text><Text style={styles.itemCount}>{lines.length} {strings.ux.selectedItems}</Text></View><Pressable accessibilityRole="button" onPress={()=>setItemModal(true)} style={styles.linkButton}><Text style={styles.linkText}>{strings.invoiceDrafts.addItem}</Text></Pressable></View>
-        {lines.length===0?<Text style={styles.helper}>{strings.invoiceDrafts.noItems}</Text>:lines.map((line,index)=><View key={line.key} style={styles.line}><View style={styles.sectionRow}><Text style={styles.lineTitle}>{index+1}. {line.item.name}</Text><Pressable accessibilityRole="button" onPress={()=>setLines((current)=>current.filter((candidate)=>candidate.key!==line.key))}><Text style={styles.remove}>{strings.invoiceDrafts.removeLine}</Text></Pressable></View><View style={styles.quantityRow}><Pressable accessibilityRole="button" accessibilityLabel={strings.ux.decreaseQuantity} onPress={()=>stepQuantity(line.key,-1)} style={styles.quantityButton}><Ionicons name="remove" size={22} color={theme.colors.primary}/></Pressable><View style={styles.quantityInput}><Input label={strings.invoiceDrafts.quantity} value={line.quantity} onChangeText={(value)=>updateLine(line.key,'quantity',value)} keyboardType="decimal-pad"/></View><Pressable accessibilityRole="button" accessibilityLabel={strings.ux.increaseQuantity} onPress={()=>stepQuantity(line.key,1)} style={styles.quantityButton}><Ionicons name="add" size={22} color={theme.colors.primary}/></Pressable></View><View style={styles.lineFields}><Input label={strings.invoiceDrafts.unitPrice} value={line.unitPrice} onChangeText={(value)=>updateLine(line.key,'unitPrice',value)} keyboardType="decimal-pad"/><Input label={strings.invoiceDrafts.discount} value={line.discount} onChangeText={(value)=>updateLine(line.key,'discount',value)} keyboardType="decimal-pad"/></View></View>)}
-      </Card>
-      <Card style={styles.card}><Text style={styles.section}>{strings.invoiceDrafts.totals}</Text>{calculation?<View style={styles.totalRows}><TotalRow label={strings.invoiceDrafts.subtotal} value={calculation.subtotalPaise}/><TotalRow label={strings.invoiceDrafts.totalDiscount} value={-calculation.discountPaise}/><TotalRow label={strings.invoiceDrafts.taxable} value={calculation.taxablePaise}/>{calculation.cgstPaise>0?<TotalRow label={strings.invoiceDrafts.cgst} value={calculation.cgstPaise}/>:null}{calculation.sgstPaise>0?<TotalRow label={strings.invoiceDrafts.sgst} value={calculation.sgstPaise}/>:null}{calculation.igstPaise>0?<TotalRow label={strings.invoiceDrafts.igst} value={calculation.igstPaise}/>:null}<TotalRow label={strings.invoiceDrafts.rounding} value={calculation.roundingPaise}/><TotalRow label={strings.invoiceDrafts.total} value={calculation.totalPaise} strong/></View>:<Text style={styles.helper}>{strings.invoiceDrafts.invalidLines}</Text>}</Card>
-      <Card style={styles.card}><Controller control={control} name="notes" render={({field})=><Input label={strings.invoiceDrafts.notes} helperText={strings.invoiceDrafts.optional} value={field.value} onChangeText={field.onChange} multiline numberOfLines={3}/>}/></Card>
-      <Button label={strings.invoiceDrafts.save} loading={isSubmitting} onPress={()=>void submit()}/>
-      {draftId ? <Button label={strings.finalization.finalize} loading={finalizing} onPress={confirmFinalize}/> : null}
-    </ScreenContainer>
-    <SelectionModal visible={customerModal} title={strings.invoiceDrafts.selectCustomerTitle} options={customerOptions} onClose={()=>setCustomerModal(false)} onSelect={(id)=>{setSelectedCustomer(id==='__none__'?null:customers.find((customer)=>customer.id===id)??null);setCustomerModal(false)}}/>
-    <SelectionModal visible={itemModal} title={strings.invoiceDrafts.selectItemTitle} searchPlaceholder={strings.ux.searchItems} options={itemOptions} onClose={()=>setItemModal(false)} onSelect={addItem}/>
-  </>;
+  return (
+    <>
+      <ScreenContainer keyboardAware contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.back()}
+            style={styles.back}
+          >
+            <Ionicons name="arrow-back" size={24} color={palette.text} />
+          </Pressable>
+          <Text style={styles.title}>
+            {draftId
+              ? strings.invoiceDrafts.editTitle
+              : strings.invoiceDrafts.newTitle}
+          </Text>
+        </View>
+        <Card style={styles.card}>
+          <Text style={styles.section}>
+            {strings.invoiceDrafts.invoiceType}
+          </Text>
+          <Controller
+            control={control}
+            name="kind"
+            render={({ field }) => (
+              <View style={styles.segment}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => field.onChange("non_tax_invoice")}
+                  style={[
+                    styles.segmentButton,
+                    field.value === "non_tax_invoice" && styles.segmentActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      field.value === "non_tax_invoice" &&
+                        styles.segmentTextActive,
+                    ]}
+                  >
+                    {strings.invoiceDrafts.nonTaxInvoice}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => field.onChange("tax_invoice")}
+                  style={[
+                    styles.segmentButton,
+                    field.value === "tax_invoice" && styles.segmentActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      field.value === "tax_invoice" && styles.segmentTextActive,
+                    ]}
+                  >
+                    {strings.invoiceDrafts.taxInvoice}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          />
+          <Controller
+            control={control}
+            name="invoiceDate"
+            render={({ field }) => (
+              <Input
+                label={strings.invoiceDrafts.invoiceDate}
+                helperText={strings.invoiceDrafts.dateHelper}
+                value={field.value}
+                onChangeText={field.onChange}
+                keyboardType="numbers-and-punctuation"
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="dueDate"
+            render={({ field }) => (
+              <Input
+                label={strings.invoiceDrafts.dueDate}
+                helperText={`${strings.invoiceDrafts.optional} · ${strings.invoiceDrafts.dateHelper}`}
+                value={field.value}
+                onChangeText={field.onChange}
+                keyboardType="numbers-and-punctuation"
+              />
+            )}
+          />
+        </Card>
+        <Card style={styles.card}>
+          <Text style={styles.section}>{strings.invoiceDrafts.customer}</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setCustomerModal(true)}
+            style={styles.selector}
+          >
+            <Text style={styles.selectorText}>
+              {selectedCustomer?.name ?? strings.invoiceDrafts.noCustomer}
+            </Text>
+            <Ionicons name="chevron-down" size={20} color={palette.muted} />
+          </Pressable>
+        </Card>
+        <Card style={styles.card}>
+          <View style={styles.sectionRow}>
+            <View>
+              <Text style={styles.section}>
+                {strings.invoiceDrafts.lineItems}
+              </Text>
+              <Text style={styles.itemCount}>
+                {lines.length} {strings.ux.selectedItems}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setItemModal(true)}
+              style={styles.linkButton}
+            >
+              <Text style={styles.linkText}>
+                {strings.invoiceDrafts.addItem}
+              </Text>
+            </Pressable>
+          </View>
+          {lines.length === 0 ? (
+            <Text style={styles.helper}>{strings.invoiceDrafts.noItems}</Text>
+          ) : (
+            lines.map((line, index) => (
+              <View key={line.key} style={styles.line}>
+                <View style={styles.sectionRow}>
+                  <Text style={styles.lineTitle}>
+                    {index + 1}. {line.item.name}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      setLines((current) =>
+                        current.filter(
+                          (candidate) => candidate.key !== line.key,
+                        ),
+                      )
+                    }
+                  >
+                    <Text style={styles.remove}>
+                      {strings.invoiceDrafts.removeLine}
+                    </Text>
+                  </Pressable>
+                </View>
+                <View style={styles.quantityRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.ux.decreaseQuantity}
+                    onPress={() => stepQuantity(line.key, -1)}
+                    style={styles.quantityButton}
+                  >
+                    <Ionicons name="remove" size={22} color={palette.primary} />
+                  </Pressable>
+                  <View style={styles.quantityInput}>
+                    <Input
+                      label={strings.invoiceDrafts.quantity}
+                      value={line.quantity}
+                      onChangeText={(value) =>
+                        updateLine(line.key, "quantity", value)
+                      }
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.ux.increaseQuantity}
+                    onPress={() => stepQuantity(line.key, 1)}
+                    style={styles.quantityButton}
+                  >
+                    <Ionicons name="add" size={22} color={palette.primary} />
+                  </Pressable>
+                </View>
+                <View style={styles.lineFields}>
+                  <Input
+                    label={strings.invoiceDrafts.unitPrice}
+                    value={line.unitPrice}
+                    onChangeText={(value) =>
+                      updateLine(line.key, "unitPrice", value)
+                    }
+                    keyboardType="decimal-pad"
+                  />
+                  <Input
+                    label={strings.invoiceDrafts.discount}
+                    value={line.discount}
+                    onChangeText={(value) =>
+                      updateLine(line.key, "discount", value)
+                    }
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+              </View>
+            ))
+          )}
+        </Card>
+        <Card style={styles.card}>
+          <Text style={styles.section}>{strings.invoiceDrafts.totals}</Text>
+          {calculation ? (
+            <View style={styles.totalRows}>
+              <TotalRow
+                label={strings.invoiceDrafts.subtotal}
+                value={calculation.subtotalPaise}
+              />
+              <TotalRow
+                label={strings.invoiceDrafts.totalDiscount}
+                value={-calculation.discountPaise}
+              />
+              <TotalRow
+                label={strings.invoiceDrafts.taxable}
+                value={calculation.taxablePaise}
+              />
+              {calculation.cgstPaise > 0 ? (
+                <TotalRow
+                  label={strings.invoiceDrafts.cgst}
+                  value={calculation.cgstPaise}
+                />
+              ) : null}
+              {calculation.sgstPaise > 0 ? (
+                <TotalRow
+                  label={strings.invoiceDrafts.sgst}
+                  value={calculation.sgstPaise}
+                />
+              ) : null}
+              {calculation.igstPaise > 0 ? (
+                <TotalRow
+                  label={strings.invoiceDrafts.igst}
+                  value={calculation.igstPaise}
+                />
+              ) : null}
+              <TotalRow
+                label={strings.invoiceDrafts.rounding}
+                value={calculation.roundingPaise}
+              />
+              <TotalRow
+                label={strings.invoiceDrafts.total}
+                value={calculation.totalPaise}
+                strong
+              />
+            </View>
+          ) : (
+            <Text style={styles.helper}>
+              {strings.invoiceDrafts.invalidLines}
+            </Text>
+          )}
+        </Card>
+        <Card style={styles.card}>
+          <Controller
+            control={control}
+            name="notes"
+            render={({ field }) => (
+              <Input
+                label={strings.invoiceDrafts.notes}
+                helperText={strings.invoiceDrafts.optional}
+                value={field.value}
+                onChangeText={field.onChange}
+                multiline
+                numberOfLines={3}
+              />
+            )}
+          />
+        </Card>
+        <Button
+          label={strings.invoiceDrafts.save}
+          loading={isSubmitting}
+          onPress={() => void submit()}
+        />
+        {draftId ? (
+          <Button
+            label={strings.finalization.finalize}
+            loading={finalizing}
+            onPress={confirmFinalize}
+          />
+        ) : null}
+      </ScreenContainer>
+      <SelectionModal
+        visible={customerModal}
+        title={strings.invoiceDrafts.selectCustomerTitle}
+        options={customerOptions}
+        onClose={() => setCustomerModal(false)}
+        onSelect={(id) => {
+          setSelectedCustomer(
+            id === "__none__"
+              ? null
+              : (customers.find((customer) => customer.id === id) ?? null),
+          );
+          setCustomerModal(false);
+        }}
+      />
+      <SelectionModal
+        visible={itemModal}
+        title={strings.invoiceDrafts.selectItemTitle}
+        searchPlaceholder={strings.ux.searchItems}
+        options={itemOptions}
+        onClose={() => setItemModal(false)}
+        onSelect={addItem}
+      />
+    </>
+  );
 }
 
-function TotalRow({label,value,strong=false}:{label:string;value:number;strong?:boolean}){return <View style={styles.totalRow}><Text style={[styles.totalLabel,strong&&styles.strong]}>{label}</Text><Text style={[styles.totalValue,strong&&styles.strong]}>{value<0?`-${formatPaise(Math.abs(value))}`:formatPaise(value)}</Text></View>}
-const styles=StyleSheet.create({content:{gap:theme.spacing[5]},header:{minHeight:theme.layout.headerHeight,flexDirection:'row',alignItems:'center',gap:theme.spacing[3]},back:{width:theme.layout.minimumTouchTarget,height:theme.layout.minimumTouchTarget,alignItems:'center',justifyContent:'center'},title:{flex:1,color:theme.colors.textPrimary,...theme.typography.screenTitle},card:{gap:theme.spacing[4]},section:{color:theme.colors.textPrimary,...theme.typography.sectionTitle},sectionRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:theme.spacing[3]},segment:{flexDirection:'row',gap:theme.spacing[2]},segmentButton:{flex:1,minHeight:theme.layout.minimumTouchTarget,alignItems:'center',justifyContent:'center',borderWidth:theme.layout.borderWidth,borderColor:theme.colors.border,borderRadius:theme.radii.small},segmentActive:{borderColor:theme.colors.primary,backgroundColor:theme.colors.primarySoft},segmentText:{color:theme.colors.textSecondary,...theme.typography.secondary},segmentTextActive:{color:theme.colors.primary,fontWeight:'700'},selector:{minHeight:theme.layout.minimumTouchTarget,flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:theme.spacing[3],borderWidth:theme.layout.borderWidth,borderColor:theme.colors.border,borderRadius:theme.radii.small},selectorText:{color:theme.colors.textPrimary,...theme.typography.body},linkButton:{minHeight:theme.layout.minimumTouchTarget,justifyContent:'center',paddingHorizontal:theme.spacing[3],backgroundColor:theme.colors.primarySoft,borderRadius:theme.radii.small},linkText:{color:theme.colors.primary,...theme.typography.label},itemCount:{color:theme.colors.textSecondary,...theme.typography.caption},helper:{color:theme.colors.textSecondary,...theme.typography.secondary},line:{gap:theme.spacing[3],paddingTop:theme.spacing[3],borderTopColor:theme.colors.border,borderTopWidth:theme.layout.borderWidth},lineTitle:{flex:1,color:theme.colors.textPrimary,...theme.typography.body},remove:{color:theme.colors.danger,...theme.typography.secondary},quantityRow:{flexDirection:'row',alignItems:'flex-end',gap:theme.spacing[2]},quantityButton:{width:theme.layout.minimumTouchTarget,height:theme.layout.minimumTouchTarget,alignItems:'center',justifyContent:'center',borderWidth:1,borderColor:theme.colors.primary,borderRadius:theme.radii.small,marginBottom:2},quantityInput:{flex:1},lineFields:{gap:theme.spacing[3]},totalRows:{gap:theme.spacing[2]},totalRow:{flexDirection:'row',justifyContent:'space-between',gap:theme.spacing[4]},totalLabel:{color:theme.colors.textSecondary,...theme.typography.secondary},totalValue:{color:theme.colors.textPrimary,...theme.typography.secondary},strong:{color:theme.colors.textPrimary,fontWeight:'700'}});
+function TotalRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: number;
+  strong?: boolean;
+}) {
+  const palette = useAppPalette();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <View style={styles.totalRow}>
+      <Text style={[styles.totalLabel, strong && styles.strong]}>{label}</Text>
+      <Text style={[styles.totalValue, strong && styles.strong]}>
+        {value < 0 ? `-${formatPaise(Math.abs(value))}` : formatPaise(value)}
+      </Text>
+    </View>
+  );
+}
+function createStyles(palette: AppPalette) {
+  return StyleSheet.create({
+    content: { gap: theme.spacing[5] },
+    header: {
+      minHeight: theme.layout.headerHeight,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing[3],
+    },
+    back: {
+      width: theme.layout.minimumTouchTarget,
+      height: theme.layout.minimumTouchTarget,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: { flex: 1, color: palette.text, ...theme.typography.screenTitle },
+    card: { gap: theme.spacing[4] },
+    section: { color: palette.text, ...theme.typography.sectionTitle },
+    sectionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing[3],
+    },
+    segment: { flexDirection: "row", gap: theme.spacing[2] },
+    segmentButton: {
+      flex: 1,
+      minHeight: theme.layout.minimumTouchTarget,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: theme.layout.borderWidth,
+      borderColor: palette.border,
+      borderRadius: theme.radii.small,
+    },
+    segmentActive: {
+      borderColor: palette.primary,
+      backgroundColor: palette.primary,
+    },
+    segmentText: { color: palette.muted, ...theme.typography.secondary },
+    segmentTextActive: { color: palette.textOnPrimary, fontWeight: "700" },
+    selector: {
+      minHeight: 54,
+      backgroundColor: palette.surfaceVariant,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing[3],
+      borderWidth: theme.layout.borderWidth,
+      borderColor: palette.border,
+      borderRadius: theme.radii.small,
+    },
+    selectorText: { color: palette.text, ...theme.typography.body },
+    linkButton: {
+      minHeight: theme.layout.minimumTouchTarget,
+      justifyContent: "center",
+      paddingHorizontal: theme.spacing[3],
+      backgroundColor: palette.primarySoft,
+      borderRadius: theme.radii.small,
+    },
+    linkText: { color: palette.primary, ...theme.typography.label },
+    itemCount: { color: palette.muted, ...theme.typography.caption },
+    helper: { color: palette.muted, ...theme.typography.secondary },
+    line: {
+      gap: theme.spacing[3],
+      paddingTop: theme.spacing[3],
+      borderTopColor: palette.border,
+      borderTopWidth: theme.layout.borderWidth,
+    },
+    lineTitle: { flex: 1, color: palette.text, ...theme.typography.body },
+    remove: { color: palette.danger, ...theme.typography.secondary },
+    quantityRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: theme.spacing[2],
+    },
+    quantityButton: {
+      width: theme.layout.minimumTouchTarget,
+      height: theme.layout.minimumTouchTarget,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: palette.primary,
+      borderRadius: theme.radii.small,
+      marginBottom: 2,
+    },
+    quantityInput: { flex: 1 },
+    lineFields: { gap: theme.spacing[3] },
+    totalRows: { gap: theme.spacing[2] },
+    totalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: theme.spacing[4],
+    },
+    totalLabel: { color: palette.muted, ...theme.typography.secondary },
+    totalValue: { color: palette.text, ...theme.typography.secondary },
+    strong: { color: palette.text, fontWeight: "700" },
+  });
+}

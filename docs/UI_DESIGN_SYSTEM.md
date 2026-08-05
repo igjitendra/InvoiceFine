@@ -1,156 +1,60 @@
-# Professional Mobile UI System
+# InvoiceFine Mobile UI System
 
-## Visual direction
+_Last updated: 2026-08-04_
 
-Clean, trustworthy, compact business UI. Use white and soft-gray surfaces, strong hierarchy, and one primary blue accent. Green indicates money received or positive results; amber indicates pending attention; red indicates destructive or overdue states.
+## Direction
 
-## Color tokens
+Android-first, Material 3-inspired, compact and trustworthy. Identity: **Pocket ERP for Indian Small Business**. Favor action clarity, rounded cards, strong hierarchy, accessible contrast, and restrained motion.
 
-- background: `#F6F7F9`
-- surface: `#FFFFFF`
-- primary: `#2563EB`
-- primary soft: `#EFF6FF`
-- text primary: `#111827`
-- text secondary: `#6B7280`
-- border: `#E5E7EB`
-- positive: `#15803D`
-- warning: `#B45309`
-- danger: `#DC2626`
+## Theme
 
-Meet readable contrast. Never use color as the only status indicator.
+Automatic light/dark mode is active.
 
-## Spacing
+Light reference: background `#F7F7F8`, surface `#FFFFFF`, surface variant `#F1F1F3`, accessible coral primary `#D93632`, text `#19191B`, muted `#74747C`, border `#E5E5E8`.
 
-Use only:
+Dark reference: background `#0B0B0D`, surface `#1B1B1E`, surface variant `#27272B`, text `#F8F8F9`, muted `#A8A8AF`, border `#303034`, accessible coral primary `#D93632`.
 
-```text
-4, 8, 12, 16, 24, 32, 48
-```
+Positive, warning, and danger must include text/icon meaning; color alone is insufficient. Do not hardcode white input surfaces or dark text on theme-aware screens.
 
-Defaults:
+## Layout and type
 
-- screen horizontal padding: 16
-- card padding: 16
-- gap between related controls: 8 or 12
-- gap between sections: 24
-- input height: 48–52
-- button height: 48–52
-- minimum touch target: 44×44
+- responsive from 360dp
+- screen padding 16
+- spacing scale: 4, 8, 12, 16, 24, 32, 48
+- minimum touch target 44×44
+- input/button height 48–52
+- title 24–28, section 18, body 16, secondary 14, caption 12
+- tabular numerals for currency
+- cards normally radius 12–20 with a subtle border
 
-## Typography
+## Navigation and safe areas
 
-- screen title: 24/30, bold
-- section title: 18/24, semibold
-- card value: 22–28, bold depending on space
-- body: 16/24
-- secondary: 14/20
-- caption: 12/16, only for non-essential information
-- currency figures use tabular numerals when available
+Five tabs: Dashboard, Invoices, Customers, Catalog, More. Respect top/bottom insets and Android gesture navigation. Tab bar and status icons follow theme. Do not use fixed fake status-bar padding.
 
-Do not use oversized dashboard headings. Keep labels short and values prominent.
+## Components and states
 
-## Status bar and safe area
+Reuse shared Input, Button, Card, MoneyText, ScreenContainer, EmptyState, LoadingState, Skeleton, PressableScale, and SwipeActionRow patterns. Every data screen needs loading/skeleton, empty, populated, recoverable error, disabled/submitting, and success feedback.
 
-- Use `SafeAreaProvider` at the app root.
-- Use `SafeAreaView` or safe-area insets intentionally per screen.
-- Configure `StatusBar` with a light background and dark content in MVP.
-- Never add fixed magic-number top padding to simulate a status bar.
-- Full-screen modals must also respect safe areas.
+## Motion and haptics
 
-## Header
+- use native-driver opacity/transform animations where possible
+- respect reduced-motion accessibility setting
+- keep transitions short and functional
+- haptics are optional feedback, never the only confirmation
+- use selection/light feedback for navigation/actions, warning before destructive confirmation, success/error after outcomes
 
-- 56px visual height after top inset.
-- Left: back or menu action when needed.
-- Center or left-aligned title consistently.
-- Right: maximum two clear actions.
-- Avoid duplicated screen title inside content unless hierarchy requires it.
+## Swipe actions
 
-## Bottom tabs/footer
+Horizontal intent must be clearly distinguished from vertical scrolling. Swipe actions require tap, long-press, overflow, or accessibility alternatives. Archive/delete requires confirmation. A closed swipe row must not make its action the only discoverable path.
 
-Recommended tabs:
+## Reports
 
-1. Dashboard
-2. Invoices
-3. Customers
-4. Catalog
-5. More
+Reusable SVG charts must work at 360dp, in light/dark themes, with empty/single-point/large-value datasets. Provide accessible labels. Chart taps may filter related aggregates. Never load full business tables into JavaScript for visualization.
 
-Rules:
+## Invoice UX
 
-- Use vector icons and text labels.
-- Respect bottom safe-area/navigation inset.
-- Target visual height 64–72 plus required inset.
-- Active state uses primary color; inactive state uses secondary text.
-- Never place essential content behind the tab bar.
-- Scroll content needs bottom padding at least tab height + 24.
-- A floating action button must not collide with the tab bar or Android navigation.
+Fast searchable customer/item selection, recent items, duplicate selection increment, one-tap quantities, visible totals, draft save, and explicit finalization confirmation. Prevent duplicate submissions.
 
-## Cards
+## Required review
 
-- radius: 12
-- border: 1px soft border
-- minimal or no shadow
-- no nested card-on-card clutter
-- one card should communicate one main idea
-
-Dashboard summary cards should include label, value, optional trend/status, and accessible meaning.
-
-## Forms
-
-- Label above field; do not rely on placeholder as label.
-- Show required status consistently.
-- Show helper/error text below field.
-- Numeric keyboard for money and quantity.
-- Use searchable selection screens or sheets for customers/items.
-- Keep save action reachable when keyboard is open.
-- Use `KeyboardAvoidingView`/scroll behavior appropriate to platform.
-- Disable save while submitting and prevent duplicate taps.
-
-## Lists
-
-- Use `FlatList` for growing data.
-- Row height should remain comfortable, normally 64–80.
-- Show primary label, useful secondary detail, status, and amount.
-- Provide search, filter, empty state, and loading state.
-- Use swipe actions only with a visible alternative.
-
-## States
-
-Every data screen requires:
-
-- initial loading
-- empty state with one clear action
-- populated state
-- validation error
-- recoverable data error with retry
-- disabled/submitting state
-- success feedback when an action completes
-
-Do not show raw database or JavaScript errors to users.
-
-## Invoice creation UX
-
-Use a step-aware single flow:
-
-1. invoice type/date
-2. customer
-3. line items
-4. discount/tax/notes
-5. totals and preview
-6. save draft or finalize
-
-Keep totals visible near the bottom. Confirm finalization because it affects invoice numbering and stock.
-
-## Responsive checks
-
-Test at minimum:
-
-- narrow Android width around 360px
-- common width around 390–412px
-- large text/font scaling
-- keyboard open
-- long customer and product names
-- large currency values
-- Android navigation modes
-
-No horizontal screen scrolling, clipped buttons, overlapping footer, or content under status/navigation bars.
+360dp, 390–412dp, large font, long names, large currency values, keyboard open, TalkBack, light/dark switch, Android button and gesture navigation.

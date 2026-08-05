@@ -1,1 +1,56 @@
-import{Ionicons}from'@expo/vector-icons';import type{ComponentProps}from'react';import{StyleSheet,Text,View}from'react-native';import{theme}from'@/constants/theme';import{useAppPalette}from'@/hooks/useAppPalette';import{Button}from'./Button';type Props={actionLabel?:string;description:string;icon?:ComponentProps<typeof Ionicons>['name'];onAction?:()=>void;title:string};export function EmptyState({actionLabel,description,icon='file-tray-outline',onAction,title}:Props){const p=useAppPalette();return <View style={styles.container}><View style={[styles.icon,{backgroundColor:p.surfaceVariant}]}><Ionicons name={icon} size={32} color={p.primary}/></View><View style={styles.copy}><Text style={[styles.title,{color:p.text}]}>{title}</Text><Text style={[styles.description,{color:p.muted}]}>{description}</Text></View>{actionLabel&&onAction?<Button label={actionLabel} onPress={onAction} variant="secondary"/>:null}</View>}const styles=StyleSheet.create({container:{alignItems:'center',paddingVertical:32,paddingHorizontal:16,gap:16},icon:{width:48,height:48,alignItems:'center',justifyContent:'center',borderRadius:18},copy:{maxWidth:320,alignItems:'center',gap:8},title:{textAlign:'center',...theme.typography.sectionTitle},description:{textAlign:'center',...theme.typography.secondary}});
+import { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { theme } from "@/constants/theme";
+import { useAppPalette } from "@/hooks/useAppPalette";
+import { Button } from "./Button";
+type Props = {
+  actionLabel?: string;
+  description: string;
+  icon?: ComponentProps<typeof Ionicons>["name"];
+  onAction?: () => void;
+  title: string;
+};
+export function EmptyState({
+  actionLabel,
+  description,
+  icon = "file-tray-outline",
+  onAction,
+  title,
+}: Props) {
+  const p = useAppPalette();
+  return (
+    <View style={styles.container}>
+      <View style={[styles.icon, { backgroundColor: p.primarySoft }]}>
+        <Ionicons name={icon} size={32} color={p.primary} />
+      </View>
+      <View style={styles.copy}>
+        <Text style={[styles.title, { color: p.text }]}>{title}</Text>
+        <Text style={[styles.description, { color: p.muted }]}>
+          {description}
+        </Text>
+      </View>
+      {actionLabel && onAction ? (
+        <Button label={actionLabel} onPress={onAction} variant="secondary" />
+      ) : null}
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  icon: {
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+  },
+  copy: { maxWidth: 320, alignItems: "center", gap: 8 },
+  title: { textAlign: "center", ...theme.typography.sectionTitle },
+  description: { textAlign: "center", ...theme.typography.secondary },
+});

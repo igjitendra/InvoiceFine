@@ -1,201 +1,65 @@
 # SQLite Data Model
 
-## General rules
+_Last updated: 2026-08-04_
 
-- IDs: text UUIDs.
-- Money: integer paise.
-- Quantities: integer for indivisible units or scaled decimal strategy defined centrally.
-- Timestamps: ISO 8601 UTC text.
-- Soft-delete or archive catalog/customer records referenced by financial history.
-- Use foreign keys and transactions.
-- Add `created_at` and `updated_at` to mutable entities.
+## Storage rules
 
-## Tables
+Text UUID IDs, integer paise, centrally scaled quantities, ISO dates/timestamps, foreign keys, archives for referenced master records, versioned migrations, and transactions for multi-record financial mutations.
 
-### business_settings
+## Main tables
 
-- `id`
-- `business_name`
-- `gstin` nullable
-- `state_code` nullable
-- `address`
-- `phone`
-- `email` nullable
-- `logo_uri` nullable
-- `signature_uri` nullable
-- `payment_qr_uri` nullable
-- `invoice_prefix`
-- `next_invoice_number`
-- `tax_enabled`
-- `currency_code`
-- timestamps
+### `business_settings`
 
-### customers
+Business identity/contact/GST, logo/signature/payment QR URIs, invoice prefix/next number, currency, tax setting, and `invoice_page_size` (`a4` or `4x6`, default `a4`). Migration 3 adds business type/category, owner/website/PAN/state/pincode, GST type, invoice template, estimate/quotation prefixes, payment terms/methods, notification preferences, and onboarding completion state.
 
-- `id`
-- `name`
-- `phone` nullable
-- `email` nullable
-- `gstin` nullable
-- `state_code` nullable
-- `billing_address` nullable
-- `notes` nullable
-- `is_archived`
-- timestamps
+### `customers`
 
-### categories
+Identity/contact/GST/state/address/notes, archive flag, timestamps.
 
-- `id`
-- `kind`: item or expense
-- `name`
-- `is_archived`
+### `categories` and `units`
 
-### units
+Item/expense categories with archive state; units with names/short names/GST code.
 
-- `id`
-- `name`
-- `short_name`
-- optional GST unit code
+### `items`
 
-### items
+Product/service type, name, SKU, barcode text, category, brand, unit, purchase/selling price, GST basis points, current scaled stock, low-stock threshold, archive state, timestamps.
 
-- `id`
-- `type`: product or service
-- `name`
-- `sku` nullable
-- `barcode` nullable
-- `category_id` nullable
-- `brand` nullable
-- `unit_id` nullable
-- `purchase_price_paise`
-- `selling_price_paise`
-- `gst_rate_basis_points`
-- `current_stock_scaled`
-- `low_stock_threshold_scaled` nullable
-- `is_archived`
-- timestamps
+### `invoices`
 
-### invoices
+Unique number; tax/non-tax kind; draft/finalized/partially-paid/paid/overdue/cancelled status; customer/date; complete customer and business snapshots; subtotal/discount/taxable/CGST/SGST/IGST/rounding/total/paid paise; notes; finalization and audit timestamps.
 
-- `id`
-- `invoice_number` unique
-- `kind`: tax_invoice or non_tax_invoice for MVP
-- `status`: draft, finalized, partially_paid, paid, overdue, cancelled
-- `customer_id` nullable
-- `invoice_date`
-- `due_date` nullable
-- customer snapshot fields
-- business snapshot fields
-- `subtotal_paise`
-- `discount_paise`
-- `taxable_paise`
-- `cgst_paise`
-- `sgst_paise`
-- `igst_paise`
-- `rounding_paise`
-- `total_paise`
-- `paid_paise`
-- `notes` nullable
-- `finalized_at` nullable
-- timestamps
+### `invoice_items`
 
-### invoice_items
+Invoice relation, optional catalog relation, type and description/SKU/unit snapshots, scaled quantity, unit/cost/discount/tax values, line tax/total values, order.
 
-- `id`
-- `invoice_id`
-- `item_id` nullable
-- `item_type`
-- description snapshot
-- SKU/unit snapshots nullable
-- `quantity_scaled`
-- `unit_price_paise`
-- `cost_price_paise`
-- `discount_paise`
-- `gst_rate_basis_points`
-- `taxable_paise`
-- tax amount fields
-- `line_total_paise`
-- `sort_order`
+### `payments`
 
-### payments
+Invoice/customer relation, paise amount, date, method, reference/notes, timestamps.
 
-- `id`
-- `invoice_id`
-- `customer_id` nullable
-- `amount_paise`
-- `payment_date`
-- `method`
-- `reference` nullable
-- `notes` nullable
-- timestamps
+### `expenses`
 
-### expenses
+Expense category/date/amount/payee/notes, timestamps.
 
-- `id`
-- `category_id`
-- `expense_date`
-- `amount_paise`
-- `payee` nullable
-- `notes` nullable
-- timestamps
+### `stock_movements`
 
-### stock_movements
+Item, movement type, scaled delta, reference, reason, occurrence/audit time. Finalization and cancellation use auditable sale/reversal entries.
 
-- `id`
-- `item_id`
-- `type`: opening, sale, sale_reversal, manual_in, manual_out, adjustment
-- `quantity_delta_scaled`
-- `reference_type` nullable
-- `reference_id` nullable
-- `reason` nullable
-- `occurred_at`
-- `created_at`
+### `schema_migrations`
 
-### schema_migrations
+Applied migration version/name/time. Never reset a user database to upgrade.
 
-- `version`
-- `name`
-- `applied_at`
+## Required transaction invariants
 
-## Required indexes
+Finalization validates a draft, allocates one number, stores snapshots/totals, mutates eligible product stock, writes movements, and advances numbering atomically.
 
-- invoice date and status
-- invoice customer
-- payment invoice/customer/date
-- expense date/category
-- item name, SKU, barcode, archived state
-- stock movement item/date
-- customer name and phone
+Payment validates amount/outstanding, inserts payment, and updates paid/status atomically with conflict protection.
 
-## Transaction boundaries
+Cancellation preserves history and reverses eligible stock atomically; invoices with payments follow cancellation restrictions.
 
-### Finalize invoice
+## Aggregate query rule
 
-One transaction must:
+Dashboard/report repositories perform SQL grouping/summing and return bounded datasets. Full tables must not be loaded into JavaScript for cards or charts.
 
-1. validate the draft
-2. allocate invoice number
-3. calculate and store snapshots/totals
-4. change status to finalized
-5. create stock-out movements
-6. update current product stock
-7. increment next invoice number
+## Follow-up database policy
 
-### Record payment
-
-One transaction must:
-
-1. validate positive amount and outstanding limit
-2. insert payment
-3. recalculate paid amount
-4. set invoice payment status
-
-### Cancel finalized invoice
-
-One transaction must:
-
-1. validate cancellation rules
-2. mark invoice cancelled
-3. create reversal stock movements when applicable
-4. update current stock
-5. preserve invoice and payment history
+A negative-stock finalization policy must be explicitly approved and tested. Backup/export requires a versioned manifest, integrity validation, transactional restore, and rollback design before implementation.
