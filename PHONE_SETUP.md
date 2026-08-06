@@ -26,10 +26,12 @@ Always use the local Expo CLI:
 
 ```bash
 cd "$HOME/InvoiceFine"
-node node_modules/expo/bin/cli install react-native-svg expo-haptics expo-print expo-sharing
+node node_modules/expo/bin/cli install react-native-svg expo-haptics expo-print expo-sharing expo-notifications expo-crypto
+npm install @noble/hashes@~2.0.1
+npm install --save-dev tsx@^4.23.1
 ```
 
-Only install modules required by the active patch. Do not guess Expo package versions manually.
+Only install modules required by the active patch. Let the Expo CLI select native module versions; use the pinned package versions above for the pure-JavaScript crypto KDF and test runner.
 
 ## Apply a patch
 

@@ -8,9 +8,11 @@ import { DatabaseStartupState } from "@/components/ui/DatabaseStartupState";
 import { AppearanceProvider } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { useDatabaseInitialization } from "@/hooks/useDatabaseInitialization";
+import { useNotificationCoordinator } from "@/hooks/useNotificationCoordinator";
 
 function RootNavigator() {
   const { retry, status } = useDatabaseInitialization();
+  useNotificationCoordinator(status === "ready");
   if (status !== "ready")
     return <DatabaseStartupState onRetry={retry} status={status} />;
   return <Stack screenOptions={{ headerShown: false }} />;

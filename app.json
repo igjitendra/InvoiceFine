@@ -16,11 +16,19 @@
           "microphonePermission": false
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#D93632",
+          "defaultChannel": "business-reminders"
+        }
+      ]
     ],
     "android": {
       "predictiveBackGestureEnabled": false,
-      "allowBackup": true
+      "allowBackup": true,
+      "permissions": ["android.permission.SCHEDULE_EXACT_ALARM"]
     },
     "experiments": {
       "typedRoutes": true

@@ -1,55 +1,60 @@
-# InvoiceFine Final Source Validation
+# InvoiceFine Phase 14H Final Source Validation
 
 _Date: 2026-08-06_
 
-This report covers sandbox source validation only. It does not certify physical Android runtime behavior or production readiness.
+This report certifies sandbox source and SQLite regression checks only. It does not certify physical Android runtime behavior, Expo Go/native-module behavior, exact alarms, file-provider workflows, or production readiness.
 
-## Passed source gates
+## Final source gates
 
 ```text
-PHONE_QA_SCRIPT_SYNTAX=PASS
-BUSINESS_TEMPLATE_MIGRATION=PASS
-TEMPLATE_DATA_CASCADE=PASS
-PROFESSIONAL_CATALOG_SAFE_UPGRADE=PASS
-PROFESSIONAL_PRODUCT_ROUND_TRIP=PASS
-PROFESSIONAL_SERVICE_ROUND_TRIP=PASS
-PROFESSIONAL_CATALOG_CONSTRAINTS=PASS
-INLINE_CUSTOMER_CREATE_SELECT=PASS
-INLINE_PRODUCT_CREATE_ADD=PASS
-OPENING_STOCK_MOVEMENT=PASS
-INLINE_ADD_DATABASE_INTEGRITY=PASS
-PERSISTENT_FAVORITES=PASS
-FAVORITE_CASCADE=PASS
-MIGRATION_REGISTRY_1_TO_7=PASS
+MIGRATION_SEQUENCE_1_TO_9=PASS
+CLEAN_DATABASE_TO_9=PASS
+UPGRADE_MATRIX_1_TO_9=PASS
+UPGRADE_DATA_PRESERVATION=PASS
+MIGRATION_IDEMPOTENCY=PASS
+FINAL_SCHEMA_FOREIGN_KEYS_AND_INTEGRITY=PASS
+SDK57_DEPENDENCY_MATRIX=PASS
+EXPO_CONFIG_MANIFEST=PASS
+FINAL_ROUTE_INVENTORY=PASS
+LOCAL_NOTIFICATIONS_ONLY=PASS
+COMPLETE_SCHEMA9_BACKUP_COVERAGE=PASS
+AES_GCM_PBKDF2_FORMAT=PASS
+PREFLIGHT_BEFORE_ATOMIC_RESTORE=PASS
 ATOMIC_RESTORE_SUCCESS=PASS
 ATOMIC_RESTORE_ROLLBACK=PASS
-FOREIGN_KEY_AND_INTEGRITY_CHECKS=PASS
-BUSINESS_TEMPLATE_RESOLUTION=PASS
+DEVICE_NOTIFICATION_IDS_RESET=PASS
+WRONG_PASSWORD_TAMPER_REJECTION=PASS
+SEVEN_SELECTED_EXPORTS=PASS
+CUSTOMER_CSV_FIELDS_MIGRATION=PASS
+ATOMIC_CATALOG_CSV_IMPORT=PASS
+PROFESSIONAL_CATALOG_SAFE_UPGRADE=PASS
+INLINE_ADD_DATABASE_INTEGRITY=PASS
 NINE_VERTICAL_TEMPLATES=PASS
-TEMPLATE_FIELD_SANITIZATION=PASS
 INVOICE_CALCULATION_TESTS=PASS
 VERTICAL_INVOICE_TESTS=PASS
-DATA_BACKUP_FORMAT_TESTS=PASS
-Parsed 150 TypeScript files; failures: 0
-NATIVE_DEPENDENCY_MANIFEST=PASS
-RUNTIME_IMPORT_AUDIT=PASS
+FULL_REGRESSION_SUITE=PASS
+Parsed 199 TypeScript files; failures: 0
+RUNTIME_IMPORT_AND_TEXT_AUDIT=PASS
 UNSAFE_TYPESCRIPT=NONE
 STATIC_THEME_FILES=0
-FINAL_RELEASE_SOURCE_GATES=PASS
+PHASE14H_FINAL_SOURCE_GATES=PASS
 ```
 
-## Stabilization changes
+## Phase 14H changes
 
-- Restored approved SDK 57 package manifest entries for `expo-print`, `expo-sharing`, `expo-haptics`, and `react-native-svg`.
-- Preserved the inline Customer/Product/Service `strings` import runtime hotfix.
-- Added bottom-safe-area padding to the sticky invoice total/save action.
-- Added `scripts/phone-qa.sh` as the single Termux automated gate.
-- Added `docs/PHONE_QA_FINAL.md` for physical Android verification.
+- Added a clean plus every-prior-version migration matrix from schemas 1–8 to schema 9.
+- Verified migration order, registry, user version, tables, columns, indexes, seed-data preservation, idempotency, foreign keys, and integrity.
+- Added `scripts/run-regression-tests.sh` as the canonical regression inventory.
+- Strengthened `scripts/phone-qa.sh` with strict TypeScript, Expo config, explicit dependency checks, AppText/import audits, unsafe-TypeScript checks, and static-theme checks.
+- Added `tsx` to development dependencies so phone tests do not rely on a global installation.
+- Updated final physical-phone evidence and release checklists for Migrations 1–9, notifications, CSV, and encrypted `.ifb` recovery.
 
 ## Remaining release blockers
 
-- Run `bash scripts/phone-qa.sh` in the real Termux project with installed dependencies.
-- Complete the physical-phone matrix in `docs/PHONE_QA_FINAL.md`.
-- Verify an upgrade install preserves data through migrations 1–7.
-- Verify a signed preview Android build offline.
-- Production signing/build must wait until those gates pass.
+- Apply the Phase 14H package to the real Termux project without clearing app data.
+- Install dependencies and run `bash scripts/phone-qa.sh`; retain the complete output.
+- Resolve any phone strict-TypeScript or Expo config error before runtime QA.
+- Complete `docs/PHONE_QA_FINAL.md` on an upgrade install and fresh test install.
+- Verify exact alarms, reboot behavior, encrypted backup/restore, PDFs, file pickers, sharing, offline workflows, large fonts, 360dp, light/dark, keyboard, and TalkBack.
+- Repeat the offline matrix in a signed preview build.
+- Production signing/build must wait until all required gates pass.

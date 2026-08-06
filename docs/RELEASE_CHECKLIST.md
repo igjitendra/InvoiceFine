@@ -15,11 +15,12 @@ bash scripts/phone-qa.sh
 - [ ] Required Expo/native dependencies resolve from `node_modules`
 - [ ] Expo public configuration loads
 - [ ] Strict TypeScript passes
-- [ ] Migrations 1–7 and all repository regression tests pass
+- [ ] Clean and every-version upgrade matrix for Migrations 1–9 passes
 - [ ] Invoice calculation, vertical workflow, template, backup-format, and restore tests pass
 - [ ] Runtime strings/theme import audit passes
-- [ ] fresh database reaches latest migration
-- [ ] existing database upgrades without reset/data loss
+- [ ] fresh database reaches schema version 9
+- [ ] databases starting at every version 1–8 upgrade without reset/data loss
+- [ ] migration rerun is idempotent and schema registry remains exactly 1–9
 - [ ] no unsafe TypeScript suppression
 - [ ] no business SQL outside `db/`
 - [ ] approved dependencies only and Expo-compatible versions
@@ -63,7 +64,40 @@ bash scripts/phone-qa.sh
 - [ ] no real data in logs, fixtures, screenshots, or support ZIPs
 - [ ] Android backup behavior matches `docs/BACKUP_STRATEGY.md`
 - [ ] uninstall/clear-data warning is documented
-- [ ] only validated CSV import/export tools are advertised; encrypted backup/restore remains locked
+- [ ] encrypted `.ifb` database backup/restore is active; Delete Local Data remains locked
+
+## Phase 14G encrypted backup/restore gates
+
+- [ ] `expo-crypto` and `@noble/hashes` resolve with strict TypeScript
+- [ ] Password shorter than 8 or mismatched confirmation is rejected
+- [ ] Export writes only `.ifb`, never raw database JSON
+- [ ] SQLite integrity passes before encryption and source records remain unchanged
+- [ ] Schema-9 tables, templates, favorites and service reminders are represented
+- [ ] Wrong password, changed header and changed ciphertext all fail before mutation
+- [ ] Correct password shows created date, schema and record count before restore
+- [ ] Different schema version and invalid business-profile count are rejected
+- [ ] Confirmed restore is atomic and rolls back after a forced constraint failure
+- [ ] Notification native IDs are cleared and schedules rebuild after restore
+- [ ] Large-dataset encryption/decryption remains responsive on the target phone
+- [ ] Low-storage, picker cancellation and interrupted save leave database unchanged
+- [ ] Password is absent from logs, files, SQLite and settings storage
+- [ ] Local image references are retained; non-embedded image-file limitation is visible
+
+## Phase 14F notification/reminder gates
+
+- [ ] No notification permission prompt appears merely from launching the app
+- [ ] Enable Notifications creates both Android channels and requests permission once
+- [ ] Denied permission leaves preferences/reminders saved without claiming delivery
+- [ ] Due-payment and low-stock summaries schedule only when matching records exist
+- [ ] Daily 8 PM and Monday 9 AM summary preferences schedule without duplicates
+- [ ] Test Notification displays while foregrounded and in background
+- [ ] Service reminder customer/service/date/time/notes/recurrence persist through Migration 9
+- [ ] One-time Complete moves to history; recurring Complete advances to the next valid date
+- [ ] Cancel removes the native scheduled notification and preserves history
+- [ ] Overdue reminders remain visible and are not silently discarded
+- [ ] Notification taps route to Invoices, Catalog, Reports, or Service Reminders
+- [ ] No Expo/device push token API or cloud registration exists
+- [ ] Exact-alarm, reboot persistence, battery optimization, and timezone changes are tested on Android
 
 ## Phase 14E selected-export gates
 
@@ -99,10 +133,10 @@ bash scripts/phone-qa.sh
 - [ ] Editing the complete Business Profile returns safely without data loss
 - [ ] Invoice prefix, A4/4×6 and due-day defaults persist after restart
 - [ ] A new invoice receives the saved default due date; existing drafts keep their own date
-- [ ] Notification choices persist without requesting Android notification permission
-- [ ] Customer/Product/Service CSV tools open; encrypted recovery, reminders, notes, terms and watermark controls remain clearly non-active
+- [ ] Notification choices persist; Android permission is requested only from the explicit Enable action
+- [ ] Customer/Product/Service CSV, service reminders and encrypted recovery open; notes, terms and watermark controls remain clearly non-active
 - [ ] Privacy, Terms, Version/Changelog and support email destinations work
-- [ ] Backup/restore/delete controls remain safety-locked
+- [ ] Encrypted backup/restore opens; Delete Local Data remains safety-locked
 
 ## Phase 14A appearance gates
 

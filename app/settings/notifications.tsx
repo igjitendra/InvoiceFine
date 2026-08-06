@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Switch, View } from "react-native";
-
 import {
   SettingsHeader,
   SettingsRow,
@@ -15,8 +14,14 @@ import {
   saveNotificationSettings,
 } from "@/db/repositories/app-settings";
 import { useAppPalette } from "@/hooks/useAppPalette";
+import {
+  getNotificationPermissionState,
+  requestNotificationPermission,
+  sendTestNotification,
+  syncNotificationSchedule,
+} from "@/services/notifications";
 import type { NotificationPreference } from "@/types/onboarding";
-
+import type { NotificationPermissionState } from "@/types/reminder";
 const options: Array<{
   key: NotificationPreference;
   label: string;
@@ -26,50 +31,51 @@ const options: Array<{
   {
     key: "due_payments",
     label: "Due Payments",
-    description: "Remember customers with outstanding invoices",
+    description: "Daily 9:00 AM summary when invoices are due",
     icon: "cash-outline",
   },
   {
     key: "low_stock",
     label: "Low Stock",
-    description: "Watch products that reach their low-stock threshold",
+    description: "Daily 9:15 AM summary when stock is low",
     icon: "cube-outline",
   },
   {
     key: "daily_report",
     label: "Daily Summary",
-    description: "Preference for an end-of-day business summary",
+    description: "Sales and payments summary at 8:00 PM",
     icon: "today-outline",
   },
   {
     key: "weekly_report",
     label: "Weekly Report",
-    description: "Preference for a weekly performance summary",
+    description: "Seven-day summary on Monday at 9:00 AM",
     icon: "calendar-outline",
   },
 ];
-
 export default function NotificationSettingsScreen() {
-  const router = useRouter();
-  const palette = useAppPalette();
-  const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
+  const router = useRouter(),
+    p = useAppPalette();
+  const [preferences, setPreferences] = useState<NotificationPreference[]>([]),
+    [permission, setPermission] =
+      useState<NotificationPermissionState>("undetermined"),
+    [loading, setLoading] = useState(true),
+    [saving, setSaving] = useState(false);
   useEffect(() => {
     let active = true;
-    void getNotificationSettings()
-      .then((value) => {
-        if (active) setPreferences(value.preferences);
-      })
-      .catch(() => {
+    void Promise.all([
+      getNotificationSettings(),
+      getNotificationPermissionState(),
+    ])
+      .then(([settings, state]) => {
         if (active) {
-          Alert.alert(
-            "Preferences unavailable",
-            "Try opening this page again.",
-          );
+          setPreferences(settings.preferences);
+          setPermission(state);
         }
       })
+      .catch(() =>
+        Alert.alert("Settings unavailable", "Try opening this page again."),
+      )
       .finally(() => {
         if (active) setLoading(false);
       });
@@ -77,7 +83,6 @@ export default function NotificationSettingsScreen() {
       active = false;
     };
   }, []);
-
   function toggle(key: NotificationPreference) {
     setPreferences((current) =>
       current.includes(key)
@@ -85,14 +90,42 @@ export default function NotificationSettingsScreen() {
         : [...current, key],
     );
   }
-
+  async function enable() {
+    setSaving(true);
+    try {
+      const next = await requestNotificationPermission();
+      setPermission(next);
+      if (next === "granted") {
+        const summary = await syncNotificationSchedule();
+        Alert.alert(
+          "Notifications enabled",
+          `${summary.scheduled} local reminder${summary.scheduled === 1 ? "" : "s"} scheduled.`,
+        );
+      } else
+        Alert.alert(
+          "Permission not granted",
+          "You can enable notifications later from Android App Settings.",
+        );
+    } catch {
+      Alert.alert(
+        "Could not enable notifications",
+        "Try again from Android App Settings.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
   async function save() {
     setSaving(true);
     try {
       await saveNotificationSettings(preferences);
+      const summary =
+        permission === "granted" ? await syncNotificationSchedule() : null;
       Alert.alert(
         "Preferences saved",
-        "Delivery scheduling will be enabled in the notification engine phase.",
+        summary
+          ? `${summary.scheduled} local reminder${summary.scheduled === 1 ? "" : "s"} scheduled. ${summary.overdue} service reminder${summary.overdue === 1 ? " is" : "s are"} overdue.`
+          : "Enable Android notifications to schedule delivery.",
       );
     } catch {
       Alert.alert(
@@ -103,19 +136,38 @@ export default function NotificationSettingsScreen() {
       setSaving(false);
     }
   }
-
-  if (loading) return <LoadingState label="Loading preferences…" />;
-
+  if (loading) return <LoadingState label="Loading notification settings…" />;
   return (
     <ScreenContainer contentContainerStyle={styles.content}>
       <SettingsHeader
         title="Notifications"
-        subtitle="Choose useful business reminders without enabling delivery yet."
+        subtitle="Local business alerts and customer service reminders."
         onBack={() => router.back()}
       />
+      <SettingsSection title="ANDROID DELIVERY">
+        <SettingsRow
+          icon={
+            permission === "granted"
+              ? "checkmark-circle-outline"
+              : "notifications-outline"
+          }
+          label={
+            permission === "granted"
+              ? "Notifications enabled"
+              : "Enable notifications"
+          }
+          description={
+            permission === "granted"
+              ? "Local scheduling is active on this device"
+              : "Permission is requested only when you press Enable"
+          }
+          value={permission.toUpperCase()}
+          onPress={permission === "granted" ? undefined : () => void enable()}
+        />
+      </SettingsSection>
       <SettingsSection
-        title="PREFERENCES"
-        description="These choices are saved now. Android permission and scheduling arrive in Phase 14F."
+        title="BUSINESS SCHEDULES"
+        description="Schedules refresh when InvoiceFine opens or preferences change."
       >
         {options.map((option, index) => (
           <SettingsRow
@@ -129,14 +181,9 @@ export default function NotificationSettingsScreen() {
                 accessibilityLabel={option.label}
                 value={preferences.includes(option.key)}
                 onValueChange={() => toggle(option.key)}
-                trackColor={{
-                  false: palette.borderStrong,
-                  true: palette.primarySoftText,
-                }}
+                trackColor={{ false: p.borderStrong, true: p.primarySoftText }}
                 thumbColor={
-                  preferences.includes(option.key)
-                    ? palette.primary
-                    : palette.surface
+                  preferences.includes(option.key) ? p.primary : p.surface
                 }
               />
             }
@@ -146,24 +193,36 @@ export default function NotificationSettingsScreen() {
       <SettingsSection title="SERVICE BUSINESSES">
         <SettingsRow
           icon="alarm-outline"
-          label="Customer Service Reminder"
-          description="Customer-specific date, repeat schedule and service notes"
-          badge="PHASE 14F"
-          disabled
+          label="Customer Service Reminders"
+          description="Customer, service, date, time and recurring follow-ups"
+          badge="READY"
+          onPress={() => router.push("/settings/reminders")}
         />
       </SettingsSection>
-      <View style={styles.action}>
+      <View style={styles.actions}>
         <Button
-          label="Save Preferences"
+          label="Save & Refresh Schedule"
           loading={saving}
           onPress={() => void save()}
+        />
+        <Button
+          label="Send Test Notification"
+          variant="secondary"
+          disabled={permission !== "granted" || saving}
+          onPress={() =>
+            void sendTestNotification().catch(() =>
+              Alert.alert(
+                "Test failed",
+                "A local notification could not be shown.",
+              ),
+            )
+          }
         />
       </View>
     </ScreenContainer>
   );
 }
-
 const styles = StyleSheet.create({
   content: { gap: 22 },
-  action: { marginTop: 2 },
+  actions: { gap: 10 },
 });

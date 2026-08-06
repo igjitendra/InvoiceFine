@@ -32,7 +32,7 @@ export const legalDocuments = [
     title: "Data & Backup Policy",
     summary: "Your responsibility for offline records.",
     content:
-      "The primary database is stored locally on the device. Device loss, reset, app removal, or storage corruption may remove local data. A verified export and restore workflow must be used before relying on backups.",
+      "The primary database is stored locally on the device. Encrypted .ifb backup files use a user-chosen password that InvoiceFine never stores or can recover. Device loss, reset, app removal, forgotten passwords, or storage corruption may make local data unavailable, so keep tested backup copies and passwords separately.",
   },
   {
     slug: "licenses",
@@ -67,6 +67,6 @@ export const legalDocuments = [
     title: "App Version & Changelog",
     summary: "Current release information.",
     content:
-      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, premium onboarding, live appearance controls, and professional Settings foundations.",
+      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, premium onboarding, live appearance controls, professional Settings, CSV tools, local notifications, customer service reminders, and encrypted .ifb backup/restore.",
   },
 ] as const;

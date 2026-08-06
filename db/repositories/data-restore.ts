@@ -13,12 +13,16 @@ const restoreOrder = [
   "categories",
   "units",
   "items",
+  "catalog_item_template_data",
+  "item_favorites",
   "invoices",
   "invoice_items",
   "invoice_vertical_details",
   "payments",
   "expenses",
   "stock_movements",
+  "service_reminders",
+  "notification_jobs",
 ] as const satisfies readonly BackupTableName[];
 const deleteOrder = [...restoreOrder].reverse();
 type ColumnInfo = { name: string; notnull: number };
@@ -87,6 +91,10 @@ export async function restoreLocalDataBackup(
       await transaction.runAsync(`DELETE FROM ${quote(table)}`);
     for (const table of restoreOrder)
       await insertRows(transaction, table, document.tables[table]);
+    await transaction.runAsync("DELETE FROM notification_jobs");
+    await transaction.runAsync(
+      "UPDATE service_reminders SET notification_id=NULL,last_scheduled_at=NULL",
+    );
     const foreignKeys = await transaction.getAllAsync<
       Record<string, string | number | null>
     >("PRAGMA foreign_key_check");

@@ -6,8 +6,10 @@ for file in node_modules/expo/bin/cli node_modules/typescript/bin/tsc; do
   test -f "$file" || { echo "Missing $file. Install project dependencies first."; exit 1; }
 done
 node - <<'NODE'
-const required=['expo-print','expo-sharing','expo-haptics','react-native-svg','expo-sqlite','expo-image-picker','expo-document-picker','expo-file-system','expo-router'];
-const missing=required.filter(name=>{try{require.resolve(name+'/package.json');return false}catch{return true}});
+const fs=require('fs');
+const path=require('path');
+const required=['expo-print','expo-sharing','expo-haptics','react-native-svg','expo-sqlite','expo-image-picker','expo-document-picker','expo-file-system','expo-notifications','expo-crypto','@noble/hashes','expo-router'];
+const missing=required.filter(name=>!fs.existsSync(path.join('node_modules',name,'package.json')));
 if(missing.length){console.error('Missing dependencies:',missing.join(', '));process.exit(1)}
 console.log('REQUIRED_DEPENDENCIES=PASS');
 NODE
@@ -16,24 +18,7 @@ node node_modules/expo/bin/cli config --type public >/dev/null
 echo EXPO_CONFIG=PASS
 node node_modules/typescript/bin/tsc --noEmit
 echo TYPESCRIPT=PASS
-python3 tests/business-template-migration.test.py
-python3 tests/professional-catalog.test.py
-python3 tests/inline-add.test.py
-python3 tests/invoice-speed-tools.test.py
-python3 tests/data-restore.test.py
-node --import tsx tests/appearance-preferences.test.ts
-python3 tests/appearance-live-theme.test.py
-python3 tests/settings-information-architecture.test.py
-python3 tests/customer-csv-import.test.py
-node --import tsx tests/customer-csv.test.ts
-python3 tests/catalog-csv-import.test.py
-node --import tsx tests/catalog-csv.test.ts
-python3 tests/selected-csv-exports.test.py
-node --import tsx tests/selected-csv.test.ts
-node --import tsx tests/business-template-engine.test.ts
-node --import tsx tests/invoice-calculations.test.ts
-node --import tsx tests/vertical-invoice.test.ts
-node --import tsx tests/data-backup.test.ts
+bash scripts/run-regression-tests.sh
 python3 - <<'PY'
 from pathlib import Path
 bad=[]
@@ -42,6 +27,7 @@ for root in ('app','components'):
   text=path.read_text()
   if 'strings.' in text and 'constants/strings' not in text: bad.append(f'missing strings import: {path}')
   if 'theme.' in text and 'constants/theme' not in text: bad.append(f'missing theme import: {path}')
+  if '<Text' in text and path.name!='AppText.tsx' and 'components/ui/AppText' not in text: bad.append(f'missing AppText import: {path}')
 if bad:
  print('\n'.join(bad));raise SystemExit(1)
 print('RUNTIME_IMPORT_AUDIT=PASS')
@@ -50,4 +36,8 @@ if grep -RInE '(@ts-ignore|@ts-expect-error|\bas any\b|\bas unknown\b)' app comp
  echo UNSAFE_TYPESCRIPT=FAIL; exit 1
 fi
 echo UNSAFE_TYPESCRIPT=NONE
+if grep -RIl 'theme\.colors\.' app components --include='*.ts' --include='*.tsx' | grep -q .; then
+ echo STATIC_THEME_FILES=FAIL; exit 1
+fi
+echo STATIC_THEME_FILES=0
 printf '\nAUTOMATED_PHONE_QA=PASS\nNow complete docs/PHONE_QA_FINAL.md on the physical phone.\n'

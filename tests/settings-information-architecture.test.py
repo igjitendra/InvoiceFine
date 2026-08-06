@@ -31,12 +31,15 @@ assert "getInvoiceSettings()" in draft
 assert "invoiceSettings?.defaultDueDays" in draft
 
 notifications = (root / "app/settings/notifications.tsx").read_text()
-assert "Android permission and scheduling arrive in Phase 14F" in notifications
-assert 'badge="PHASE 14F"' in notifications
+assert "Permission is requested only when you press Enable" in notifications
+assert 'badge="READY"' in notifications
+assert 'router.push("/settings/reminders")' in notifications
 
 data_controls = (root / "app/legal/data-controls.tsx").read_text()
-assert "Deletion is safety-locked" in data_controls
-assert "disabled" in data_controls
+assert "AES-256-GCM" in data_controls
+assert "Decrypt & validate" in data_controls
+assert "Replace local data" in data_controls
+assert "Deletion remains safety-locked" in data_controls
 
 legal = (root / "constants/legal.ts").read_text()
 assert "jitendraeditiz@gmail.com" in legal

@@ -41,7 +41,7 @@ Milestones 0–13 are implemented in source:
 8. Code quality and runtime stability — recent minified source formatted and app render error boundary added; physical-phone verification pending
 9. Coral visual theme — larger typography, rounded surfaces, centralized accessible light/dark palette, and main-tab screen conversion; More header overlap and Invoice/Customer live light-mode readability corrected from phone screenshots; physical-phone re-verification pending
 10. Premium onboarding and vertical workflows — 15-step setup, dynamic business mode, Reports tab, Legal & Data hub, Migration 4 vertical details, category-specific invoice forms, transactional draft persistence, finalized display, and PDF export implemented in source; physical-phone verification pending
-11. Data safety and restore — underlying integrity/restore source retained, but backup/restore is postponed for this release; active preview controls are replaced by Coming Soon and destructive deletion remains safety-locked
+11. Data safety and restore foundation — integrity/checksum and atomic-restore source retained through an earlier safety pause; Phase 14G now supersedes the pause while destructive deletion remains safety-locked
 12. Complete light/dark consistency — all remaining static app/component theme colors converted to live palette; Expenses, forms, profiles, invoice/payment screens, selected states, secondary text, and legal/data surfaces corrected; physical-phone verification pending
 13. Smart Inline Add — query-aware New Customer/Product/Service actions, modal creation without leaving invoice, automatic select/add, business-mode filtering, category/unit resolution, and atomic opening-stock movements implemented; physical-phone verification pending
 14. Professional Product/Service schema and forms — Migration 5, persisted product/service professional fields, progressive Basic/Advanced sections, local image selection, service pricing/duration/staff/checklist, product inventory/accounting/optional details, and safe legacy defaults implemented; physical-phone verification pending
@@ -53,6 +53,9 @@ Milestones 0–13 are implemented in source:
 20. Phase 14C Customer CSV — Migration 8 customer address fields, sample, smart mapping, preview, validation, duplicate-phone policies, transactional import, export and error reports implemented; physical-phone verification pending
 21. Phase 14D Product/Service CSV — separate samples and import flows, smart mapping, validation, duplicate SKU/barcode policies, category/unit auto-create, product opening-stock movement, service SAC pending classification and reports implemented with schema version 8; physical-phone verification pending
 22. Phase 14E Selected CSV Exports — seven selectable datasets, live row counts, date/archive filters, multi-file folder save, single-file sharing, readable financial/stock formatting, empty-data handling and read-only queries implemented with schema version 8; physical-phone verification pending
+23. Phase 14F Notifications and Service Reminders — explicit Android permission, local-only channels, due/stock/daily/weekly schedules, persisted native job reconciliation, Migration 9 customer-service reminders, recurrence, completion/cancellation, overdue state, test alert and tap routing implemented; physical-phone verification pending
+24. Phase 14G Encrypted Backup/Restore — complete schema-9 `.ifb` export, AES-256-GCM, PBKDF2-SHA-256 with random salt and 210,000 iterations, password policy, picker/save workflow, authenticated preflight preview, exclusive transactional restore/rollback, notification-ID reset and schedule rebuild implemented; physical-phone verification pending
+25. Phase 14H Final Migration, Regression and Phone QA — clean plus every-version 1–8 upgrade matrix to schema 9, data preservation/idempotency/schema integrity gates, centralized full regression runner, explicit `tsx` test dependency, strengthened Termux strict-TypeScript runner, final manifest/route audit and evidence checklist implemented; physical-phone execution pending
 
 ## Reports currently supported
 
@@ -98,11 +101,11 @@ The latest dark-mode, skeleton, swipe, and haptic behavior also requires physica
 ## Known follow-up risks
 
 - Prevent or explicitly confirm invoice finalization that would make product stock negative.
-- Run a clean-database and upgrade-migration test without data reset.
+- Source clean/upgrade migration matrix passes; verify a real upgrade install on the target phone without clearing app data.
 - Validate every report chart with empty, single-point, and large datasets.
 - Validate 360dp width, large fonts, TalkBack, keyboard, light/dark switching, and Android gesture navigation.
 - Validate Expo development/preview build, not only Expo Go.
-- Design encrypted export/import together before implementing backup/restore.
+- Physically verify encrypted `.ifb` export/import, wrong-password/tamper rejection, rollback and large-data performance before production certification.
 - Confirm no real customer data or credentials are included in support ZIPs.
 
 ## Not yet production-certified

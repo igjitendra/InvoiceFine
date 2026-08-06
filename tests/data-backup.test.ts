@@ -13,6 +13,10 @@ const tables: BackupTables = {
   expenses: [],
   stock_movements: [],
   invoice_vertical_details: [],
+  catalog_item_template_data: [],
+  item_favorites: [],
+  service_reminders: [],
+  notification_jobs: [],
   schema_migrations: [],
 };
 const backup = createBackupDocument({

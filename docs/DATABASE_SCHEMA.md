@@ -12,7 +12,7 @@ Phase 14A uses Expo SQLite KV Store in its separate `ExpoSQLiteStorage` database
 
 ## Selected CSV export model
 
-Phase 14E performs read-only `SELECT` queries over existing tables. Transactional date filters apply to invoices, payments, and expenses; archived filtering applies to customers and catalog/stock records. Paise and scaled quantities are converted only in exported text, never in SQLite. No table, trigger, index, or migration is added, so the latest schema remains version 8.
+Phase 14E performs read-only `SELECT` queries over existing tables. Transactional date filters apply to invoices, payments, and expenses; archived filtering applies to customers and catalog/stock records. Paise and scaled quantities are converted only in exported text, never in SQLite. Phase 14E itself adds no migration; Phase 14F advances the latest schema to version 9.
 
 ## Main tables
 
@@ -34,7 +34,7 @@ Item/expense categories with archive state; units with names/short names/GST cod
 
 ### `items`
 
-Product/service type, name/short name, SKU, barcode, HSN/SAC, category, brand and unit; purchase/selling/MRP/wholesale price, tax-inclusive mode and GST basis points; current/opening stock through stock movements, low-stock and reorder thresholds, storage location and supplier; description, local image URI and physical attributes; accounting mappings and optional expiry/batch/warranty/manufacturer data; service pricing model, duration, staff, appointment requirement, warranty days, checklist JSON and internal/customer notes; archive state and timestamps. Migration 5 adds professional fields with safe defaults for existing rows. Phase 14D imports into these existing columns, creates missing item categories/units transactionally, and records product opening stock in `stock_movements`; it adds no migration, so the latest schema remains version 8.
+Product/service type, name/short name, SKU, barcode, HSN/SAC, category, brand and unit; purchase/selling/MRP/wholesale price, tax-inclusive mode and GST basis points; current/opening stock through stock movements, low-stock and reorder thresholds, storage location and supplier; description, local image URI and physical attributes; accounting mappings and optional expiry/batch/warranty/manufacturer data; service pricing model, duration, staff, appointment requirement, warranty days, checklist JSON and internal/customer notes; archive state and timestamps. Migration 5 adds professional fields with safe defaults for existing rows. Phase 14D imports into these existing columns, creates missing item categories/units transactionally, and records product opening stock in `stock_movements`; it adds no migration. Phase 14F later advances the overall schema to version 9.
 
 ### `catalog_item_template_data`
 
@@ -43,6 +43,14 @@ Migration 6 stores one schema-driven business-template payload per catalog item:
 ### `item_favorites`
 
 Migration 7 stores persistent favorite catalog item IDs with creation timestamps. Favorites are ranked before recently sold suggestions and cascade-delete with their item.
+
+### `service_reminders`
+
+Migration 9 stores customer-linked local service follow-ups with an optional service item, title/notes, UTC reminder timestamp, one-time/monthly/quarterly/half-yearly/yearly recurrence, pending/completed/cancelled status, native notification identifier, scheduling timestamp, and audit timestamps. Customer deletion is restricted and service deletion clears the optional relation.
+
+### `notification_jobs`
+
+Migration 9 maps each business schedule key to its native notification identifier and scheduled timestamp. Startup/settings reconciliation cancels stale native IDs before replacing rows, preventing duplicate due-payment, low-stock, daily, and weekly schedules.
 
 ### `invoices`
 
@@ -82,4 +90,8 @@ Dashboard/report repositories perform SQL grouping/summing and return bounded da
 
 ## Follow-up database policy
 
-A negative-stock finalization policy must be explicitly approved and tested. Backup/export requires a versioned manifest, integrity validation, transactional restore, and rollback design before implementation.
+A negative-stock finalization policy must be explicitly approved and tested.
+
+## Encrypted backup model
+
+Phase 14G serializes all schema-9 business tables only after `PRAGMA integrity_check` passes. The internal version-1 manifest contains exact table counts, schema version, app version, creation time, and an FNV-1a corruption checksum. That manifest is never exported as raw JSON by the UI: it is encrypted into a `.ifb` envelope with AES-256-GCM and authenticated metadata. The 256-bit key uses PBKDF2-HMAC-SHA-256 with a random 16-byte salt and 210,000 iterations. Restore accepts only the encrypted envelope, validates authentication, checksum, counts, cells, current schema equality, and one business profile before mutation. Replacement uses an exclusive transaction, deferred foreign keys, live table columns, foreign-key and integrity checks, and rollback. Native notification IDs are device-specific, so restored job rows and reminder notification IDs are cleared before local schedules are rebuilt.

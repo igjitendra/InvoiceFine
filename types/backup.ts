@@ -12,6 +12,10 @@ export const backupTableNames = [
   "expenses",
   "stock_movements",
   "invoice_vertical_details",
+  "catalog_item_template_data",
+  "item_favorites",
+  "service_reminders",
+  "notification_jobs",
   "schema_migrations",
 ] as const;
 export type BackupTableName = (typeof backupTableNames)[number];
@@ -33,4 +37,16 @@ export type BackupValidation = {
   reason: string;
   schemaVersion?: number;
   createdAt?: string;
+};
+export type EncryptedBackupEnvelope = {
+  format: "invoicefine-encrypted-backup";
+  formatVersion: 1;
+  appVersion: string;
+  createdAt: string;
+  schemaVersion: number;
+  cipher: "AES-256-GCM";
+  kdf: "PBKDF2-HMAC-SHA256";
+  iterations: 210000;
+  salt: string;
+  sealedData: string;
 };

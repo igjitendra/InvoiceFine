@@ -8,6 +8,11 @@ MIGRATIONS = [
     "0002-invoice-page-size.ts",
     "0003-premium-onboarding.ts",
     "0004-vertical-invoice-details.ts",
+    "0005-professional-catalog.ts",
+    "0006-business-template-engine.ts",
+    "0007-invoice-speed-tools.ts",
+    "0008-customer-csv-fields.ts",
+    "0009-notifications-reminders.ts",
 ]
 RESTORE_ORDER = [
     "business_settings",
@@ -15,12 +20,16 @@ RESTORE_ORDER = [
     "categories",
     "units",
     "items",
+    "catalog_item_template_data",
+    "item_favorites",
     "invoices",
     "invoice_items",
     "invoice_vertical_details",
     "payments",
     "expenses",
     "stock_movements",
+    "service_reminders",
+    "notification_jobs",
 ]
 
 
@@ -30,7 +39,7 @@ def migrate(connection: sqlite3.Connection) -> None:
         sql = re.search(r"sql:\s*`(.*?)`", source, re.S)
         assert sql
         connection.executescript(sql.group(1))
-    connection.execute("PRAGMA user_version=4")
+    connection.execute("PRAGMA user_version=9")
 
 
 def business(name: str, next_number: int = 1) -> dict[str, object]:
