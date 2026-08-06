@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";

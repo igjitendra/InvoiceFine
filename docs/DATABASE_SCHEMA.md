@@ -1,10 +1,14 @@
 # SQLite Data Model
 
-_Last updated: 2026-08-04_
+_Last updated: 2026-08-06_
 
 ## Storage rules
 
 Text UUID IDs, integer paise, centrally scaled quantities, ISO dates/timestamps, foreign keys, archives for referenced master records, versioned migrations, and transactions for multi-record financial mutations.
+
+## Appearance preference store
+
+Phase 14A uses Expo SQLite KV Store in its separate `ExpoSQLiteStorage` database, not the transactional business database. The versioned key `invoicefine.appearance.v1` stores a validated JSON object containing theme (`system`, `light`, or `dark`), font size (`small`, `medium`, or `large`), compact-mode state, and catalog view (`card` or `list`). Invalid or unreadable values fall back safely to System/Medium/Comfortable/Card defaults. This does not increment the business schema migration version.
 
 ## Main tables
 

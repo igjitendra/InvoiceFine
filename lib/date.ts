@@ -1,1 +1,15 @@
-const LOCAL_DATE_PATTERN=/^\d{4}-\d{2}-\d{2}$/;export function isValidLocalDate(value:string):boolean{if(!LOCAL_DATE_PATTERN.test(value))return false;const date=new Date(`${value}T00:00:00Z`);return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value}export function isValidDateRange(startDate:string,endDate:string):boolean{return isValidLocalDate(startDate)&&isValidLocalDate(endDate)&&startDate<=endDate}
+const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+export function isValidLocalDate(value: string): boolean {
+  if (!LOCAL_DATE_PATTERN.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return (
+    !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
+}
+export function isValidDateRange(startDate: string, endDate: string): boolean {
+  return (
+    isValidLocalDate(startDate) &&
+    isValidLocalDate(endDate) &&
+    startDate <= endDate
+  );
+}

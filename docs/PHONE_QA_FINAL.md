@@ -20,7 +20,13 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Business category activates the correct Business Template Engine fields.
 - [ ] A4 and 4×6 selections persist from onboarding and Business Profile.
 - [ ] Image picker requests photos only; camera and microphone are not requested.
-- [ ] Light/dark/system theme transitions keep every label readable.
+- [ ] Settings → Appearance opens from Dashboard Settings and More.
+- [ ] System Default follows Android theme changes while the app remains open.
+- [ ] Light and Dark apply immediately without restarting.
+- [ ] Small/Medium/Large update app text and keep primary actions visible.
+- [ ] Compact mode reduces spacing without shrinking required touch targets.
+- [ ] Card/List catalog preference changes density without breaking search/swipe/archive.
+- [ ] Theme, font size, compact mode, and catalog view survive force-stop/restart.
 
 ## 3. Zero-navigation invoice workflow
 

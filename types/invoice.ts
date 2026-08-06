@@ -1,5 +1,5 @@
-export type InvoiceKind = 'tax_invoice' | 'non_tax_invoice';
-export type InvoiceTaxMode = 'none' | 'intra_state' | 'inter_state';
+export type InvoiceKind = "tax_invoice" | "non_tax_invoice";
+export type InvoiceTaxMode = "none" | "intra_state" | "inter_state";
 
 export type InvoiceCalculationLineInput = {
   lineKey: string;

@@ -48,6 +48,7 @@ Milestones 0–13 are implemented in source:
 15. Business Template Engine — Migration 6, nine schema-driven vertical templates, category alias resolution, sanitized per-item JSON persistence, cascade cleanup, dynamic catalog fields, and template-aware invoice workflow routing implemented; physical-phone verification pending
 16. Invoice speed tools — Migration 7 persistent favorites, favorite/recent-first suggestions, query search, duplicate increment, quick quantity presets, long-press quantity shortcuts, and live sticky total/save summary implemented; physical-phone verification pending
 17. Final release stabilization — missing approved native dependencies restored in package manifest, inline string-import runtime fix retained, sticky invoice action respects bottom safe area, automated Termux QA runner and final physical-phone matrix added; production certification still pending phone results
+18. Phase 14A Appearance and live theme — System/Light/Dark live switching, Android system following, persisted Small/Medium/Large app text, Compact mode, Card/List catalog preference, dashboard Settings entry, and SQLite KV persistence implemented without a new native dependency; physical-phone verification pending
 
 ## Reports currently supported
 
@@ -62,7 +63,9 @@ Charts use SQLite aggregates and `react-native-svg`; no heavy chart library is a
 
 ## Theme and interaction
 
-- Automatic light/dark theme with live palette on every text-bearing UI component
+- User-selectable System/Light/Dark theme with instant live palette updates; System follows Android changes
+- Persisted Small/Medium/Large app text scaling through the shared AppText surface
+- Persisted Compact mode and Card/List catalog density preference
 - Material 3-inspired surfaces with WCAG AA core text contrast
 - Safe-area/status-bar handling
 - native-driver transitions

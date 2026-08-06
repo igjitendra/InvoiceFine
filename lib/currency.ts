@@ -1,8 +1,8 @@
 export function parseRupeesToPaise(value: string): number | null {
   const normalized = value.trim();
   if (!/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(normalized)) return null;
-  const [rupees, fraction = ''] = normalized.split('.');
-  const paise = Number(rupees) * 100 + Number(fraction.padEnd(2, '0'));
+  const [rupees, fraction = ""] = normalized.split(".");
+  const paise = Number(rupees) * 100 + Number(fraction.padEnd(2, "0"));
   return Number.isSafeInteger(paise) ? paise : null;
 }
 

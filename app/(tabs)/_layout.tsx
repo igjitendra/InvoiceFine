@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
+import { useAppearance } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { useBusinessType } from "@/hooks/useBusinessType";
 
@@ -22,6 +23,7 @@ function icon(active: IconName, inactive: IconName) {
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const appearance = useAppearance();
   const palette = useAppPalette();
   const businessType = useBusinessType();
   const catalogTitle =
@@ -38,10 +40,18 @@ export default function TabsLayout() {
         tabBarActiveTintColor: palette.primary,
         tabBarInactiveTintColor: palette.muted,
         tabBarHideOnKeyboard: true,
-        tabBarLabelStyle: theme.typography.tabLabel,
+        tabBarLabelStyle: {
+          ...theme.typography.tabLabel,
+          fontSize: Math.round(
+            theme.typography.tabLabel.fontSize * appearance.fontScale,
+          ),
+          lineHeight: Math.round(
+            theme.typography.tabLabel.lineHeight * appearance.fontScale,
+          ),
+        },
         tabBarItemStyle: { minHeight: 44 },
         tabBarStyle: {
-          height: 66 + insets.bottom,
+          height: (appearance.compactMode ? 60 : 66) + insets.bottom,
           paddingTop: 8,
           paddingBottom: Math.max(insets.bottom, 8),
           backgroundColor: palette.surface,

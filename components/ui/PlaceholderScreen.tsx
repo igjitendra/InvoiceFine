@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { theme } from "@/constants/theme";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { Card } from "./Card";

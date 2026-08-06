@@ -1,4 +1,4 @@
-export type InvoicePageSize = 'a4' | '4x6';
+export type InvoicePageSize = "a4" | "4x6";
 
 export type BusinessProfile = {
   id: string;
@@ -13,7 +13,7 @@ export type BusinessProfile = {
   invoicePrefix: string;
   nextInvoiceNumber: number;
   taxEnabled: boolean;
-  currencyCode: 'INR';
+  currencyCode: "INR";
   invoicePageSize: InvoicePageSize;
   createdAt: string;
   updatedAt: string;
@@ -21,7 +21,7 @@ export type BusinessProfile = {
 
 export type BusinessProfileInput = Omit<
   BusinessProfile,
-  'id' | 'currencyCode' | 'createdAt' | 'updatedAt'
+  "id" | "currencyCode" | "createdAt" | "updatedAt"
 >;
 
 export type BusinessProfileFormValues = {

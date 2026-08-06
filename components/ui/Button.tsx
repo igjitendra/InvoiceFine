@@ -2,10 +2,11 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   type PressableProps,
 } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { theme } from "@/constants/theme";
+import { useAppearance } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
 type Variant = "primary" | "secondary" | "danger";
 type Props = Omit<PressableProps, "children" | "style"> & {
@@ -20,6 +21,7 @@ export function Button({
   variant = "primary",
   ...props
 }: Props) {
+  const { compactMode } = useAppearance();
   const p = useAppPalette(),
     off = disabled || loading,
     background =
@@ -37,6 +39,7 @@ export function Button({
       disabled={off}
       style={({ pressed }) => [
         styles.base,
+        compactMode && styles.compact,
         { backgroundColor: background, borderColor: border },
         pressed &&
           !off && {
@@ -70,5 +73,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   disabled: { opacity: 0.52 },
+  compact: { minHeight: 46, paddingHorizontal: 14, borderRadius: 14 },
   label: { ...theme.typography.button },
 });

@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Switch, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";

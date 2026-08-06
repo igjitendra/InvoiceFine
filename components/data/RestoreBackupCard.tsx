@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Alert, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Share, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";

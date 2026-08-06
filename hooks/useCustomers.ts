@@ -1,8 +1,8 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
-import { listCustomers } from '@/db/repositories/customers';
-import type { Customer } from '@/types/customer';
+import { listCustomers } from "@/db/repositories/customers";
+import type { Customer } from "@/types/customer";
 
 type CustomersState = {
   customers: Customer[];

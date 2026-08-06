@@ -1,1 +1,34 @@
-export type DashboardPeriod='today'|'month'|'custom';export type DashboardTotals={salesPaise:number;receivedPaise:number;receivablesPaise:number;cogsPaise:number;expensesPaise:number;grossProfitPaise:number;netProfitPaise:number;customerCount:number;lowStockCount:number};export type RecentInvoice={id:string;invoiceNumber:string;customerName:string|null;invoiceDate:string;status:string;totalPaise:number};export type LowStockItem={id:string;name:string;currentStockScaled:number;thresholdScaled:number;unitName:string|null};export type DashboardData={startDate:string;endDate:string;totals:DashboardTotals;recentInvoices:RecentInvoice[];lowStockItems:LowStockItem[]};
+export type DashboardPeriod = "today" | "month" | "custom";
+export type DashboardTotals = {
+  salesPaise: number;
+  receivedPaise: number;
+  receivablesPaise: number;
+  cogsPaise: number;
+  expensesPaise: number;
+  grossProfitPaise: number;
+  netProfitPaise: number;
+  customerCount: number;
+  lowStockCount: number;
+};
+export type RecentInvoice = {
+  id: string;
+  invoiceNumber: string;
+  customerName: string | null;
+  invoiceDate: string;
+  status: string;
+  totalPaise: number;
+};
+export type LowStockItem = {
+  id: string;
+  name: string;
+  currentStockScaled: number;
+  thresholdScaled: number;
+  unitName: string | null;
+};
+export type DashboardData = {
+  startDate: string;
+  endDate: string;
+  totals: DashboardTotals;
+  recentInvoices: RecentInvoice[];
+  lowStockItems: LowStockItem[];
+};

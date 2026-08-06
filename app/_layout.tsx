@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AppErrorBoundary } from "@/components/ui/AppErrorBoundary";
 import { DatabaseStartupState } from "@/components/ui/DatabaseStartupState";
+import { AppearanceProvider } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { useDatabaseInitialization } from "@/hooks/useDatabaseInitialization";
 
@@ -15,11 +16,12 @@ function RootNavigator() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
-export default function RootLayout() {
+function RootContent() {
   const palette = useAppPalette();
-  const backgroundColor = palette.background;
   return (
-    <SafeAreaProvider style={[styles.provider, { backgroundColor }]}>
+    <SafeAreaProvider
+      style={[styles.provider, { backgroundColor: palette.background }]}
+    >
       <StatusBar style={palette.dark ? "light" : "dark"} />
       <AppErrorBoundary>
         <RootNavigator />
@@ -27,4 +29,13 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+export default function RootLayout() {
+  return (
+    <AppearanceProvider>
+      <RootContent />
+    </AppearanceProvider>
+  );
+}
+
 const styles = StyleSheet.create({ provider: { flex: 1 } });

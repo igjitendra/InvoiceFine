@@ -1,1 +1,24 @@
-export type Expense={id:string;categoryName:string;expenseDate:string;amountPaise:number;payee:string|null;notes:string|null};export type ExpenseInput={category:string;expenseDate:string;amountPaise:number;payee:string|null;notes:string|null};export type ProfitReport={startDate:string;endDate:string;salesRevenuePaise:number;cogsPaise:number;grossProfitPaise:number;expensesPaise:number;netProfitPaise:number};
+export type Expense = {
+  id: string;
+  categoryName: string;
+  expenseDate: string;
+  amountPaise: number;
+  payee: string | null;
+  notes: string | null;
+};
+export type ExpenseInput = {
+  category: string;
+  expenseDate: string;
+  amountPaise: number;
+  payee: string | null;
+  notes: string | null;
+};
+export type ProfitReport = {
+  startDate: string;
+  endDate: string;
+  salesRevenuePaise: number;
+  cogsPaise: number;
+  grossProfitPaise: number;
+  expensesPaise: number;
+  netProfitPaise: number;
+};

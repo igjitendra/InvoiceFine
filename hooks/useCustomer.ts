@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { getCustomer } from '@/db/repositories/customers';
-import type { Customer } from '@/types/customer';
+import { getCustomer } from "@/db/repositories/customers";
+import type { Customer } from "@/types/customer";
 
 type CustomerState = {
   customer: Customer | null;

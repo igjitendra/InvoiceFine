@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { strings } from "@/constants/strings";
@@ -8,6 +9,12 @@ import { theme } from "@/constants/theme";
 import { useAppPalette } from "@/hooks/useAppPalette";
 
 const entries = [
+  {
+    icon: "color-palette-outline" as const,
+    label: strings.appearance.title,
+    description: strings.appearance.subtitle,
+    path: "/settings/appearance" as const,
+  },
   {
     icon: "business-outline" as const,
     label: strings.pdf.profileTitle,

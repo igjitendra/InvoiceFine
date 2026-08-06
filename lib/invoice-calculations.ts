@@ -1,10 +1,10 @@
-import { QUANTITY_SCALE } from './quantity';
+import { QUANTITY_SCALE } from "./quantity";
 import type {
   InvoiceCalculation,
   InvoiceCalculationInput,
   InvoiceLineCalculation,
   InvoiceTaxMode,
-} from '../types/invoice';
+} from "../types/invoice";
 
 const BASIS_POINTS_SCALE = 10_000;
 const PAISE_PER_RUPEE = 100;
@@ -42,11 +42,11 @@ function roundToNearestRupee(paise: number): number {
     paise,
     1,
     PAISE_PER_RUPEE,
-    'Invoice total',
+    "Invoice total",
   );
   const roundedPaise = rupees * PAISE_PER_RUPEE;
   if (!Number.isSafeInteger(roundedPaise)) {
-    throw new Error('Invoice total exceeds the supported range.');
+    throw new Error("Invoice total exceeds the supported range.");
   }
   return roundedPaise;
 }
@@ -56,64 +56,68 @@ function isVerifiedStateCode(value: string | null): value is string {
 }
 
 export function resolveInvoiceTaxMode(
-  kind: InvoiceCalculationInput['kind'],
+  kind: InvoiceCalculationInput["kind"],
   businessStateCode: string | null,
   customerStateCode: string | null,
 ): InvoiceTaxMode {
-  if (kind === 'non_tax_invoice') return 'none';
-  if (!isVerifiedStateCode(businessStateCode) || !isVerifiedStateCode(customerStateCode)) {
+  if (kind === "non_tax_invoice") return "none";
+  if (
+    !isVerifiedStateCode(businessStateCode) ||
+    !isVerifiedStateCode(customerStateCode)
+  ) {
     throw new Error(
-      'Verified business and customer state codes are required for a tax invoice.',
+      "Verified business and customer state codes are required for a tax invoice.",
     );
   }
   return businessStateCode.trim() === customerStateCode.trim()
-    ? 'intra_state'
-    : 'inter_state';
+    ? "intra_state"
+    : "inter_state";
 }
 
 function calculateLine(
-  line: InvoiceCalculationInput['lines'][number],
+  line: InvoiceCalculationInput["lines"][number],
   taxMode: InvoiceTaxMode,
 ): InvoiceLineCalculation {
   if (line.lineKey.trim().length === 0) {
-    throw new Error('Each invoice line requires a key.');
+    throw new Error("Each invoice line requires a key.");
   }
   if (!Number.isSafeInteger(line.quantityScaled) || line.quantityScaled <= 0) {
-    throw new Error('Invoice line quantity must be a positive scaled integer.');
+    throw new Error("Invoice line quantity must be a positive scaled integer.");
   }
-  requireNonNegativeSafeInteger(line.unitPricePaise, 'Unit price');
-  requireNonNegativeSafeInteger(line.discountPaise, 'Line discount');
-  requireNonNegativeSafeInteger(line.gstRateBasisPoints, 'GST rate');
+  requireNonNegativeSafeInteger(line.unitPricePaise, "Unit price");
+  requireNonNegativeSafeInteger(line.discountPaise, "Line discount");
+  requireNonNegativeSafeInteger(line.gstRateBasisPoints, "GST rate");
   if (line.gstRateBasisPoints > BASIS_POINTS_SCALE) {
-    throw new Error('GST rate cannot exceed 100 percent.');
+    throw new Error("GST rate cannot exceed 100 percent.");
   }
 
   const subtotalPaise = multiplyDivideRoundHalfUp(
     line.unitPricePaise,
     line.quantityScaled,
     QUANTITY_SCALE,
-    'Line subtotal',
+    "Line subtotal",
   );
   if (line.discountPaise > subtotalPaise) {
-    throw new Error('Line discount cannot exceed the line subtotal.');
+    throw new Error("Line discount cannot exceed the line subtotal.");
   }
   const taxablePaise = subtotalPaise - line.discountPaise;
-  const taxPaise = taxMode === 'none'
-    ? 0
-    : multiplyDivideRoundHalfUp(
-        taxablePaise,
-        line.gstRateBasisPoints,
-        BASIS_POINTS_SCALE,
-        'Line tax',
-      );
+  const taxPaise =
+    taxMode === "none"
+      ? 0
+      : multiplyDivideRoundHalfUp(
+          taxablePaise,
+          line.gstRateBasisPoints,
+          BASIS_POINTS_SCALE,
+          "Line tax",
+        );
 
   let cgstPaise = 0;
   let sgstPaise = 0;
   let igstPaise = 0;
-  if (taxMode === 'intra_state') {
+  if (taxMode === "intra_state") {
     cgstPaise = Math.floor(taxPaise / 2);
     sgstPaise = taxPaise - cgstPaise;
-  } else if (taxMode === 'inter_state') {
+  } else if (taxMode === "inter_state") {
     igstPaise = taxPaise;
   }
 
@@ -125,17 +129,19 @@ function calculateLine(
     cgstPaise,
     sgstPaise,
     igstPaise,
-    lineTotalPaise: addSafe(taxablePaise, taxPaise, 'Line total'),
+    lineTotalPaise: addSafe(taxablePaise, taxPaise, "Line total"),
   };
 }
 
-export function calculateInvoice(input: InvoiceCalculationInput): InvoiceCalculation {
+export function calculateInvoice(
+  input: InvoiceCalculationInput,
+): InvoiceCalculation {
   if (input.lines.length === 0) {
-    throw new Error('An invoice requires at least one line.');
+    throw new Error("An invoice requires at least one line.");
   }
   const keys = new Set(input.lines.map((line) => line.lineKey));
   if (keys.size !== input.lines.length) {
-    throw new Error('Invoice line keys must be unique.');
+    throw new Error("Invoice line keys must be unique.");
   }
 
   const taxMode = resolveInvoiceTaxMode(
@@ -152,22 +158,35 @@ export function calculateInvoice(input: InvoiceCalculationInput): InvoiceCalcula
   let sgstPaise = 0;
   let igstPaise = 0;
   for (const line of lines) {
-    subtotalPaise = addSafe(subtotalPaise, line.subtotalPaise, 'Invoice subtotal');
-    discountPaise = addSafe(discountPaise, line.discountPaise, 'Invoice discount');
-    taxablePaise = addSafe(taxablePaise, line.taxablePaise, 'Invoice taxable amount');
-    cgstPaise = addSafe(cgstPaise, line.cgstPaise, 'Invoice CGST');
-    sgstPaise = addSafe(sgstPaise, line.sgstPaise, 'Invoice SGST');
-    igstPaise = addSafe(igstPaise, line.igstPaise, 'Invoice IGST');
+    subtotalPaise = addSafe(
+      subtotalPaise,
+      line.subtotalPaise,
+      "Invoice subtotal",
+    );
+    discountPaise = addSafe(
+      discountPaise,
+      line.discountPaise,
+      "Invoice discount",
+    );
+    taxablePaise = addSafe(
+      taxablePaise,
+      line.taxablePaise,
+      "Invoice taxable amount",
+    );
+    cgstPaise = addSafe(cgstPaise, line.cgstPaise, "Invoice CGST");
+    sgstPaise = addSafe(sgstPaise, line.sgstPaise, "Invoice SGST");
+    igstPaise = addSafe(igstPaise, line.igstPaise, "Invoice IGST");
   }
   const taxPaise = addSafe(
-    addSafe(cgstPaise, sgstPaise, 'Invoice tax'),
+    addSafe(cgstPaise, sgstPaise, "Invoice tax"),
     igstPaise,
-    'Invoice tax',
+    "Invoice tax",
   );
-  const unroundedTotalPaise = addSafe(taxablePaise, taxPaise, 'Invoice total');
-  const totalPaise = input.roundToWholeRupee === false
-    ? unroundedTotalPaise
-    : roundToNearestRupee(unroundedTotalPaise);
+  const unroundedTotalPaise = addSafe(taxablePaise, taxPaise, "Invoice total");
+  const totalPaise =
+    input.roundToWholeRupee === false
+      ? unroundedTotalPaise
+      : roundToNearestRupee(unroundedTotalPaise);
 
   return {
     taxMode,
@@ -189,10 +208,10 @@ export function calculateOutstandingPaise(
   totalPaise: number,
   paidPaise: number,
 ): number {
-  requireNonNegativeSafeInteger(totalPaise, 'Invoice total');
-  requireNonNegativeSafeInteger(paidPaise, 'Paid amount');
+  requireNonNegativeSafeInteger(totalPaise, "Invoice total");
+  requireNonNegativeSafeInteger(paidPaise, "Paid amount");
   if (paidPaise > totalPaise) {
-    throw new Error('Paid amount cannot exceed invoice total.');
+    throw new Error("Paid amount cannot exceed invoice total.");
   }
   return totalPaise - paidPaise;
 }

@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";

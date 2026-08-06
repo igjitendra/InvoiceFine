@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
 import { useAppPalette } from "@/hooks/useAppPalette";

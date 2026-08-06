@@ -1,4 +1,4 @@
-import { strings } from '@/constants/strings';
+import { strings } from "@/constants/strings";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const gstinPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -42,26 +42,40 @@ export function validateOptionalStateCode(value: string): true | string {
     : strings.customers.validation.stateCode;
 }
 
-export function validateGstin(value: string, taxEnabled: boolean): true | string {
+export function validateGstin(
+  value: string,
+  taxEnabled: boolean,
+): true | string {
   const normalized = value.trim().toUpperCase();
   if (!taxEnabled && normalized.length === 0) return true;
   return gstinPattern.test(normalized) || strings.onboarding.validation.gstin;
 }
 
-export function validateStateCode(value: string, taxEnabled: boolean): true | string {
+export function validateStateCode(
+  value: string,
+  taxEnabled: boolean,
+): true | string {
   const normalized = value.trim();
   if (!taxEnabled && normalized.length === 0) return true;
-  return stateCodePattern.test(normalized) || strings.onboarding.validation.stateCode;
+  return (
+    stateCodePattern.test(normalized) || strings.onboarding.validation.stateCode
+  );
 }
 
 export function validateInvoicePrefix(value: string): true | string {
-  return invoicePrefixPattern.test(value.trim().toUpperCase()) ||
-    strings.onboarding.validation.invoicePrefix;
+  return (
+    invoicePrefixPattern.test(value.trim().toUpperCase()) ||
+    strings.onboarding.validation.invoicePrefix
+  );
 }
 
 export function validateInvoiceNumber(value: string): true | string {
   const normalized = value.trim();
   const parsed = Number(normalized);
-  return (/^[0-9]+$/.test(normalized) && Number.isSafeInteger(parsed) && parsed > 0) ||
-    strings.onboarding.validation.invoiceNumber;
+  return (
+    (/^[0-9]+$/.test(normalized) &&
+      Number.isSafeInteger(parsed) &&
+      parsed > 0) ||
+    strings.onboarding.validation.invoiceNumber
+  );
 }

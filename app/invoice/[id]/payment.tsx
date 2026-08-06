@@ -1,1 +1,6 @@
-import{useLocalSearchParams}from'expo-router';import{PaymentScreen}from'@/components/payments/PaymentScreen';export default function Route(){const{id}=useLocalSearchParams<{id?:string|string[]}>();return <PaymentScreen invoiceId={typeof id==='string'?id:''}/>}
+import { useLocalSearchParams } from "expo-router";
+import { PaymentScreen } from "@/components/payments/PaymentScreen";
+export default function Route() {
+  const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+  return <PaymentScreen invoiceId={typeof id === "string" ? id : ""} />;
+}

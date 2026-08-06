@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "@/constants/theme";
+import { useAppearance } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
 type Props = PropsWithChildren<{
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -24,12 +25,17 @@ export function ScreenContainer({
   keyboardAware = false,
   backgroundColor,
 }: Props) {
+  const { compactMode } = useAppearance();
   const p = useAppPalette(),
     bg = backgroundColor ?? p.background;
   const content = scroll ? (
     <ScrollView
       style={{ backgroundColor: bg }}
-      contentContainerStyle={[styles.content, contentContainerStyle]}
+      contentContainerStyle={[
+        styles.content,
+        compactMode && styles.compactContent,
+        contentContainerStyle,
+      ]}
       contentInsetAdjustmentBehavior="never"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
@@ -38,7 +44,12 @@ export function ScreenContainer({
     </ScrollView>
   ) : (
     <View
-      style={[styles.content, { backgroundColor: bg }, contentContainerStyle]}
+      style={[
+        styles.content,
+        compactMode && styles.compactContent,
+        { backgroundColor: bg },
+        contentContainerStyle,
+      ]}
     >
       {children}
     </View>
@@ -72,5 +83,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: theme.layout.tabBarHeight + 24,
+  },
+  compactContent: {
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: theme.layout.tabBarHeight + 16,
   },
 });

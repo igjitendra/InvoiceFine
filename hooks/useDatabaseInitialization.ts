@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { initializeDatabase } from '@/db/database';
-import type { DatabaseInitializationStatus } from '@/types/database';
+import { initializeDatabase } from "@/db/database";
+import type { DatabaseInitializationStatus } from "@/types/database";
 
 type DatabaseInitializationResult = {
   retry: () => void;
@@ -10,22 +10,21 @@ type DatabaseInitializationResult = {
 
 export function useDatabaseInitialization(): DatabaseInitializationResult {
   const [attempt, setAttempt] = useState(0);
-  const [status, setStatus] =
-    useState<DatabaseInitializationStatus>('loading');
+  const [status, setStatus] = useState<DatabaseInitializationStatus>("loading");
 
   useEffect(() => {
     let isActive = true;
-    setStatus('loading');
+    setStatus("loading");
 
     void initializeDatabase()
       .then(() => {
         if (isActive) {
-          setStatus('ready');
+          setStatus("ready");
         }
       })
       .catch(() => {
         if (isActive) {
-          setStatus('error');
+          setStatus("error");
         }
       });
 

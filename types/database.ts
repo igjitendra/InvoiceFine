@@ -1,4 +1,4 @@
-export type DatabaseInitializationStatus = 'loading' | 'ready' | 'error';
+export type DatabaseInitializationStatus = "loading" | "ready" | "error";
 
 export type EntityId = string;
 export type IsoDateTimeString = string;

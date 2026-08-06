@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { PressableScale } from "@/components/ui/PressableScale";
 import {
   SwipeActionRow,
   type SwipeRowAction,
 } from "@/components/ui/SwipeActionRow";
 import { useAppPalette } from "@/hooks/useAppPalette";
+import { useAppearance } from "@/hooks/useAppearance";
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
 import { formatPaise } from "@/lib/currency";
@@ -20,6 +22,8 @@ export function CatalogRow({
   onPress: () => void;
   onArchive: () => void;
 }) {
+  const { catalogView, compactMode } = useAppearance();
+  const dense = compactMode || catalogView === "list";
   const palette = useAppPalette(),
     isProduct = item.type === "product",
     out = isProduct && item.currentStockScaled <= 0,
@@ -45,7 +49,10 @@ export function CatalogRow({
     },
   ];
   return (
-    <SwipeActionRow actions={actions} containerStyle={styles.swipe}>
+    <SwipeActionRow
+      actions={actions}
+      containerStyle={[styles.swipe, dense && styles.denseSwipe]}
+    >
       <PressableScale
         haptic="selection"
         accessibilityRole="button"
@@ -56,12 +63,14 @@ export function CatalogRow({
         onPress={onPress}
         style={[
           styles.card,
+          dense && styles.denseCard,
           { backgroundColor: palette.surface, borderColor: palette.border },
         ]}
       >
         <View
           style={[
             styles.icon,
+            dense && styles.denseIcon,
             { backgroundColor: isProduct ? palette.surfaceVariant : "#3B2454" },
           ]}
         >
@@ -71,7 +80,7 @@ export function CatalogRow({
             color={isProduct ? palette.primary : "#C084FC"}
           />
         </View>
-        <View style={styles.copy}>
+        <View style={[styles.copy, dense && styles.denseCopy]}>
           <View style={styles.titleRow}>
             <Text
               numberOfLines={1}
@@ -169,6 +178,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing[3],
     borderRadius: 18,
   },
+  denseSwipe: { marginBottom: theme.spacing[2], borderRadius: 14 },
   card: {
     minHeight: 126,
     padding: theme.spacing[4],
@@ -178,6 +188,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 18,
   },
+  denseCard: {
+    minHeight: 92,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 10,
+    borderRadius: 14,
+  },
   icon: {
     width: 52,
     height: 52,
@@ -185,7 +202,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  denseIcon: { width: 42, height: 42, borderRadius: 13 },
   copy: { flex: 1, gap: theme.spacing[2] },
+  denseCopy: { gap: theme.spacing[1] },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",

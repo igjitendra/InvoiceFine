@@ -5,10 +5,10 @@ import {
   PanResponder,
   Pressable,
   StyleSheet,
-  Text,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { triggerHaptic, type HapticFeedback } from "@/lib/haptics";
 import { useAppPalette } from "@/hooks/useAppPalette";
 const ACTION_WIDTH = 82;

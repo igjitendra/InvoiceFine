@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { BarChart } from "@/components/charts/BarChart";
 import { ChartSurface } from "@/components/charts/ChartSurface";
 import { DonutChart } from "@/components/charts/DonutChart";

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { routes } from '@/constants/routes';
-import { getBusinessProfile } from '@/db/repositories/business-settings';
+import { routes } from "@/constants/routes";
+import { getBusinessProfile } from "@/db/repositories/business-settings";
 
 type InitialRoute = typeof routes.dashboard | typeof routes.onboarding;
 

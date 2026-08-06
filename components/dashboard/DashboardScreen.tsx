@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState, type ComponentProps } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { Card } from "@/components/ui/Card";
@@ -101,6 +102,17 @@ export function DashboardScreen() {
               {strings.ux.tagline}
             </Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={strings.appearance.openSettings}
+            onPress={() => router.push("/(tabs)/more")}
+            style={[
+              styles.settings,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}
+          >
+            <Ionicons name="settings-outline" size={22} color={palette.text} />
+          </Pressable>
         </View>
 
         <PressableScale
@@ -489,6 +501,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerCopy: { flex: 1 },
+  settings: {
+    width: 44,
+    height: 44,
+    borderWidth: 1,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   title: { fontSize: 34, lineHeight: 40, fontWeight: "700" },
   subtitle: { ...theme.typography.secondary },
   hero: {

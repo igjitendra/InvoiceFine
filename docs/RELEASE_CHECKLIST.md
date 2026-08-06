@@ -65,6 +65,16 @@ bash scripts/phone-qa.sh
 - [ ] uninstall/clear-data warning is documented
 - [ ] export/import is not advertised until restore/integrity tests exist
 
+## Phase 14A appearance gates
+
+- [ ] System Default follows Android light/dark changes while the app is open
+- [ ] Light and Dark selections update immediately without restart
+- [ ] Theme, font size, compact mode, and catalog view survive force-stop/restart
+- [ ] Small/Medium/Large affect all app text without clipping critical actions
+- [ ] Compact mode preserves 44-point touch targets and keyboard access
+- [ ] Card/List catalog modes update immediately and preserve search/swipe/archive behavior
+- [ ] Appearance remains readable at 360dp and Android large display/font scaling
+
 ## Phase 13 workflow gates
 
 - [ ] Inline Customer/Product/Service forms open without render errors and preserve draft state

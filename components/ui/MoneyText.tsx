@@ -1,9 +1,5 @@
-import {
-  Text,
-  type StyleProp,
-  type TextProps,
-  type TextStyle,
-} from "react-native";
+import { type StyleProp, type TextProps, type TextStyle } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import { theme } from "@/constants/theme";
 import { useAppPalette } from "@/hooks/useAppPalette";
 type Tone = "default" | "positive" | "warning" | "danger";

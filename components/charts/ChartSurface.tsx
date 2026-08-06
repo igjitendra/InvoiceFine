@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import type { ChartPalette } from "./palette";
 export function ChartSurface({
   title,

@@ -1,1 +1,4 @@
-import{DashboardScreen}from'@/components/dashboard/DashboardScreen';export default function Screen(){return <DashboardScreen/>}
+import { DashboardScreen } from "@/components/dashboard/DashboardScreen";
+export default function Screen() {
+  return <DashboardScreen />;
+}

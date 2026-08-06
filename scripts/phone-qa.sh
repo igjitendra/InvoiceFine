@@ -21,6 +21,8 @@ python3 tests/professional-catalog.test.py
 python3 tests/inline-add.test.py
 python3 tests/invoice-speed-tools.test.py
 python3 tests/data-restore.test.py
+node --import tsx tests/appearance-preferences.test.ts
+python3 tests/appearance-live-theme.test.py
 node --import tsx tests/business-template-engine.test.ts
 node --import tsx tests/invoice-calculations.test.ts
 node --import tsx tests/vertical-invoice.test.ts

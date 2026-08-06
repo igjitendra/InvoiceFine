@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { AppText as Text } from "@/components/ui/AppText";
 import type { ChartPalette } from "@/components/charts/palette";
 import { strings } from "@/constants/strings";
 export function ReportFilters({
