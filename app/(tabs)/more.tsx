@@ -10,16 +10,10 @@ import { useAppPalette } from "@/hooks/useAppPalette";
 
 const entries = [
   {
-    icon: "color-palette-outline" as const,
-    label: strings.appearance.title,
-    description: strings.appearance.subtitle,
-    path: "/settings/appearance" as const,
-  },
-  {
-    icon: "business-outline" as const,
-    label: strings.pdf.profileTitle,
-    description: strings.ux.profileDescription,
-    path: "/onboarding" as const,
+    icon: "settings-outline" as const,
+    label: "Settings",
+    description: "Business, invoices, appearance, data and app preferences",
+    path: "/settings" as const,
   },
   {
     icon: "wallet-outline" as const,

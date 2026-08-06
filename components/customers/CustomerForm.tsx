@@ -38,6 +38,9 @@ const emptyValues: CustomerInput = {
   gstin: "",
   stateCode: "",
   billingAddress: "",
+  shippingAddress: "",
+  stateName: "",
+  pincode: "",
   notes: "",
 };
 
@@ -49,6 +52,9 @@ function valuesFromCustomer(customer: Customer): CustomerInput {
     gstin: customer.gstin ?? "",
     stateCode: customer.stateCode ?? "",
     billingAddress: customer.billingAddress ?? "",
+    shippingAddress: customer.shippingAddress ?? "",
+    stateName: customer.stateName ?? "",
+    pincode: customer.pincode ?? "",
     notes: customer.notes ?? "",
   };
 }

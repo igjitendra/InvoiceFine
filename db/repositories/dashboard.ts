@@ -1,1 +1,107 @@
-import{getDatabase}from'@/db/database';import{isValidDateRange}from'@/lib/date';import type{DashboardData,DashboardTotals,LowStockItem,RecentInvoice}from'@/types/dashboard';type Num={value:number};export async function loadDashboardData(startDate:string,endDate:string):Promise<DashboardData>{if(!isValidDateRange(startDate,endDate))throw new Error('Invalid date range');const db=await getDatabase();const[sales,received,receivables,cogs,expenses,customers,lowCount,recent,low]=await Promise.all([db.getFirstAsync<Num>(`SELECT COALESCE(SUM(total_paise),0)value FROM invoices WHERE invoice_date BETWEEN ? AND ? AND status IN('finalized','partially_paid','paid','overdue')`,startDate,endDate),db.getFirstAsync<Num>(`SELECT COALESCE(SUM(amount_paise),0)value FROM payments WHERE payment_date BETWEEN ? AND ?`,startDate,endDate),db.getFirstAsync<Num>(`SELECT COALESCE(SUM(total_paise-paid_paise),0)value FROM invoices WHERE status IN('finalized','partially_paid','overdue')`),db.getFirstAsync<Num>(`SELECT COALESCE(SUM((ii.cost_price_paise*ii.quantity_scaled+500)/1000),0)value FROM invoice_items ii JOIN invoices i ON i.id=ii.invoice_id WHERE i.invoice_date BETWEEN ? AND ? AND i.status IN('finalized','partially_paid','paid','overdue') AND ii.item_type='product'`,startDate,endDate),db.getFirstAsync<Num>(`SELECT COALESCE(SUM(amount_paise),0)value FROM expenses WHERE expense_date BETWEEN ? AND ?`,startDate,endDate),db.getFirstAsync<Num>(`SELECT COUNT(*)value FROM customers WHERE is_archived=0`),db.getFirstAsync<Num>(`SELECT COUNT(*)value FROM items WHERE type='product' AND is_archived=0 AND low_stock_threshold_scaled IS NOT NULL AND current_stock_scaled<=low_stock_threshold_scaled`),db.getAllAsync<{id:string;invoice_number:string;customer_name_snapshot:string|null;invoice_date:string;status:string;total_paise:number}>(`SELECT id,invoice_number,customer_name_snapshot,invoice_date,status,total_paise FROM invoices WHERE status<>'draft' ORDER BY updated_at DESC LIMIT 5`),db.getAllAsync<{id:string;name:string;current_stock_scaled:number;low_stock_threshold_scaled:number;unit_name:string|null}>(`SELECT i.id,i.name,i.current_stock_scaled,i.low_stock_threshold_scaled,u.name unit_name FROM items i LEFT JOIN units u ON u.id=i.unit_id WHERE i.type='product' AND i.is_archived=0 AND i.low_stock_threshold_scaled IS NOT NULL AND i.current_stock_scaled<=i.low_stock_threshold_scaled ORDER BY (i.current_stock_scaled-i.low_stock_threshold_scaled) ASC LIMIT 10`)]);const salesPaise=sales?.value??0,cogsPaise=cogs?.value??0,expensesPaise=expenses?.value??0;const totals:DashboardTotals={salesPaise,receivedPaise:received?.value??0,receivablesPaise:receivables?.value??0,cogsPaise,expensesPaise,grossProfitPaise:salesPaise-cogsPaise,netProfitPaise:salesPaise-cogsPaise-expensesPaise,customerCount:customers?.value??0,lowStockCount:lowCount?.value??0};const recentInvoices:RecentInvoice[]=recent.map(x=>({id:x.id,invoiceNumber:x.invoice_number,customerName:x.customer_name_snapshot,invoiceDate:x.invoice_date,status:x.status,totalPaise:x.total_paise}));const lowStockItems:LowStockItem[]=low.map(x=>({id:x.id,name:x.name,currentStockScaled:x.current_stock_scaled,thresholdScaled:x.low_stock_threshold_scaled,unitName:x.unit_name}));return{startDate,endDate,totals,recentInvoices,lowStockItems}}
+import { getDatabase } from "@/db/database";
+import { isValidDateRange } from "@/lib/date";
+import type {
+  DashboardData,
+  DashboardTotals,
+  LowStockItem,
+  RecentInvoice,
+} from "@/types/dashboard";
+type Num = { value: number };
+export async function loadDashboardData(
+  startDate: string,
+  endDate: string,
+): Promise<DashboardData> {
+  if (!isValidDateRange(startDate, endDate))
+    throw new Error("Invalid date range");
+  const db = await getDatabase();
+  const [
+    sales,
+    received,
+    receivables,
+    cogs,
+    expenses,
+    customers,
+    lowCount,
+    recent,
+    low,
+  ] = await Promise.all([
+    db.getFirstAsync<Num>(
+      `SELECT COALESCE(SUM(total_paise),0)value FROM invoices WHERE invoice_date BETWEEN ? AND ? AND status IN('finalized','partially_paid','paid','overdue')`,
+      startDate,
+      endDate,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COALESCE(SUM(amount_paise),0)value FROM payments WHERE payment_date BETWEEN ? AND ?`,
+      startDate,
+      endDate,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COALESCE(SUM(total_paise-paid_paise),0)value FROM invoices WHERE status IN('finalized','partially_paid','overdue')`,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COALESCE(SUM((ii.cost_price_paise*ii.quantity_scaled+500)/1000),0)value FROM invoice_items ii JOIN invoices i ON i.id=ii.invoice_id WHERE i.invoice_date BETWEEN ? AND ? AND i.status IN('finalized','partially_paid','paid','overdue') AND ii.item_type='product'`,
+      startDate,
+      endDate,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COALESCE(SUM(amount_paise),0)value FROM expenses WHERE expense_date BETWEEN ? AND ?`,
+      startDate,
+      endDate,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COUNT(*)value FROM customers WHERE is_archived=0`,
+    ),
+    db.getFirstAsync<Num>(
+      `SELECT COUNT(*)value FROM items WHERE type='product' AND is_archived=0 AND low_stock_threshold_scaled IS NOT NULL AND current_stock_scaled<=low_stock_threshold_scaled`,
+    ),
+    db.getAllAsync<{
+      id: string;
+      invoice_number: string;
+      customer_name_snapshot: string | null;
+      invoice_date: string;
+      status: string;
+      total_paise: number;
+    }>(
+      `SELECT id,invoice_number,customer_name_snapshot,invoice_date,status,total_paise FROM invoices WHERE status<>'draft' ORDER BY updated_at DESC LIMIT 5`,
+    ),
+    db.getAllAsync<{
+      id: string;
+      name: string;
+      current_stock_scaled: number;
+      low_stock_threshold_scaled: number;
+      unit_name: string | null;
+    }>(
+      `SELECT i.id,i.name,i.current_stock_scaled,i.low_stock_threshold_scaled,u.name unit_name FROM items i LEFT JOIN units u ON u.id=i.unit_id WHERE i.type='product' AND i.is_archived=0 AND i.low_stock_threshold_scaled IS NOT NULL AND i.current_stock_scaled<=i.low_stock_threshold_scaled ORDER BY (i.current_stock_scaled-i.low_stock_threshold_scaled) ASC LIMIT 10`,
+    ),
+  ]);
+  const salesPaise = sales?.value ?? 0,
+    cogsPaise = cogs?.value ?? 0,
+    expensesPaise = expenses?.value ?? 0;
+  const totals: DashboardTotals = {
+    salesPaise,
+    receivedPaise: received?.value ?? 0,
+    receivablesPaise: receivables?.value ?? 0,
+    cogsPaise,
+    expensesPaise,
+    grossProfitPaise: salesPaise - cogsPaise,
+    netProfitPaise: salesPaise - cogsPaise - expensesPaise,
+    customerCount: customers?.value ?? 0,
+    lowStockCount: lowCount?.value ?? 0,
+  };
+  const recentInvoices: RecentInvoice[] = recent.map((x) => ({
+    id: x.id,
+    invoiceNumber: x.invoice_number,
+    customerName: x.customer_name_snapshot,
+    invoiceDate: x.invoice_date,
+    status: x.status,
+    totalPaise: x.total_paise,
+  }));
+  const lowStockItems: LowStockItem[] = low.map((x) => ({
+    id: x.id,
+    name: x.name,
+    currentStockScaled: x.current_stock_scaled,
+    thresholdScaled: x.low_stock_threshold_scaled,
+    unitName: x.unit_name,
+  }));
+  return { startDate, endDate, totals, recentInvoices, lowStockItems };
+}

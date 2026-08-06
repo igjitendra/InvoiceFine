@@ -1,6 +1,7 @@
 export const strings = {
   appName: "InvoiceFine",
   common: {
+    back: "Back",
     archive: "Archive",
     cancel: "Cancel",
     chooseImage: "Choose image",

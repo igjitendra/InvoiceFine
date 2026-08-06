@@ -1,5 +1,5 @@
-import { getDatabase } from '@/db/database';
-import type { Customer, CustomerInput } from '@/types/customer';
+import { getDatabase } from "@/db/database";
+import type { Customer, CustomerInput } from "@/types/customer";
 
 type CustomerRow = {
   id: string;
@@ -9,6 +9,9 @@ type CustomerRow = {
   gstin: string | null;
   state_code: string | null;
   billing_address: string | null;
+  shipping_address: string | null;
+  state_name: string | null;
+  pincode: string | null;
   notes: string | null;
   is_archived: number;
   created_at: string;
@@ -31,6 +34,9 @@ function mapCustomer(row: CustomerRow): Customer {
     gstin: row.gstin,
     stateCode: row.state_code,
     billingAddress: row.billing_address,
+    shippingAddress: row.shipping_address,
+    stateName: row.state_name,
+    pincode: row.pincode,
     notes: row.notes,
     isArchived: row.is_archived === 1,
     createdAt: row.created_at,
@@ -48,17 +54,17 @@ async function createUuid(): Promise<string> {
            substr(lower(hex(randomblob(2))), 2) || '-' ||
            lower(hex(randomblob(6))) AS id
   `);
-  if (!row) throw new Error('Unable to generate a customer ID.');
+  if (!row) throw new Error("Unable to generate a customer ID.");
   return row.id;
 }
 
-export async function listCustomers(search = ''): Promise<Customer[]> {
+export async function listCustomers(search = ""): Promise<Customer[]> {
   const database = await getDatabase();
   const normalized = search.trim();
-  const escaped = normalized.replace(/[\%_]/g, '\$&');
+  const escaped = normalized.replace(/[\%_]/g, "\$&");
   const pattern = `%${escaped}%`;
   const rows = await database.getAllAsync<CustomerRow>(
-    `SELECT id, name, phone, email, gstin, state_code, billing_address,
+    `SELECT id, name, phone, email, gstin, state_code, billing_address, shipping_address, state_name, pincode,
             notes, is_archived, created_at, updated_at
      FROM customers
      WHERE is_archived = 0
@@ -74,7 +80,7 @@ export async function listCustomers(search = ''): Promise<Customer[]> {
 export async function getCustomer(id: string): Promise<Customer | null> {
   const database = await getDatabase();
   const row = await database.getFirstAsync<CustomerRow>(
-    `SELECT id, name, phone, email, gstin, state_code, billing_address,
+    `SELECT id, name, phone, email, gstin, state_code, billing_address, shipping_address, state_name, pincode,
             notes, is_archived, created_at, updated_at
      FROM customers WHERE id = ?`,
     id,
@@ -88,9 +94,9 @@ export async function createCustomer(input: CustomerInput): Promise<string> {
   const timestamp = new Date().toISOString();
   await database.runAsync(
     `INSERT INTO customers (
-       id, name, phone, email, gstin, state_code, billing_address, notes,
+       id, name, phone, email, gstin, state_code, billing_address, shipping_address, state_name, pincode, notes,
        is_archived, created_at, updated_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
     id,
     input.name.trim(),
     nullable(input.phone),
@@ -98,6 +104,9 @@ export async function createCustomer(input: CustomerInput): Promise<string> {
     nullable(input.gstin)?.toUpperCase() ?? null,
     nullable(input.stateCode),
     nullable(input.billingAddress),
+    nullable(input.shippingAddress),
+    nullable(input.stateName),
+    nullable(input.pincode),
     nullable(input.notes),
     timestamp,
     timestamp,
@@ -105,12 +114,15 @@ export async function createCustomer(input: CustomerInput): Promise<string> {
   return id;
 }
 
-export async function updateCustomer(id: string, input: CustomerInput): Promise<void> {
+export async function updateCustomer(
+  id: string,
+  input: CustomerInput,
+): Promise<void> {
   const database = await getDatabase();
   const result = await database.runAsync(
     `UPDATE customers SET
        name = ?, phone = ?, email = ?, gstin = ?, state_code = ?,
-       billing_address = ?, notes = ?, updated_at = ?
+       billing_address = ?, shipping_address = ?, state_name = ?, pincode = ?, notes = ?, updated_at = ?
      WHERE id = ? AND is_archived = 0`,
     input.name.trim(),
     nullable(input.phone),
@@ -118,11 +130,14 @@ export async function updateCustomer(id: string, input: CustomerInput): Promise<
     nullable(input.gstin)?.toUpperCase() ?? null,
     nullable(input.stateCode),
     nullable(input.billingAddress),
+    nullable(input.shippingAddress),
+    nullable(input.stateName),
+    nullable(input.pincode),
     nullable(input.notes),
     new Date().toISOString(),
     id,
   );
-  if (result.changes !== 1) throw new Error('Customer was not updated.');
+  if (result.changes !== 1) throw new Error("Customer was not updated.");
 }
 
 export async function archiveCustomer(id: string): Promise<void> {
@@ -133,5 +148,5 @@ export async function archiveCustomer(id: string): Promise<void> {
     new Date().toISOString(),
     id,
   );
-  if (result.changes !== 1) throw new Error('Customer was not archived.');
+  if (result.changes !== 1) throw new Error("Customer was not archived.");
 }

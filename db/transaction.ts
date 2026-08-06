@@ -1,4 +1,4 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { SQLiteDatabase } from "expo-sqlite";
 
 type TransactionTask<TResult> = (
   transaction: SQLiteDatabase,
@@ -17,7 +17,7 @@ export async function runInTransaction<TResult>(
   );
 
   if (outcome === undefined) {
-    throw new Error('The database transaction did not complete.');
+    throw new Error("The database transaction did not complete.");
   }
 
   return outcome.value;

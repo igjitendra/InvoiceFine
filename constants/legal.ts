@@ -60,13 +60,13 @@ export const legalDocuments = [
     title: "Contact Support",
     summary: "Get help with InvoiceFine.",
     content:
-      "Support email: zulbulai@gmail.com. Do not send passwords, payment credentials, or unprotected customer databases.",
+      "Support email: jitendraeditiz@gmail.com. Do not send passwords, payment credentials, or unprotected customer databases.",
   },
   {
     slug: "changelog",
     title: "App Version & Changelog",
     summary: "Current release information.",
     content:
-      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, and premium onboarding foundations.",
+      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, premium onboarding, live appearance controls, and professional Settings foundations.",
   },
 ] as const;

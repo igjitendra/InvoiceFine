@@ -1,4 +1,4 @@
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 
 type PickBusinessImageOptions = {
   aspect: [number, number];
@@ -8,7 +8,7 @@ export async function pickBusinessImage({
   aspect,
 }: PickBusinessImageOptions): Promise<string | null> {
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
+    mediaTypes: ["images"],
     allowsEditing: true,
     aspect,
     quality: 0.8,

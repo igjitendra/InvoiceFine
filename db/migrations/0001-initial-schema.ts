@@ -1,6 +1,6 @@
 export const initialSchemaMigration = {
   version: 1,
-  name: 'initial_schema',
+  name: "initial_schema",
   sql: `
 CREATE TABLE IF NOT EXISTS business_settings (
   id TEXT PRIMARY KEY NOT NULL,

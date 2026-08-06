@@ -14,7 +14,7 @@ Phase 14A uses Expo SQLite KV Store in its separate `ExpoSQLiteStorage` database
 
 ### `business_settings`
 
-Business identity/contact/GST, logo/signature/payment QR URIs, invoice prefix/next number, currency, tax setting, and `invoice_page_size` (`a4` or `4x6`, default `a4`). Migration 3 adds business type/category, owner/website/PAN/state/pincode, GST type, invoice template, estimate/quotation prefixes, payment terms/methods, notification preferences, and onboarding completion state.
+Business identity/contact/GST, logo/signature/payment QR URIs, invoice prefix/next number, currency, tax setting, and `invoice_page_size` (`a4` or `4x6`, default `a4`). Migration 3 adds business type/category, owner/website/PAN/state/pincode, GST type, invoice template, estimate/quotation prefixes, payment terms/methods, notification preferences, and onboarding completion state. Phase 14B exposes existing invoice prefix, page size and payment-term columns as working settings and stores notification choices in the existing JSON column; it does not add a migration, so the latest business schema is version 8 after the Customer CSV field migration.
 
 ### `invoice_vertical_details`
 

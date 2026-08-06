@@ -1,5 +1,5 @@
-import { getDatabase } from '@/db/database';
-import type { BusinessProfile, BusinessProfileInput } from '@/types/business';
+import { getDatabase } from "@/db/database";
+import type { BusinessProfile, BusinessProfileInput } from "@/types/business";
 
 type BusinessSettingsRow = {
   id: string;
@@ -15,15 +15,15 @@ type BusinessSettingsRow = {
   next_invoice_number: number;
   tax_enabled: number;
   currency_code: string;
-  invoice_page_size: 'a4' | '4x6';
+  invoice_page_size: "a4" | "4x6";
   created_at: string;
   updated_at: string;
 };
 
-const businessSettingsId = 'primary-business';
+const businessSettingsId = "primary-business";
 
 function toNullable(value: string | null): string | null {
-  const normalized = value?.trim() ?? '';
+  const normalized = value?.trim() ?? "";
   return normalized.length > 0 ? normalized : null;
 }
 
@@ -41,7 +41,7 @@ function mapBusinessProfile(row: BusinessSettingsRow): BusinessProfile {
     invoicePrefix: row.invoice_prefix,
     nextInvoiceNumber: row.next_invoice_number,
     taxEnabled: row.tax_enabled === 1,
-    currencyCode: 'INR',
+    currencyCode: "INR",
     invoicePageSize: row.invoice_page_size,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

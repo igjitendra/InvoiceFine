@@ -6,6 +6,9 @@ export type Customer = {
   gstin: string | null;
   stateCode: string | null;
   billingAddress: string | null;
+  shippingAddress: string | null;
+  stateName: string | null;
+  pincode: string | null;
   notes: string | null;
   isArchived: boolean;
   createdAt: string;
@@ -19,5 +22,8 @@ export type CustomerInput = {
   gstin: string;
   stateCode: string;
   billingAddress: string;
+  shippingAddress: string;
+  stateName: string;
+  pincode: string;
   notes: string;
 };

@@ -28,6 +28,17 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Card/List catalog preference changes density without breaking search/swipe/archive.
 - [ ] Theme, font size, compact mode, and catalog view survive force-stop/restart.
 
+## 2A. Professional Settings
+
+- [ ] Dashboard and Reports gear buttons open Settings.
+- [ ] Business summary reflects current profile, GST, logo/signature/QR and prefixes.
+- [ ] Appearance opens and preserves all Phase 14A behavior.
+- [ ] Change Invoice Prefix, A4/4×6 and Default Due Days; force-stop/reopen and verify persistence.
+- [ ] Create a new invoice and verify its due date; reopen an existing draft and confirm its saved date is unchanged.
+- [ ] Save notification preferences; confirm Android notification permission is not requested yet.
+- [ ] Data import/export, backup/restore/delete, reminders, default notes, terms and watermarks are visibly planned/locked rather than falsely active.
+- [ ] Privacy, Terms, Version/Changelog, Licenses and support email open correctly.
+
 ## 3. Zero-navigation invoice workflow
 
 - [ ] Start a new invoice and enter dates/notes.

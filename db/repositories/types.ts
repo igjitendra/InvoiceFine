@@ -13,5 +13,5 @@ export interface UpdateRepository<TUpdateInput> {
 
 export type Repository<TEntity, TCreateInput, TUpdateInput> =
   ReadRepository<TEntity> &
-  CreateRepository<TCreateInput> &
-  UpdateRepository<TUpdateInput>;
+    CreateRepository<TCreateInput> &
+    UpdateRepository<TUpdateInput>;

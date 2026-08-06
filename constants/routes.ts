@@ -8,4 +8,10 @@ export const routes = {
   catalog: "/(tabs)/catalog",
   catalogItemNew: "/catalog-item/new",
   more: "/(tabs)/more",
+  settings: "/settings",
+  appearanceSettings: "/settings/appearance",
+  businessSettings: "/settings/business",
+  invoiceSettings: "/settings/invoice",
+  notificationSettings: "/settings/notifications",
+  aboutSettings: "/settings/about",
 } as const;

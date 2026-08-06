@@ -105,7 +105,7 @@ export function DashboardScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={strings.appearance.openSettings}
-            onPress={() => router.push("/(tabs)/more")}
+            onPress={() => router.push("/settings")}
             style={[
               styles.settings,
               { backgroundColor: palette.surface, borderColor: palette.border },

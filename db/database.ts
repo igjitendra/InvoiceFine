@@ -1,9 +1,9 @@
-import * as SQLite from 'expo-sqlite';
-import type { SQLiteDatabase } from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
+import type { SQLiteDatabase } from "expo-sqlite";
 
-import { runMigrations } from './migrations';
+import { runMigrations } from "./migrations";
 
-const databaseName = 'invoicefine.db';
+const databaseName = "invoicefine.db";
 
 let databasePromise: Promise<SQLiteDatabase> | null = null;
 

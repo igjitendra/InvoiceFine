@@ -6,7 +6,7 @@ for file in node_modules/expo/bin/cli node_modules/typescript/bin/tsc; do
   test -f "$file" || { echo "Missing $file. Install project dependencies first."; exit 1; }
 done
 node - <<'NODE'
-const required=['expo-print','expo-sharing','expo-haptics','react-native-svg','expo-sqlite','expo-image-picker','expo-router'];
+const required=['expo-print','expo-sharing','expo-haptics','react-native-svg','expo-sqlite','expo-image-picker','expo-document-picker','expo-file-system','expo-router'];
 const missing=required.filter(name=>{try{require.resolve(name+'/package.json');return false}catch{return true}});
 if(missing.length){console.error('Missing dependencies:',missing.join(', '));process.exit(1)}
 console.log('REQUIRED_DEPENDENCIES=PASS');
@@ -23,6 +23,9 @@ python3 tests/invoice-speed-tools.test.py
 python3 tests/data-restore.test.py
 node --import tsx tests/appearance-preferences.test.ts
 python3 tests/appearance-live-theme.test.py
+python3 tests/settings-information-architecture.test.py
+python3 tests/customer-csv-import.test.py
+node --import tsx tests/customer-csv.test.ts
 node --import tsx tests/business-template-engine.test.ts
 node --import tsx tests/invoice-calculations.test.ts
 node --import tsx tests/vertical-invoice.test.ts

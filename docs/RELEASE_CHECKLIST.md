@@ -65,6 +65,18 @@ bash scripts/phone-qa.sh
 - [ ] uninstall/clear-data warning is documented
 - [ ] export/import is not advertised until restore/integrity tests exist
 
+## Phase 14B Settings gates
+
+- [ ] Dashboard and Reports Settings buttons open the grouped Settings hub
+- [ ] Business summary matches saved profile, GST, branding and prefixes
+- [ ] Editing the complete Business Profile returns safely without data loss
+- [ ] Invoice prefix, A4/4×6 and due-day defaults persist after restart
+- [ ] A new invoice receives the saved default due date; existing drafts keep their own date
+- [ ] Notification choices persist without requesting Android notification permission
+- [ ] Planned CSV, encrypted recovery, reminders, notes, terms and watermark controls remain clearly non-active
+- [ ] Privacy, Terms, Version/Changelog and support email destinations work
+- [ ] Backup/restore/delete controls remain safety-locked
+
 ## Phase 14A appearance gates
 
 - [ ] System Default follows Android light/dark changes while the app is open

@@ -22,6 +22,7 @@ import {
   listFavoriteItemIds,
   setItemFavorite,
 } from "@/db/repositories/item-favorites";
+import { getInvoiceSettings } from "@/db/repositories/app-settings";
 import { finalizeInvoice } from "@/db/repositories/invoice-finalization";
 import {
   getInvoiceDraftBusinessStateCode,
@@ -71,6 +72,12 @@ function nextLineKey(): string {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function addLocalDays(value: string, days: number): string {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function validDate(value: string): boolean {
@@ -170,6 +177,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       listFavoriteItemIds(),
       draftId ? loadInvoiceDraft(draftId) : Promise.resolve(null),
       getCurrentWorkflow(),
+      getInvoiceSettings(),
     ])
       .then(
         ([
@@ -180,6 +188,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           loadedFavoriteItemIds,
           draft,
           workflow,
+          invoiceSettings,
         ]) => {
           if (!active) return;
           setCustomers(loadedCustomers);
@@ -218,6 +227,16 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
                 ? null
                 : createEmptyVerticalDetails(workflow),
             );
+            const invoiceDate = today();
+            reset({
+              kind: "non_tax_invoice",
+              invoiceDate,
+              dueDate: addLocalDays(
+                invoiceDate,
+                invoiceSettings?.defaultDueDays ?? 0,
+              ),
+              notes: "",
+            });
           }
         },
       )

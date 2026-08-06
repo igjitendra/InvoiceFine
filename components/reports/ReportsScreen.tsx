@@ -160,9 +160,9 @@ export default function ReportsScreen() {
           </Text>
         </View>
         <Pressable
-          accessibilityLabel="Open business settings"
+          accessibilityLabel="Open settings"
           accessibilityRole="button"
-          onPress={() => router.push("/(tabs)/more")}
+          onPress={() => router.push("/settings")}
           style={[
             styles.settings,
             { backgroundColor: palette.surface, borderColor: palette.border },
