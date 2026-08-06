@@ -49,9 +49,9 @@ export default function SettingsHomeScreen() {
         <SettingsRow
           icon="swap-horizontal-outline"
           label="Import & Export"
-          description="CSV tools will be delivered in the dedicated data phases"
+          description="Customers, products and services CSV tools"
           badge="CSV"
-          onPress={() => router.push("/settings/data/customers")}
+          onPress={() => router.push("/settings/data")}
         />
         <SettingsRow
           index={1}

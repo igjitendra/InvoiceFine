@@ -138,17 +138,29 @@ System Default, Light, and Dark preferences now resolve through a root Appearanc
 
 ### Phase 14B — Professional Settings information architecture — source implemented
 
-A dedicated Settings hub now groups Business, Appearance, Invoice, Data, Notifications, and About. Business summarizes the existing profile/GST/branding setup and links to the complete editor. Invoice settings provide working prefix, A4/4×6, and default due-day controls; new drafts consume the saved due-day default. Automatic numbering and current round-off behavior are shown accurately, while notes, terms, watermarks, CSV tools, encrypted recovery, and customer reminders remain visibly disabled/planned until their engines are implemented. Notification preferences persist without requesting Android permission or claiming delivery. About provides privacy, terms, version/changelog, licenses, and support at jitendraeditiz@gmail.com. The business schema advances to Migration 8 in Phase 14C.
+A dedicated Settings hub now groups Business, Appearance, Invoice, Data, Notifications, and About. Business summarizes the existing profile/GST/branding setup and links to the complete editor. Invoice settings provide working prefix, A4/4×6, and default due-day controls; new drafts consume the saved due-day default. Automatic numbering and current round-off behavior are shown accurately, while notes, terms, watermarks, encrypted recovery, and customer reminders remain visibly disabled/planned until their engines are implemented. Notification preferences persist without requesting Android permission or claiming delivery. About provides privacy, terms, version/changelog, licenses, and support at jitendraeditiz@gmail.com. The business schema advances to Migration 8 in Phase 14C.
+
+### Phase 14C — Customer CSV engine — source implemented
+
+Customer CSV tools now provide UTF-8 file selection, sample download, smart alias mapping, manual field remapping, validation, first-20-row preview, duplicate-phone Skip/Update/Create policies, transactional valid-row import, customer export/share/save, summaries, and shareable error reports. Migration 8 adds shipping address, state name, and pincode without replacing existing records. Physical-phone document picker, Downloads folder, sharing, and upgrade verification remains required.
+
+### Phase 14D — Product and Service CSV import — source implemented
+
+Separate Product and Service CSV flows provide samples, smart mapping, manual Ignore/remapping, validation, first-20-row preview, duplicate SKU/barcode Skip/Update/Create policies, transactional imports, summaries, and error/warning reports. Missing categories and units are created within the same transaction. New product opening stock creates a matching stock movement. Services may import without SAC and are counted as pending classification rather than rejected. No new migration is required; the schema remains version 8. Physical-phone import and strict-TypeScript verification remains required.
+
+### Phase 14E — Selected CSV exports — source implemented
+
+Settings → Data now provides a read-only multi-select export screen for Customers, Products, Services, Expenses, Payments, Invoices, and Stock. Users can select any combination, apply All time/This month/Indian financial-year filters to transactional datasets, optionally include archived master data, view live row counts, save all non-empty selections to one Android folder, or share one selected file. CSV output uses UTF-8 BOM, escaped fields, readable rupee/percentage/quantity values, invoice paid/outstanding amounts, and stock-at-cost/status columns. Empty datasets are reported and skipped. No database mutation or migration is introduced; schema remains version 8. Physical-phone folder, sharing, spreadsheet compatibility, and strict-TypeScript verification remains required.
 
 ### Final release stabilization and phone QA — source prepared
 
-The release manifest now includes every approved native dependency used by source code, inline sheets retain their runtime string imports, and the sticky invoice action accounts for Android bottom safe area. `scripts/phone-qa.sh` provides one-command Termux checks for dependency resolution, Expo config, strict TypeScript, migrations 1–7, repository regressions, calculations, template workflows, backup-format/restore, unsafe TypeScript, and runtime import mistakes. `docs/PHONE_QA_FINAL.md` separates physical Android verification from source checks. Production certification remains blocked until the checklist passes on an upgrade install and signed preview build.
+The release manifest now includes every approved native dependency used by source code, inline sheets retain their runtime string imports, and the sticky invoice action accounts for Android bottom safe area. `scripts/phone-qa.sh` provides one-command Termux checks for dependency resolution, Expo config, strict TypeScript, migrations 1–8, repository regressions, calculations, template workflows, backup-format/restore, unsafe TypeScript, and runtime import mistakes. `docs/PHONE_QA_FINAL.md` separates physical Android verification from source checks. Production certification remains blocked until the checklist passes on an upgrade install and signed preview build.
 
 ### Later, only after approval
 
 - WhatsApp-oriented receipt workflow through system sharing
 - invoice themes
-- controlled CSV/Excel import/export
+- Excel `.xlsx` import/export (CSV is implemented)
 - suppliers/purchases/returns
 - barcode camera scanning
 - cloud sync/multi-device/multi-business

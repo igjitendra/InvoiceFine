@@ -36,8 +36,34 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Change Invoice Prefix, A4/4×6 and Default Due Days; force-stop/reopen and verify persistence.
 - [ ] Create a new invoice and verify its due date; reopen an existing draft and confirm its saved date is unchanged.
 - [ ] Save notification preferences; confirm Android notification permission is not requested yet.
-- [ ] Data import/export, backup/restore/delete, reminders, default notes, terms and watermarks are visibly planned/locked rather than falsely active.
+- [ ] Customer/Product/Service CSV tools are active; backup/restore/delete, reminders, default notes, terms and watermarks remain visibly planned/locked.
 - [ ] Privacy, Terms, Version/Changelog, Licenses and support email open correctly.
+
+## 2B. Customer, Product and Service CSV
+
+- [ ] Save each sample to Downloads, reopen it, and confirm smart mapping.
+- [ ] Confirm manual mapping cycles through valid fields and returns to Ignore.
+- [ ] Preview files with more than 20 rows; only the first 20 render while totals cover all rows.
+- [ ] Test Product Skip/Update/Create with duplicate SKU and duplicate barcode.
+- [ ] Import a product with a new category/unit and opening stock; confirm one category, one unit, current stock, and one opening movement.
+- [ ] Test Service Skip/Update/Create with duplicate SKU.
+- [ ] Import a service without SAC; confirm success and pending-classification count.
+- [ ] Test invalid negative price/stock, GST over 100, pricing model, duration and warranty rows.
+- [ ] Share the error/warning CSV and open it in a spreadsheet/text app.
+- [ ] Force-stop/reopen and verify imported products and services remain available.
+
+## 2C. Selected CSV exports
+
+- [ ] Open Settings → Import & Export → Selected CSV Exports.
+- [ ] Verify live counts for Customers, Products, Services, Expenses, Payments, Invoices, and Stock.
+- [ ] Select multiple datasets, choose Downloads once, and confirm one file per non-empty selection.
+- [ ] Select exactly one dataset and verify Android sharing; confirm sharing is disabled for zero/multiple selections.
+- [ ] Compare All time, This month, and Financial year invoice/payment/expense exports.
+- [ ] Toggle Include archived and verify only master-data/stock counts change.
+- [ ] Open CSVs containing Hindi/Unicode, commas, quotes, and line breaks.
+- [ ] Verify INR values, GST percentages, quantities, paid/outstanding, and stock-at-cost are readable.
+- [ ] Select an empty dataset and verify the clear no-records/skipped message.
+- [ ] Reopen the app and confirm no source records were modified by export.
 
 ## 3. Zero-navigation invoice workflow
 

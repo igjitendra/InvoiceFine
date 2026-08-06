@@ -36,6 +36,28 @@ export async function shareCsv(name: string, text: string): Promise<void> {
     throw new Error("Sharing unavailable");
   await Sharing.shareAsync(uri, { mimeType: "text/csv", dialogTitle: name });
 }
+export type CsvFileToSave = { name: string; text: string };
+
+export async function saveCsvFilesToDirectory(
+  files: CsvFileToSave[],
+): Promise<number> {
+  if (files.length === 0) return 0;
+  const permission =
+    await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+  if (!permission.granted) throw new Error("Folder permission denied");
+  for (const file of files) {
+    const uri = await FileSystem.StorageAccessFramework.createFileAsync(
+      permission.directoryUri,
+      file.name,
+      "text/csv",
+    );
+    await FileSystem.writeAsStringAsync(uri, file.text, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+  }
+  return files.length;
+}
+
 export async function saveCsvToDownloads(
   name: string,
   text: string,

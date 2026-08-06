@@ -50,6 +50,9 @@ Milestones 0–13 are implemented in source:
 17. Final release stabilization — missing approved native dependencies restored in package manifest, inline string-import runtime fix retained, sticky invoice action respects bottom safe area, automated Termux QA runner and final physical-phone matrix added; production certification still pending phone results
 18. Phase 14A Appearance and live theme — System/Light/Dark live switching, Android system following, persisted Small/Medium/Large app text, Compact mode, Card/List catalog preference, dashboard Settings entry, and SQLite KV persistence implemented without a new native dependency; physical-phone verification pending
 19. Phase 14B Professional Settings — grouped Business/Appearance/Invoice/Data/Notifications/About hub, business summary, working prefix/page-size/due-day defaults, new-draft due-date integration, persisted notification preferences without delivery claims, locked future data engines, legal/version/support destinations, and updated support contact implemented; physical-phone verification pending
+20. Phase 14C Customer CSV — Migration 8 customer address fields, sample, smart mapping, preview, validation, duplicate-phone policies, transactional import, export and error reports implemented; physical-phone verification pending
+21. Phase 14D Product/Service CSV — separate samples and import flows, smart mapping, validation, duplicate SKU/barcode policies, category/unit auto-create, product opening-stock movement, service SAC pending classification and reports implemented with schema version 8; physical-phone verification pending
+22. Phase 14E Selected CSV Exports — seven selectable datasets, live row counts, date/archive filters, multi-file folder save, single-file sharing, readable financial/stock formatting, empty-data handling and read-only queries implemented with schema version 8; physical-phone verification pending
 
 ## Reports currently supported
 

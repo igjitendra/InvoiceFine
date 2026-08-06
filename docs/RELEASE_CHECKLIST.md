@@ -63,7 +63,34 @@ bash scripts/phone-qa.sh
 - [ ] no real data in logs, fixtures, screenshots, or support ZIPs
 - [ ] Android backup behavior matches `docs/BACKUP_STRATEGY.md`
 - [ ] uninstall/clear-data warning is documented
-- [ ] export/import is not advertised until restore/integrity tests exist
+- [ ] only validated CSV import/export tools are advertised; encrypted backup/restore remains locked
+
+## Phase 14E selected-export gates
+
+- [ ] Selecting any combination of the seven datasets saves one CSV per non-empty selection
+- [ ] Share is enabled only when exactly one dataset is selected
+- [ ] All time, This month, and Financial year counts match exported invoice/payment/expense rows
+- [ ] Include archived affects only customers, products, services, and stock
+- [ ] Rupees show two decimals; GST and quantities are human-readable rather than raw integers
+- [ ] Invoice export includes status, taxes, paid, and outstanding values
+- [ ] Stock export includes current/low/reorder quantities, status, and stock-at-cost value
+- [ ] Commas, quotes, Unicode, and line breaks open correctly in a spreadsheet
+- [ ] Empty datasets are skipped with a clear message
+- [ ] Export queries do not modify, archive, or delete local data
+
+## Phase 14C–14D CSV gates
+
+- [ ] Customer, Product, and Service CSV routes open from Settings → Data
+- [ ] Samples save through the Android folder picker and reopen through Document Picker
+- [ ] Smart aliases map common columns and manual mapping can return a column to Ignore
+- [ ] First 20 rows show valid, warning, and failed states before import
+- [ ] Negative numeric values, empty names, invalid GST rates, and invalid service models fail validation
+- [ ] Duplicate phone/SKU/barcode Skip, Update, and Create policies behave as labeled
+- [ ] Missing item categories and units are created without duplicates
+- [ ] New product opening stock creates exactly one matching stock movement
+- [ ] Service rows without SAC import and appear in the pending-classification summary
+- [ ] Error/warning reports share as readable UTF-8 CSV
+- [ ] Existing data and stock remain unchanged after a fatal transaction error
 
 ## Phase 14B Settings gates
 
@@ -73,7 +100,7 @@ bash scripts/phone-qa.sh
 - [ ] Invoice prefix, A4/4×6 and due-day defaults persist after restart
 - [ ] A new invoice receives the saved default due date; existing drafts keep their own date
 - [ ] Notification choices persist without requesting Android notification permission
-- [ ] Planned CSV, encrypted recovery, reminders, notes, terms and watermark controls remain clearly non-active
+- [ ] Customer/Product/Service CSV tools open; encrypted recovery, reminders, notes, terms and watermark controls remain clearly non-active
 - [ ] Privacy, Terms, Version/Changelog and support email destinations work
 - [ ] Backup/restore/delete controls remain safety-locked
 

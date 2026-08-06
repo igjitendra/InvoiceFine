@@ -26,6 +26,10 @@ python3 tests/appearance-live-theme.test.py
 python3 tests/settings-information-architecture.test.py
 python3 tests/customer-csv-import.test.py
 node --import tsx tests/customer-csv.test.ts
+python3 tests/catalog-csv-import.test.py
+node --import tsx tests/catalog-csv.test.ts
+python3 tests/selected-csv-exports.test.py
+node --import tsx tests/selected-csv.test.ts
 node --import tsx tests/business-template-engine.test.ts
 node --import tsx tests/invoice-calculations.test.ts
 node --import tsx tests/vertical-invoice.test.ts

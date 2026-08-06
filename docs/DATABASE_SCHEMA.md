@@ -10,6 +10,10 @@ Text UUID IDs, integer paise, centrally scaled quantities, ISO dates/timestamps,
 
 Phase 14A uses Expo SQLite KV Store in its separate `ExpoSQLiteStorage` database, not the transactional business database. The versioned key `invoicefine.appearance.v1` stores a validated JSON object containing theme (`system`, `light`, or `dark`), font size (`small`, `medium`, or `large`), compact-mode state, and catalog view (`card` or `list`). Invalid or unreadable values fall back safely to System/Medium/Comfortable/Card defaults. This does not increment the business schema migration version.
 
+## Selected CSV export model
+
+Phase 14E performs read-only `SELECT` queries over existing tables. Transactional date filters apply to invoices, payments, and expenses; archived filtering applies to customers and catalog/stock records. Paise and scaled quantities are converted only in exported text, never in SQLite. No table, trigger, index, or migration is added, so the latest schema remains version 8.
+
 ## Main tables
 
 ### `business_settings`
@@ -22,7 +26,7 @@ Migration 4 stores one workflow-specific JSON snapshot per invoice for repair, a
 
 ### `customers`
 
-Identity/contact/GST/state/address/notes, archive flag, timestamps.
+Identity/contact/GST/state/billing and shipping addresses/notes, archive flag, timestamps. Migration 8 adds `shipping_address`, `state_name`, and `pincode` for customer CSV round-tripping.
 
 ### `categories` and `units`
 
@@ -30,7 +34,7 @@ Item/expense categories with archive state; units with names/short names/GST cod
 
 ### `items`
 
-Product/service type, name/short name, SKU, barcode, HSN/SAC, category, brand and unit; purchase/selling/MRP/wholesale price, tax-inclusive mode and GST basis points; current/opening stock through stock movements, low-stock and reorder thresholds, storage location and supplier; description, local image URI and physical attributes; accounting mappings and optional expiry/batch/warranty/manufacturer data; service pricing model, duration, staff, appointment requirement, warranty days, checklist JSON and internal/customer notes; archive state and timestamps. Migration 5 adds professional fields with safe defaults for existing rows.
+Product/service type, name/short name, SKU, barcode, HSN/SAC, category, brand and unit; purchase/selling/MRP/wholesale price, tax-inclusive mode and GST basis points; current/opening stock through stock movements, low-stock and reorder thresholds, storage location and supplier; description, local image URI and physical attributes; accounting mappings and optional expiry/batch/warranty/manufacturer data; service pricing model, duration, staff, appointment requirement, warranty days, checklist JSON and internal/customer notes; archive state and timestamps. Migration 5 adds professional fields with safe defaults for existing rows. Phase 14D imports into these existing columns, creates missing item categories/units transactionally, and records product opening stock in `stock_movements`; it adds no migration, so the latest schema remains version 8.
 
 ### `catalog_item_template_data`
 
