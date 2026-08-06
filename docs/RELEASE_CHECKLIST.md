@@ -1,43 +1,84 @@
-# InvoiceFine Android release checklist
+# InvoiceFine Android Release Checklist
+
+_Last updated: 2026-08-06_
+
+InvoiceFine is not production-ready until every required gate passes on a physical Android development/preview build.
 
 ## Automated gates
 
-- [ ] `node node_modules/typescript/bin/tsc --noEmit`
-- [ ] `node node_modules/expo/bin/cli config --type public`
-- [ ] Invoice calculation regression tests pass
-- [ ] Fresh database reaches latest migration version
-- [ ] Existing version-1 database migrates without data reset
-- [ ] No unsafe TypeScript suppression or business SQL outside `db/`
+Run once from `~/InvoiceFine`:
 
-## Permissions and privacy
+```bash
+bash scripts/phone-qa.sh
+```
 
-- [ ] Photo access is requested only when selecting logo/signature
-- [ ] Camera and microphone permissions are not requested
-- [ ] Printing and sharing occur only after an explicit user action
-- [ ] No contacts, SMS, location, or broad storage permission exists
-- [ ] Android app-data backup decision matches `BACKUP_STRATEGY.md`
+- [ ] Required Expo/native dependencies resolve from `node_modules`
+- [ ] Expo public configuration loads
+- [ ] Strict TypeScript passes
+- [ ] Migrations 1–7 and all repository regression tests pass
+- [ ] Invoice calculation, vertical workflow, template, backup-format, and restore tests pass
+- [ ] Runtime strings/theme import audit passes
+- [ ] fresh database reaches latest migration
+- [ ] existing database upgrades without reset/data loss
+- [ ] no unsafe TypeScript suppression
+- [ ] no business SQL outside `db/`
+- [ ] approved dependencies only and Expo-compatible versions
 
-## Physical Android workflows
+## Dependency/runtime gates
 
-1. Complete onboarding and reopen the app.
-2. Create, edit, search, and archive a customer.
-3. Create product/service catalog records and verify low stock.
-4. Create a multi-item draft and resume it after restart.
-5. Finalize once; verify number allocation and stock deduction.
-6. Generate and share one A4 invoice and one 4 × 6 invoice.
-7. Record partial and final payments; verify overpayment is blocked.
-8. Verify customer ledger and receivables.
-9. Add an expense; verify gross and net profit for a date range.
-10. Verify Dashboard today/month/custom totals, recent invoices, and low stock.
+- [ ] `react-native-svg` resolves and all six charts render
+- [ ] `expo-haptics` resolves; unsupported devices fail silently without blocking actions
+- [ ] PDF print/share modules work in target build
+- [ ] Expo configuration contains no unsupported StatusBar prop or accidental permission
 
-## Device UI review
+## Ten business workflows
 
-- [ ] Narrow Android width does not clip cards, forms, or action buttons
-- [ ] Status bar, safe areas, tab bar, and gesture footer remain unobstructed
-- [ ] Keyboard does not hide focused inputs or save actions
-- [ ] All interactive controls have at least a 44-point target
-- [ ] TalkBack announces buttons, selected options, labels, errors, and loading states
+1. [ ] Complete/edit onboarding including A4 and 4 × 6 selection.
+2. [ ] Create/edit/search/archive customer; call/WhatsApp/ledger paths behave safely.
+3. [ ] Create/edit/search/archive product/service; verify low/out-of-stock states.
+4. [ ] Create multi-item draft using inline create, favorites/recent suggestions, quantity presets/long-press controls, sticky summary, and resume after restart.
+5. [ ] Finalize once; verify invoice number, snapshots, stock, and duplicate-tap protection.
+6. [ ] Generate/print/share one A4 and one 4 × 6 invoice.
+7. [ ] Record partial/final payments and block overpayment.
+8. [ ] Verify ledger, receivables, paid/pending status.
+9. [ ] Add expense and verify COGS/gross/net date-range results.
+10. [ ] Verify dashboard and all six report charts, tap filters, and clear filter.
+
+## UI/accessibility
+
+- [ ] 360dp and common phone widths
+- [ ] light and dark theme
+- [ ] status bar, safe area, tabs, and gesture footer
+- [ ] keyboard/focused fields/save actions
+- [ ] 44-point targets
+- [ ] TalkBack labels, states, errors, loading, and chart meaning
+- [ ] reduced-motion skeleton behavior
+- [ ] swipe actions do not block vertical scrolling and have alternatives
+- [ ] archive confirmation, cancel, success, and error paths
+
+## Data safety
+
+- [ ] negative-stock policy approved and enforced
+- [ ] finalization/payment/cancellation conflict paths tested
+- [ ] no real data in logs, fixtures, screenshots, or support ZIPs
+- [ ] Android backup behavior matches `docs/BACKUP_STRATEGY.md`
+- [ ] uninstall/clear-data warning is documented
+- [ ] export/import is not advertised until restore/integrity tests exist
+
+## Phase 13 workflow gates
+
+- [ ] Inline Customer/Product/Service forms open without render errors and preserve draft state
+- [ ] Professional Product/Service fields round-trip through Migration 5
+- [ ] Nine Business Template Engine categories resolve and persist through Migration 6
+- [ ] Favorites persist and cascade correctly through Migration 7
+- [ ] Sticky invoice summary remains above keyboard and Android gesture/navigation area
+- [ ] `docs/PHONE_QA_FINAL.md` is completed with evidence/blockers
 
 ## Build gate
 
-Run a development/preview Android build only after all checks above pass. Install that build on a physical device and repeat the ten workflows before preparing a production build.
+- [ ] create development/preview Android build
+- [ ] install on physical device
+- [ ] repeat all workflows offline
+- [ ] restart app/device during persistence tests
+- [ ] verify upgrade install preserves data
+- [ ] only then prepare production signing/build

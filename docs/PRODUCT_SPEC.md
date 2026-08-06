@@ -1,104 +1,47 @@
 # InvoiceFine — Product Specification
 
-## Product vision
+_Last updated: 2026-08-04_
 
-An offline-first invoicing and business-management app for Indian small shops and service professionals. It should feel simpler than traditional accounting software while still producing professional invoices and trustworthy business records.
+## Vision
+
+**Pocket ERP for Indian Small Business:** fast mobile billing, customers, stock, payments, expenses, PDFs, and trustworthy performance insight without requiring a computer or continuous internet.
 
 ## Target users
 
-- grocery and medical shops
-- mobile, hardware, and electronics shops
-- boutiques and salons
-- computer repair, AC service, printing, plumbing, and electrical businesses
-- CSC/VLE operators
-- freelancers and small agencies
+Small shops, repair/service businesses, boutiques/salons, CSC/VLE operators, freelancers, and small agencies in India.
 
 ## Core promise
 
-Create invoices quickly, track who owes money, monitor stock and expenses, and understand business performance without needing a computer or constant internet.
+Create a correct invoice quickly, know who owes money, track product stock and expenses, and understand sales/profit from one Android phone.
 
-## Release strategy
+## Product principles
 
-### Version 1 — MVP
+- offline-first and private by default
+- action-first rather than accounting-menu-first
+- business records are auditable
+- integer/scaled arithmetic for financial trust
+- one-tap common actions with confirmation for destructive actions
+- useful on 360dp Android screens
+- light/dark Material 3-inspired interface
 
-Focus on one business, one device, and offline local data:
+## Version 1 — current MVP
 
-- business setup
-- dashboard
-- customers and ledger
-- products and services
-- GST and non-GST sales invoices
-- payments and outstanding balances
-- expenses
-- stock movements and low-stock alerts
-- professional A4 PDF
-- system sharing and printing
-- daily and monthly reports
-- local backup/export foundation if feasible after core stability
+Business profile, action dashboard, customers/ledger, visual product/service catalog, GST/non-GST invoices, atomic stock effects, payments, expenses, A4/4 × 6 PDF/print/share, aggregate reports with reusable SVG charts, skeletons, accessibility, swipe actions, and haptics.
 
-### Version 2 — Pro
+## Version 2 candidates
 
-- quotation and estimate workflow
-- proforma invoice and delivery challan
-- purchase orders and suppliers
-- purchases and purchase returns
-- sales returns
-- credit and debit notes
-- barcode scanning
-- advanced inventory and warehouses
-- richer reports and charts
-- controlled import/export
+Backup/export/restore, invoice themes, quotations/estimates/proforma/delivery challan, suppliers/purchases, returns, credit/debit notes, camera barcode scan, richer inventory, controlled import/export.
 
-### Version 3 — Business
+## Version 3 candidates
 
-- staff and roles
-- multiple businesses or branches
-- multi-device and cloud sync
-- Google Drive or managed cloud backup
-- CRM
-- advanced analytics
-- dark theme
-- premium invoice templates
-- AI-assisted reports only with explicit privacy design and online-service consent
+Staff/roles, multiple businesses/branches, cloud sync, multi-device, CRM, premium features, and privacy-designed online AI assistance.
 
-## Important product decisions
+## Financial decisions
 
-- The MVP is not a complete accounting system.
-- One app installation manages one business profile.
-- Business data is local and offline-first.
-- Finalized financial records are auditable.
-- Payments are separate records connected to invoices.
-- Products affect stock; services do not.
-- Profit uses cost of goods sold and expenses, not raw purchases alone.
-- WhatsApp sharing uses the operating-system share sheet.
+Payments remain separate from invoice totals. Products affect stock; services do not. Profit uses sales revenue minus sold-item cost snapshots minus expenses. Finalized invoices are not silently edited.
 
-## Monetization direction
+## MVP success workflows
 
-Do not implement monetization in the first engineering milestone. Validate the product first.
+A new user can complete business setup; add/search/edit/archive customer and catalog records; create/resume/finalize an invoice; generate selected-size PDF; record payments; inspect ledger/outstanding; verify stock effects; record expense; and inspect aggregate dashboard/report results after restart.
 
-Possible later model:
-
-- useful free tier
-- one-time premium unlock
-- paid backup/sync subscription
-- premium invoice themes
-- advanced reports and import/export
-
-Avoid ads inside invoice creation and payment workflows.
-
-## Success criteria for MVP
-
-A new user can:
-
-1. create a business profile
-2. add a customer
-3. add a product or service
-4. create and finalize a correct invoice
-5. generate and share an A4 PDF
-6. record full or partial payment
-7. view customer outstanding balance
-8. see stock decrease for sold products
-9. record an expense
-10. view daily/monthly sales, COGS, expenses, and net profit
-
-All ten workflows must work offline and survive app restart.
+All workflows must pass offline on a physical Android development/preview build before production readiness.

@@ -1,6 +1,6 @@
 # InvoiceFine Project Status
 
-_Last updated: 2026-08-05_
+_Last updated: 2026-08-06_
 
 ## Product identity
 
@@ -47,6 +47,7 @@ Milestones 0–13 are implemented in source:
 14. Professional Product/Service schema and forms — Migration 5, persisted product/service professional fields, progressive Basic/Advanced sections, local image selection, service pricing/duration/staff/checklist, product inventory/accounting/optional details, and safe legacy defaults implemented; physical-phone verification pending
 15. Business Template Engine — Migration 6, nine schema-driven vertical templates, category alias resolution, sanitized per-item JSON persistence, cascade cleanup, dynamic catalog fields, and template-aware invoice workflow routing implemented; physical-phone verification pending
 16. Invoice speed tools — Migration 7 persistent favorites, favorite/recent-first suggestions, query search, duplicate increment, quick quantity presets, long-press quantity shortcuts, and live sticky total/save summary implemented; physical-phone verification pending
+17. Final release stabilization — missing approved native dependencies restored in package manifest, inline string-import runtime fix retained, sticky invoice action respects bottom safe area, automated Termux QA runner and final physical-phone matrix added; production certification still pending phone results
 
 ## Reports currently supported
 
@@ -72,8 +73,7 @@ Charts use SQLite aggregates and `react-native-svg`; no heavy chart library is a
 ## Dependencies requiring Expo CLI
 
 ```bash
-node node_modules/expo/bin/cli install react-native-svg
-node node_modules/expo/bin/cli install expo-haptics
+node node_modules/expo/bin/cli install react-native-svg expo-haptics expo-print expo-sharing
 ```
 
 Run only when the module is absent from the phone project.
@@ -83,9 +83,7 @@ Run only when the module is absent from the phone project.
 Source syntax checks and invoice calculation tests have passed during patch construction. The app must not be described as production-ready until the latest combined source passes on the physical phone:
 
 ```bash
-node node_modules/typescript/bin/tsc --noEmit
-node node_modules/expo/bin/cli config --type public
-node --import tsx tests/invoice-calculations.test.ts
+bash scripts/phone-qa.sh
 ```
 
 The latest dark-mode, skeleton, swipe, and haptic behavior also requires physical runtime confirmation.

@@ -1,12 +1,25 @@
-# InvoiceFine backup strategy
+# InvoiceFine Backup Strategy
 
-## MVP decision
+_Last updated: 2026-08-04_
 
-InvoiceFine remains local-first and stores business data in the app-private SQLite database. Android OS app-data backup is enabled with `android.allowBackup: true`. No cloud account, custom sync, broad shared-storage access, or extra storage permission is added in the MVP.
+## Current MVP behavior
 
-## Release behavior
+Business data remains in the app-private SQLite database. Android app-data backup is enabled according to app configuration. No custom cloud account, sync service, broad shared-storage permission, or custom restore flow is currently implemented.
 
-- Normal app upgrades must preserve the SQLite database and run only versioned migrations.
-- Clearing app data or uninstalling without an available Android backup can remove local records.
-- A user-controlled encrypted export/import workflow is deferred until its restore path and integrity checks can be implemented and tested together.
-- Never treat generated invoice PDFs as a database backup.
+Normal upgrades must preserve SQLite data and run versioned migrations. Clearing app data or uninstalling without an available Android backup may remove local records. Generated PDFs and source-code ZIPs are not business-data backups.
+
+## Phase 8 design requirement
+
+Do not implement export alone. An approved backup feature must include:
+
+- encrypted or appropriately protected package
+- manifest with app/schema/export versions
+- checksums/integrity validation
+- explicit inclusion/exclusion rules for images
+- restore preview and warnings
+- transactional restore with rollback
+- duplicate/conflict policy
+- synthetic backup/restore test matrix
+- interrupted/corrupt/wrong-version handling
+
+Do not request broad Android storage permissions when the system document picker/share flow can be used.

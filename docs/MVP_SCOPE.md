@@ -1,134 +1,65 @@
 # MVP Scope and Boundaries
 
-## Included
+_Last updated: 2026-08-04_
 
-### Onboarding and business profile
+## Included and implemented in source
 
-- business name, address, phone, email
-- optional GSTIN and state
-- optional logo and signature
-- invoice prefix and starting number
-- currency fixed to INR for MVP
-- tax-enabled or non-tax business mode
+### Business setup
+
+One business profile with identity/contact/GST settings, logo/signature/payment QR, invoice numbering, INR, and invoice page size (A4 default or 4 × 6).
 
 ### Dashboard
 
-- today's sales
-- today's received payments
-- today's estimated gross profit
-- pending receivables
-- total customers
-- low-stock product count
-- recent invoices
-
-Dashboard queries must be aggregated in SQLite; do not load every row into JavaScript.
+Action-first dashboard with date periods, sales, received, receivables, net profit, recent invoices, low stock, and primary shortcuts. Queries aggregate in SQLite.
 
 ### Customers
 
-- create, edit, search, and view
-- phone, email, address, GSTIN, state, notes
-- customer ledger
-- invoice history
-- payment history
-- outstanding balance
+Create/edit/search/archive, business insights, invoice/payment recency, contact actions, outstanding and ledger.
 
-### Catalog
+### Catalog and stock
 
-One item model with type `product` or `service`.
-
-Products:
-
-- name, SKU, barcode text, category, brand, unit
-- purchase price, selling price, GST rate
-- opening and current stock
-- low-stock threshold
-
-Services:
-
-- name, unit or pricing mode
-- price, GST rate, notes
-- no stock tracking
+Products/services, name/SKU/barcode text/category/brand/unit, purchase/selling price, GST, current stock, low-stock threshold, recently sold ordering, stock movements, and archive confirmation.
 
 ### Invoices
 
-MVP supports:
+GST/non-GST drafts, customer and product/service lines, scaled quantities, price/discount/tax/notes, automatic numbering, finalization, stock deduction, cancellation/reversal, PDF/print/share, and statuses through cancelled.
 
-- GST sales invoice
-- non-GST sales invoice
-- draft, finalized, partially paid, paid, overdue, and cancelled states
-- automatic invoice number
-- invoice date and optional due date
-- customer
-- product/service line items
-- quantity, unit price, discount, GST, notes
-- optional signature and payment QR image
-- PDF, print, and system sharing
+### Payments and expenses
 
-Quotation, estimate, proforma invoice, and delivery challan are deferred to Version 2 to keep MVP achievable.
-
-### Payments
-
-- full and partial payment
-- cash, UPI, card, bank transfer, cheque, other
-- payment date, amount, reference, notes
-- customer ledger integration
-- outstanding calculation
-
-### Expenses
-
-- categories: rent, salary, fuel, electricity, internet, purchases not tracked as inventory, and miscellaneous
-- date, amount, category, payee, notes
-- custom categories
-
-### Stock
-
-- opening stock
-- stock in adjustment
-- stock out from finalized invoices
-- manual stock adjustment with reason
-- low-stock alert
-- immutable stock-movement history
+Full/partial payments, methods/reference/notes, overpayment protection, customer ledger, expense categories, and date-range profit.
 
 ### Reports
 
-MVP:
+Daily/month/custom summaries plus six SVG charts: monthly sales, monthly profit, expense breakdown, top products, sales by category, and paid vs pending. Data is aggregate-only.
 
-- daily summary
-- monthly summary
-- custom date-range summary
-- sales
-- received payments
-- receivables
-- COGS
-- expenses
-- gross and net profit
-- low-stock list
+### UX quality
 
-Weekly and yearly views can use the same date-range engine after core reports are stable.
+Automatic light/dark theme, Material 3-inspired cards, skeletons, animations, haptics, responsive 360dp layout, accessibility labels/states, swipe actions with alternatives, empty/loading/error states.
 
-## Deferred from MVP
+## Current release boundary
+
+- one business
+- one device
+- offline local SQLite
+- no account/backend/cloud sync
+- system share sheet rather than guaranteed WhatsApp delivery
+- no complete double-entry accounting or GST filing
+
+## Deferred
 
 - suppliers and purchase orders
-- purchase returns and sales returns
-- credit/debit notes
+- purchase/sales returns and credit/debit notes
 - warehouses
-- camera barcode scanner
-- multi-user and staff roles
-- cloud sync
-- Google Drive backup
-- Excel import/export
-- CRM
-- AI reports
-- ads and premium billing
-- dark theme
+- camera barcode scanning
+- staff roles
+- cloud sync/Google Drive
 - multiple businesses
+- CRM
+- online AI reports
+- monetization
+- controlled import/export until a safe restore design is approved
+- premium invoice themes
 
-## Non-goals
+## Explicit non-goals
 
-- full double-entry accounting
-- GST return filing
-- payroll
-- banking integration
-- e-invoicing or e-way bill integration
-- guaranteed WhatsApp delivery
-- cross-device sync in Version 1
+Payroll, banking integration, GST return filing, e-invoicing/e-way bills, guaranteed delivery through a third-party messaging app, and cross-device sync in MVP.

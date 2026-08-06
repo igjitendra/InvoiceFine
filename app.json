@@ -11,7 +11,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow InvoiceFine to select a business logo and signature.",
+          "photosPermission": "Allow InvoiceFine to select business, product, service, QR, and signature images.",
           "cameraPermission": false,
           "microphonePermission": false
         }

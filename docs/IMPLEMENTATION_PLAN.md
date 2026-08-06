@@ -132,6 +132,10 @@ A schema-driven engine now resolves Medical, Garment, Mobile/Electronics, Repair
 
 Invoice item selection now ranks persistent favorites first, recently sold items second, and the remaining catalog alphabetically while retaining query search and inline creation. Favorites are stored in Migration 7 and cascade-delete with items. Invoice lines provide ×1/×2/×5/×10 presets, long-press minus resets to one, long-press plus sets ten, and duplicate selection still increments quantity. A theme-aware sticky bottom summary keeps item count, live total, and Save/Update action visible while the draft scrolls. Physical-phone touch, keyboard, safe-area, and small-screen verification remains required.
 
+### Final release stabilization and phone QA — source prepared
+
+The release manifest now includes every approved native dependency used by source code, inline sheets retain their runtime string imports, and the sticky invoice action accounts for Android bottom safe area. `scripts/phone-qa.sh` provides one-command Termux checks for dependency resolution, Expo config, strict TypeScript, migrations 1–7, repository regressions, calculations, template workflows, backup-format/restore, unsafe TypeScript, and runtime import mistakes. `docs/PHONE_QA_FINAL.md` separates physical Android verification from source checks. Production certification remains blocked until the checklist passes on an upgrade install and signed preview build.
+
 ### Later, only after approval
 
 - WhatsApp-oriented receipt workflow through system sharing

@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-
+import { equal, match, doesNotMatch } from "./assertions";
 import { verticalDetailEntries } from "../lib/vertical-details";
 import { createInvoiceHtml } from "../services/pdf/invoice-html";
 import { createEmptyVerticalDetails } from "../types/vertical-workflow";
@@ -12,15 +11,15 @@ details.problem = "Display not working";
 details.technician = "Team A";
 
 const rows = verticalDetailEntries(details);
-assert.equal(
+equal(
   rows.some((row) => row.label === "IMEI" && row.value === details.imei),
   true,
 );
-assert.equal(
+equal(
   rows.some((row) => row.label === "Problem"),
   true,
 );
-assert.equal(
+equal(
   rows.some((row) => row.label === "Warranty"),
   false,
 );
@@ -60,8 +59,8 @@ const invoice: InvoicePdfData = {
   ],
 };
 const html = createInvoiceHtml(invoice);
-assert.match(html, /Repair details/);
-assert.match(html, /123456789012345/);
-assert.match(html, /Display not working/);
-assert.doesNotMatch(html, />Warranty</);
+match(html, /Repair details/);
+match(html, /123456789012345/);
+match(html, /Display not working/);
+doesNotMatch(html, />Warranty</);
 console.log("VERTICAL_INVOICE_TESTS=PASS");

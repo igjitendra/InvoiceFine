@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useEffect, useMemo, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -114,6 +115,7 @@ function toEditableLine(
 
 export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const palette = useAppPalette();
   const businessType = useBusinessType();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -801,7 +803,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           />
         ) : null}
       </ScreenContainer>
-      <View style={styles.stickySummary}>
+      <View
+        style={[
+          styles.stickySummary,
+          { paddingBottom: Math.max(insets.bottom, theme.spacing[3]) },
+        ]}
+      >
         <View style={styles.stickyCopy}>
           <Text style={styles.stickyLabel}>
             {lines.length} {strings.speedTools.itemSummary} ·{" "}

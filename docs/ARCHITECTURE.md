@@ -1,107 +1,72 @@
 # Technical Architecture
 
-## Recommended stack
+_Last updated: 2026-08-04_
 
-- Expo with TypeScript
-- Expo Router
-- NativeWind after verifying the installed Expo version and configuration
-- `expo-sqlite` for business data
-- Zustand for transient UI/session state
-- React Hook Form for forms
-- `expo-print` for PDF generation
-- `expo-sharing` for share sheet
-- `expo-file-system` when controlled file storage is needed
-- `expo-notifications` only for approved local reminders
-- `@expo/vector-icons`
-- `react-native-safe-area-context`
-- `expo-status-bar`
+## Runtime stack
 
-Charts and MMKV are deferred until the core app works. They add native/build complexity and are not required for the MVP's first milestone.
+- Expo SDK 57, React Native, Expo Router
+- strict TypeScript with `noUncheckedIndexedAccess`
+- `expo-sqlite` for persistent business data
+- React Hook Form
+- `expo-image-picker`
+- `expo-print` and `expo-sharing`
+- `react-native-svg` only for charts
+- `expo-haptics` for approved tactile feedback
+- `@expo/vector-icons`, safe-area context, Expo status bar
 
-## Folder structure
+Use Expo CLI to install Expo-compatible module versions. Avoid NativeWind, Zustand, MMKV, heavy chart libraries, or additional state/persistence layers unless a measured need is approved.
+
+## Actual folder responsibilities
 
 ```text
-InvoiceFine/
-├── .claude/
-│   └── skills/
-├── app/
-│   ├── _layout.tsx
-│   ├── index.tsx
-│   ├── onboarding/
-│   ├── (tabs)/
-│   │   ├── _layout.tsx
-│   │   ├── dashboard.tsx
-│   │   ├── invoices.tsx
-│   │   ├── customers.tsx
-│   │   ├── catalog.tsx
-│   │   └── more.tsx
-│   ├── invoice/
-│   │   ├── new.tsx
-│   │   └── [id].tsx
-│   ├── customer/
-│   │   └── [id].tsx
-│   ├── item/
-│   │   └── [id].tsx
-│   ├── expenses/
-│   ├── reports/
-│   └── settings/
-├── components/
-│   ├── ui/
-│   ├── forms/
-│   ├── dashboard/
-│   ├── invoices/
-│   └── lists/
-├── constants/
-│   ├── strings.ts
-│   ├── theme.ts
-│   └── routes.ts
-├── db/
-│   ├── database.ts
-│   ├── migrations/
-│   ├── repositories/
-│   └── queries/
-├── hooks/
-├── lib/
-│   ├── currency.ts
-│   ├── invoice-calculations.ts
-│   ├── tax.ts
-│   ├── profit.ts
-│   ├── stock.ts
-│   └── validation.ts
-├── services/
-│   ├── pdf/
-│   ├── sharing/
-│   ├── printing/
-│   └── notifications/
-├── store/
-├── types/
-├── utils/
-├── docs/
-├── CLAUDE.md
-├── app.json
-├── package.json
-└── tsconfig.json
+app/                 Expo Router routes and composition
+components/ui/       shared controls, states, skeletons, gestures
+components/*/        feature UI
+constants/           strings, theme, routes
+ db/migrations/      versioned SQLite schema changes
+ db/repositories/    SQL reads/writes and aggregates
+hooks/               reusable UI/data coordination
+lib/                 deterministic calculations and isolated helpers
+services/            PDF, print, share, files/platform workflows
+types/               domain contracts
+tests/               synthetic deterministic tests
+docs/                product, architecture, release instructions
 ```
 
 ## Data flow
 
 ```text
-Screen → hook → repository/service → SQLite/platform API
-                ↓
-          pure lib calculations
+Route → feature component → hook/repository/service → SQLite/platform
+                              ↓
+                     pure lib calculations
 ```
 
-- Screens compose UI and call hooks.
-- Hooks coordinate loading and mutations.
-- Repositories own SQL.
-- Services own platform APIs.
-- `lib/` owns deterministic calculations.
-- Zustand does not replace SQLite.
+- Routes stay thin.
+- SQL remains under `db/`.
+- Reports aggregate in SQLite and return small serializable datasets.
+- UI state remains local unless a shared transient store is justified.
+- SQLite remains source of truth.
 
-## Mobile-first development
+## Transaction boundaries
 
-Keep the Git repository in Termux home, for example `~/InvoiceFine`, rather than Android shared storage. Shared storage may cause permissions, executable, and symlink problems with `node_modules`.
+Atomic transactions protect invoice finalization/number allocation/stock, cancellation reversal, and payment status updates. UI code must never reimplement these mutations.
 
-Use GitHub as the transfer path to a computer later. On a computer, clone the same repository and install dependencies. Android Studio should open the generated `android/` folder only when native work is needed.
+## Reporting architecture
 
-Do not run `expo prebuild` until a native dependency or development build requires it. Commit or back up the repository before prebuild.
+`db/repositories/report-analytics.ts` and related aggregate repositories perform grouped queries. Reusable chart components receive `ChartDatum[]`; they never fetch tables themselves. This serializable boundary can support future PDF chart export without introducing a heavy chart library.
+
+## Theme architecture
+
+The app follows the device color scheme. Shared palette/hooks provide background, surface, text, muted, border, primary, positive, warning, and danger colors. Changed screens must avoid hardcoded light-only text/surfaces. Status-bar style follows the theme; unsupported SDK props must not be passed.
+
+## Interaction architecture
+
+- Native-driver animations for transform/opacity.
+- Skeletons respect reduced motion.
+- Swipe actions use a reusable row and must retain tap/long-press/accessibility alternatives.
+- Haptics are best-effort and must never block a business action.
+- Destructive actions require confirmation.
+
+## Mobile workflow
+
+Develop from `~/InvoiceFine` in Termux. Shared storage is not a valid active `node_modules` location. Expo Go is useful for iteration, but development/preview builds are required before release certification.

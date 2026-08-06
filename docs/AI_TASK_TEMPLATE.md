@@ -1,63 +1,44 @@
-# Prompt Template for Each Coding Task
-
-Copy this template into Claude Code and replace the bracketed fields.
+# AI Coding Task Template
 
 ```text
-Read CLAUDE.md and these documents before editing:
-- docs/MVP_SCOPE.md
+Read first:
+- CLAUDE.md
+- docs/PROJECT_STATUS.md
+- docs/IMPLEMENTATION_PLAN.md
 - docs/ARCHITECTURE.md
 - docs/UI_DESIGN_SYSTEM.md
-- [other relevant document]
+- [task-specific docs]
 
-Task: [one small, specific task]
-
-Current milestone: [milestone number and name]
+Task: [one bounded task]
+Current phase: [phase]
 
 Acceptance criteria:
-1. [observable result]
-2. [observable result]
-3. [verification requirement]
+1. [observable behavior]
+2. [error/empty/loading/accessibility behavior]
+3. [light/dark and 360dp requirement if UI]
+4. [exact verification command]
 
 Constraints:
-- React Native + Expo + Expo Router + strict TypeScript.
-- Keep business logic in lib/, SQLite in db/, platform APIs in services/, and UI in app/components.
-- Use centralized strings and theme tokens.
-- Respect safe area, status bar, keyboard, and bottom tab/footer.
-- Do not add dependencies without approval.
-- Do not edit unrelated files.
-- Do not commit or push.
+- Expo SDK 57, Expo Router, strict TypeScript/noUncheckedIndexedAccess.
+- SQLite remains business-data source of truth; SQL stays under db/.
+- Money uses integer paise; quantities use central scaling.
+- Reuse centralized strings, palette, and components.
+- Do not add dependencies or migrations without approval.
+- Do not expand business scope or edit unrelated files.
+- Do not commit/push.
+- Never claim phone verification from a parser/sandbox result.
 
 Before coding:
-1. Inspect the current repository.
-2. Explain the implementation plan.
-3. List files that will be created or changed.
-4. Identify any dependency or schema migration needed and wait for approval if new.
+1. Inspect current source and relevant docs.
+2. Explain plan and affected files.
+3. Identify dependency/migration/destructive behavior and wait for approval.
 
 After coding:
-1. Run TypeScript and relevant tests/checks.
-2. Report exact commands and results.
-3. List changed files.
-4. State remaining limitations honestly.
+1. Run TypeScript and relevant tests.
+2. Report exact results and changed files.
+3. State runtime checks still required on the physical phone.
 ```
 
-## Good first task
+## Safe code-sharing reminder
 
-```text
-Task: Build the application shell only.
-
-Acceptance criteria:
-1. SafeAreaProvider and StatusBar are configured at the root.
-2. Expo Router bottom tabs contain Dashboard, Invoices, Customers, Catalog, and More.
-3. Every tab uses a shared screen container with correct top and bottom insets.
-4. Bottom tabs do not overlap scroll content on a narrow Android screen.
-5. All labels come from constants/strings.ts and icons use @expo/vector-icons.
-6. No database or business feature is implemented yet.
-```
-
-## Bad prompt
-
-```text
-Build the complete invoicing app with every feature.
-```
-
-That prompt creates inconsistent architecture, unfinished screens, unverified calculations, and difficult debugging.
+Share source/config/docs only. Exclude `node_modules`, `.expo`, `.git`, `.env*`, credentials, keystores, SQLite databases, generated invoices, signatures, and real customer/payment data.

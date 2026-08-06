@@ -188,7 +188,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.48)",
   },
-  backdrop: { ...StyleSheet.absoluteFillObject },
+  backdrop: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
   sheet: {
     maxHeight: "91%",
     borderTopLeftRadius: 28,

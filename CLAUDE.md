@@ -1,133 +1,95 @@
-# Invoice Business App — AI Development Instructions
+# InvoiceFine — AI Development Instructions
+
+_Last updated: 2026-08-04_
 
 ## Mission
 
-Build a production-quality, offline-first business management app for Indian small businesses using React Native, Expo, Expo Router, and TypeScript. The working name is **InvoiceFine** until the owner selects a final name.
+Build and stabilize **InvoiceFine — Pocket ERP for Indian Small Business**, a trustworthy Android-first, offline-first business app using Expo, React Native, Expo Router, strict TypeScript, and SQLite.
 
-The app must help users manage customers, products and services, invoices, payments, expenses, stock, profit, PDFs, and reports. Build in phases. Do not implement Pro or Business features while working on MVP unless explicitly requested.
+The current source includes the MVP business workflows and UX phases through Phase 7. Future work must improve and verify the existing app without silently expanding product scope.
 
 ## Mandatory workflow
 
-1. Read this file and the relevant files in `docs/` before editing.
-2. Inspect the repository and reuse existing conventions.
-3. Work on one small task at a time.
-4. Before coding, state the task, affected files, and acceptance criteria.
-5. Do not add dependencies without explaining why and receiving approval.
-6. Do not rewrite unrelated files.
-7. Preserve existing user changes.
-8. After coding, run TypeScript and relevant checks. Never claim success without running them.
-9. Report files changed, checks run, results, and remaining limitations.
-10. Never commit or push unless explicitly asked.
+1. Read `docs/PROJECT_STATUS.md` and all docs relevant to the task before editing.
+2. Inspect the actual repository; documentation is guidance, source is the implementation truth.
+3. State task scope, affected files, acceptance criteria, dependency changes, and migration changes before coding.
+4. Work on one bounded task at a time and preserve unrelated user changes.
+5. Never add or upgrade a dependency without explaining why and receiving approval.
+6. Use Expo CLI for Expo modules so the installed SDK-compatible version is selected.
+7. Run TypeScript and relevant checks after edits. Do not claim phone/runtime verification without user confirmation.
+8. Report exact checks, failures, remaining limitations, and files changed.
+9. Never commit, merge, push, reset, or force-push unless explicitly requested.
+10. Never use destructive Git commands such as `git reset --hard` or `git push --force`.
 
-## Product scope
+## Current technical baseline
 
-Follow `docs/MVP_SCOPE.md`. MVP is the only active release scope. Future features remain documented but must not leak into current screens, schema, navigation, or dependencies unless needed for forward-compatible data design.
+- Expo SDK 57 / Expo Router
+- React Native + strict TypeScript with `noUncheckedIndexedAccess`
+- `expo-sqlite` as business-data source of truth
+- React Hook Form for forms
+- `expo-image-picker` for approved profile images
+- `expo-print` and `expo-sharing` for invoice PDF workflows
+- `react-native-svg` as the only chart rendering engine
+- `expo-haptics` approved for UX Phase 7; install with Expo CLI before compiling that phase
+- automatic light/dark color scheme
 
-## Architecture rules
+Do not introduce a heavy chart library, backend, analytics, cloud sync, ads, or AI service without approval.
 
-- `app/`: Expo Router routes and screen composition only.
-- `components/`: reusable visual components only.
-- `lib/`: pure business logic and calculations only. No React components, navigation, SQLite calls, or platform APIs.
-- `db/`: SQLite initialization, migrations, repositories, queries, and transactions.
-- `services/`: platform integrations such as PDF, sharing, printing, notifications, and file handling.
-- `store/`: Zustand UI/session state. SQLite remains the source of truth for business data.
-- `hooks/`: reusable React hooks that connect UI to repositories/services.
-- `types/`: shared TypeScript domain types.
-- `constants/`: strings, theme tokens, routes, units, and fixed app constants.
-- `utils/`: small generic utilities only; do not turn it into a dumping ground.
+## Architecture boundaries
 
-Screens and components must never contain raw SQL, tax formulas, invoice-total formulas, stock mutation logic, or profit calculations.
+- `app/`: Expo Router routes and screen composition.
+- `components/`: reusable UI and feature components.
+- `constants/`: centralized strings, theme, routes, and fixed values.
+- `db/`: SQLite initialization, migrations, SQL, repositories, and transactions.
+- `hooks/`: reusable UI-to-data coordination.
+- `lib/`: deterministic calculations and small cross-platform helpers. Platform wrappers such as haptic helpers may live here only when they remain isolated and contain no business persistence.
+- `services/`: PDF, print, sharing, files, and other platform workflows.
+- `types/`: shared domain types.
+- `tests/`: deterministic synthetic tests.
 
-## Data rules
+Screens/components must not contain raw SQL, invoice tax formulas, stock mutation rules, or profit calculations.
 
-- Use `expo-sqlite` as the source of truth for persistent business data.
-- Do not duplicate the same business records in SQLite, MMKV, AsyncStorage, and Zustand.
-- For MVP, use SQLite settings or AsyncStorage only for tiny non-relational preferences. MMKV is deferred until a development build is justified.
-- Store money as integer paise, never floating-point rupees.
-- Store timestamps as ISO 8601 UTC strings. Convert for display at the UI boundary.
-- Use SQLite transactions for invoice finalization, payments, and stock movement updates.
-- Never edit a finalized invoice silently. Use controlled correction, cancellation, or duplicate-as-new behavior.
-- Invoice items must store snapshots of description, price, tax rate, and cost so historical invoices do not change when catalog data changes.
-- Use migrations; never destroy the database to apply a schema change.
+## Data and accounting rules
 
-## TypeScript rules
+- Persist business data in SQLite; do not duplicate it in UI state stores.
+- Money is integer paise. Quantities use the central scaled-integer strategy.
+- Use ISO dates/timestamps and validate at boundaries.
+- Use versioned migrations; never delete the database to apply schema changes.
+- Invoice finalization, payment recording, cancellation, stock movement, and numbering must remain transaction-safe.
+- Finalized records are auditable and cannot be silently edited.
+- Invoice snapshots preserve historical business/customer/item/cost/tax data.
+- Profit = recognized sales − COGS − expenses for the selected period.
+- Reports must aggregate in SQLite and must not load full tables into JavaScript.
 
-- Enable and respect strict TypeScript.
-- Avoid `any`; use `unknown` and narrow it.
-- Define explicit domain types and repository return types.
-- Validate user-entered and imported data at boundaries.
-- Handle nullable database fields explicitly.
-- Use named exports except where Expo Router requires a default route component.
-
-## UI quality rules
+## UI and accessibility rules
 
 Follow `docs/UI_DESIGN_SYSTEM.md`.
 
-- Professional, calm, business-focused UI.
-- Light theme for MVP.
-- No emoji as UI icons. Use `@expo/vector-icons` consistently.
-- All visible strings belong in `constants/strings.ts`.
-- Use Safe Area correctly on every screen.
-- Configure `expo-status-bar`; content must never render under the status bar accidentally.
-- Bottom navigation/footer must respect Android navigation insets and never cover content.
-- Every scroll screen must include adequate bottom padding for tabs and fixed actions.
-- Use the spacing scale only: 4, 8, 12, 16, 24, 32, 48.
-- Minimum touch target: 44×44.
-- Use consistent cards, radii, typography, inputs, empty states, loading states, and errors.
-- Avoid giant headings, excessive shadows, random gradients, cramped forms, and decorative clutter.
-- Forms must work with the keyboard open and keep the focused field visible.
-- Check 360px-wide Android screens and larger phones.
+- Android-first Material 3-inspired UI, responsive from 360dp.
+- Automatic light and dark theme; every changed screen must be checked in both.
+- Use centralized visible strings and vector icons.
+- Respect safe areas, status bar, keyboard, tab bar, and Android navigation.
+- Minimum touch target 44×44.
+- Provide loading, skeleton, empty, error, disabled, and success states.
+- Use native-driver animations where possible and respect reduced-motion settings.
+- Swipe actions require a visible or accessible alternative.
+- Confirm destructive actions and provide clear success/error feedback.
 
-## Form rules
+## PDF rules
 
-- Use React Hook Form and a single validation strategy approved for the project.
-- Display field-level errors near the field.
-- Disable duplicate submission while saving.
-- Preserve draft input when recoverable.
-- Confirm destructive actions.
-- Normalize phone numbers, GSTIN, invoice numbers, quantities, and currency at boundaries.
+- One invoice per selected page.
+- Supported profile setting: A4 or 4 × 6 inch; default A4.
+- The selected page size controls generated PDF, print, and share.
+- PDF content uses persisted invoice snapshots.
+- Sharing uses the operating-system share sheet; never claim guaranteed WhatsApp delivery.
 
-## Business calculation rules
+## Privacy and safety
 
-- Centralize subtotal, discount, GST, rounding, total, outstanding, COGS, gross profit, and net profit calculations in `lib/`.
-- Never use JavaScript floating-point numbers directly for currency arithmetic.
-- Net profit is not simply sales minus all purchases. Use recognized sales revenue minus cost of goods sold minus expenses for the selected period.
-- A payment changes outstanding balance, not invoice total.
-- Finalizing a product invoice creates stock-out movements in the same transaction.
-- Cancelling a finalized invoice reverses eligible stock movements through auditable entries; do not delete history.
-
-## PDF and sharing rules
-
-- PDF content must match the stored invoice snapshot.
-- Include business details, customer details, line items, totals, tax breakdown, notes, payment status, and authorized signature only when configured.
-- Generate A4 output with safe margins and page-break handling.
-- Never claim WhatsApp delivery. Use the system share sheet; WhatsApp is one possible target when installed.
-- Do not hardcode personal or business data in templates.
-
-## Performance rules
-
-- Paginate or limit long lists.
-- Add indexes for frequent filters and joins.
-- Avoid reading the entire database for dashboard cards.
-- Memoize only when evidence justifies it.
-- Keep list rows stable and use appropriate `FlatList` keys.
-
-## Security and privacy
-
-- Offline-first MVP: no backend, analytics, ads, cloud sync, or AI API unless explicitly approved.
-- Never log customer details, GSTIN, phone numbers, invoice content, or payment data unnecessarily.
-- Never store secrets in source control.
-- Use synthetic fixtures in tests and screenshots.
+- Offline-first: no backend or telemetry is currently approved.
+- Do not log or package customer, GSTIN, payment, invoice, signature, or local database data.
+- Use synthetic data in tests and screenshots.
+- Do not share `.env`, keystores, credentials, SQLite files, generated invoices, `node_modules`, `.expo`, or `.git` with external AI tools.
 
 ## Definition of done
 
-A task is complete only when:
-
-- acceptance criteria are met
-- TypeScript passes
-- relevant tests/checks pass
-- loading, empty, error, and success states are handled
-- safe area, status bar, keyboard, and bottom footer behavior are checked when UI changed
-- no unrelated files changed
-- no unapproved dependency was added
-- documentation is updated if behavior or setup changed
+A task is complete only when acceptance criteria are met, TypeScript passes on the target project, relevant tests pass, affected states and themes are handled, no unrelated scope was added, documentation is updated when behavior/setup changes, and runtime claims match actual physical-device verification.

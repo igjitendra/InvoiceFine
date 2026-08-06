@@ -1,9 +1,20 @@
 import { createBackupDocument, validateBackupJson } from "../lib/backup-format";
-import { backupTableNames, type BackupTables } from "../types/backup";
-const tables = Object.fromEntries(
-  backupTableNames.map((name) => [name, []]),
-) as BackupTables;
-tables.customers = [{ id: "c1", name: "Customer" }];
+import type { BackupTables } from "../types/backup";
+
+const tables: BackupTables = {
+  business_settings: [],
+  customers: [{ id: "c1", name: "Customer" }],
+  categories: [],
+  units: [],
+  items: [],
+  invoices: [],
+  invoice_items: [],
+  payments: [],
+  expenses: [],
+  stock_movements: [],
+  invoice_vertical_details: [],
+  schema_migrations: [],
+};
 const backup = createBackupDocument({
   createdAt: "2026-08-05T00:00:00.000Z",
   appVersion: "1.0.0",
