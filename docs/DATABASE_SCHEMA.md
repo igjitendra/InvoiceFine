@@ -26,7 +26,15 @@ Item/expense categories with archive state; units with names/short names/GST cod
 
 ### `items`
 
-Product/service type, name, SKU, barcode text, category, brand, unit, purchase/selling price, GST basis points, current scaled stock, low-stock threshold, archive state, timestamps.
+Product/service type, name/short name, SKU, barcode, HSN/SAC, category, brand and unit; purchase/selling/MRP/wholesale price, tax-inclusive mode and GST basis points; current/opening stock through stock movements, low-stock and reorder thresholds, storage location and supplier; description, local image URI and physical attributes; accounting mappings and optional expiry/batch/warranty/manufacturer data; service pricing model, duration, staff, appointment requirement, warranty days, checklist JSON and internal/customer notes; archive state and timestamps. Migration 5 adds professional fields with safe defaults for existing rows.
+
+### `catalog_item_template_data`
+
+Migration 6 stores one schema-driven business-template payload per catalog item: item relation, template ID, sanitized JSON field values, and timestamps. Rows cascade-delete with their catalog item. Supported templates are Medical, Garment, Mobile/Electronics, Repair, Salon, Agency, Freelancer, Restaurant/Food, and CSC/VLE.
+
+### `item_favorites`
+
+Migration 7 stores persistent favorite catalog item IDs with creation timestamps. Favorites are ranked before recently sold suggestions and cascade-delete with their item.
 
 ### `invoices`
 

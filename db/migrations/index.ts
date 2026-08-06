@@ -5,6 +5,10 @@ import type { MigrationRecord } from "@/types/database";
 import { initialSchemaMigration } from "./0001-initial-schema";
 import { invoicePageSizeMigration } from "./0002-invoice-page-size";
 import { premiumOnboardingMigration } from "./0003-premium-onboarding";
+import { verticalInvoiceDetailsMigration } from "./0004-vertical-invoice-details";
+import { professionalCatalogMigration } from "./0005-professional-catalog";
+import { businessTemplateEngineMigration } from "./0006-business-template-engine";
+import { invoiceSpeedToolsMigration } from "./0007-invoice-speed-tools";
 
 export type DatabaseMigration = {
   name: string;
@@ -16,6 +20,10 @@ const migrations: readonly DatabaseMigration[] = [
   initialSchemaMigration,
   invoicePageSizeMigration,
   premiumOnboardingMigration,
+  verticalInvoiceDetailsMigration,
+  professionalCatalogMigration,
+  businessTemplateEngineMigration,
+  invoiceSpeedToolsMigration,
 ];
 
 const migrationTableSql = `

@@ -16,6 +16,10 @@ import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
 import { useBusinessType } from "@/hooks/useBusinessType";
 import { listCatalogItems } from "@/db/repositories/catalog";
 import { listCustomers } from "@/db/repositories/customers";
+import {
+  listFavoriteItemIds,
+  setItemFavorite,
+} from "@/db/repositories/item-favorites";
 import { finalizeInvoice } from "@/db/repositories/invoice-finalization";
 import {
   getInvoiceDraftBusinessStateCode,
@@ -26,12 +30,14 @@ import {
 import { formatPaise, paiseToInput, parseRupeesToPaise } from "@/lib/currency";
 import { calculateInvoice } from "@/lib/invoice-calculations";
 import { parseQuantityToScaled, scaledToInput } from "@/lib/quantity";
-import type { CatalogItem } from "@/types/catalog";
+import type { CatalogItem, CatalogItemType } from "@/types/catalog";
 import type { Customer } from "@/types/customer";
 import type { InvoiceDraftLine } from "@/types/invoice-draft";
 import type { InvoiceKind } from "@/types/invoice";
 
 import { SelectionModal, type SelectionOption } from "./SelectionModal";
+import { InlineCustomerSheet } from "./InlineCustomerSheet";
+import { InlineCatalogSheet } from "./InlineCatalogSheet";
 import { VerticalDetailsCard } from "./VerticalDetailsCard";
 import { getCurrentWorkflow } from "@/db/repositories/vertical-invoice-details";
 import {
@@ -114,6 +120,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [recentItemIds, setRecentItemIds] = useState<string[]>([]);
+  const [favoriteItemIds, setFavoriteItemIds] = useState<string[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
@@ -125,6 +132,10 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
   );
   const [customerModal, setCustomerModal] = useState(false);
   const [itemModal, setItemModal] = useState(false);
+  const [inlineCustomer, setInlineCustomer] = useState(false);
+  const [inlineCatalogType, setInlineCatalogType] =
+    useState<CatalogItemType | null>(null);
+  const [inlineName, setInlineName] = useState("");
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -153,6 +164,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       listCatalogItems("", "all"),
       getInvoiceDraftBusinessStateCode(),
       listRecentlySoldItemIds(),
+      listFavoriteItemIds(),
       draftId ? loadInvoiceDraft(draftId) : Promise.resolve(null),
       getCurrentWorkflow(),
     ])
@@ -162,6 +174,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           loadedItems,
           stateCode,
           loadedRecentItemIds,
+          loadedFavoriteItemIds,
           draft,
           workflow,
         ]) => {
@@ -170,6 +183,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           setItems(loadedItems);
           setBusinessStateCode(stateCode);
           setRecentItemIds(loadedRecentItemIds);
+          setFavoriteItemIds(loadedFavoriteItemIds);
           if (draftId && !draft) {
             setLoadError(true);
             return;
@@ -266,9 +280,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
     }
   }, [businessStateCode, kind, parsedLines, selectedCustomer?.stateCode]);
 
-  function addItem(id: string) {
-    const item = items.find((candidate) => candidate.id === id);
-    if (!item) return;
+  function appendItem(item: CatalogItem) {
     setLines((current) => {
       const existing = current.find((line) => line.item.id === item.id);
       if (existing) {
@@ -293,6 +305,23 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
     setItemModal(false);
   }
 
+  function addItem(id: string) {
+    const item = items.find((candidate) => candidate.id === id);
+    if (item) appendItem(item);
+  }
+
+  function openCustomerCreate(query: string) {
+    setCustomerModal(false);
+    setInlineName(query);
+    setInlineCustomer(true);
+  }
+
+  function openCatalogCreate(type: CatalogItemType, query: string) {
+    setItemModal(false);
+    setInlineName(query);
+    setInlineCatalogType(type);
+  }
+
   function updateLine(
     key: string,
     field: "quantity" | "unitPrice" | "discount",
@@ -315,6 +344,29 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           quantity: scaledToInput(Math.max(1000, quantity + direction * 1000)),
         };
       }),
+    );
+  }
+
+  function setQuickQuantity(key: string, quantity: number) {
+    setLines((current) =>
+      current.map((line) =>
+        line.key === key ? { ...line, quantity: String(quantity) } : line,
+      ),
+    );
+  }
+
+  function toggleFavorite(id: string, favorite: boolean) {
+    setFavoriteItemIds((current) =>
+      favorite
+        ? [id, ...current.filter((itemId) => itemId !== id)]
+        : current.filter((itemId) => itemId !== id),
+    );
+    void setItemFavorite(id, favorite).catch(() =>
+      setFavoriteItemIds((current) =>
+        favorite
+          ? current.filter((itemId) => itemId !== id)
+          : [id, ...current.filter((itemId) => itemId !== id)],
+      ),
     );
   }
 
@@ -421,6 +473,9 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
   const itemOptions: SelectionOption[] = items
     .filter((item) => businessType === "both" || item.type === businessType)
     .sort((a, b) => {
+      const aFavorite = favoriteItemIds.includes(a.id);
+      const bFavorite = favoriteItemIds.includes(b.id);
+      if (aFavorite !== bFavorite) return aFavorite ? -1 : 1;
       const aIndex = recentItemIds.indexOf(a.id);
       const bIndex = recentItemIds.indexOf(b.id);
       if (aIndex === -1 && bIndex === -1) return a.name.localeCompare(b.name);
@@ -434,6 +489,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       subtitle: `${formatPaise(item.sellingPricePaise)} · ${item.type === "product" ? `Stock ${scaledToInput(item.currentStockScaled)}` : strings.catalog.types[item.type]}`,
       keywords: `${item.sku ?? ""} ${item.barcode ?? ""} ${item.brand ?? ""}`,
       recent: recentItemIds.includes(item.id),
+      favorite: favoriteItemIds.includes(item.id),
     }));
 
   return (
@@ -589,6 +645,7 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
                     accessibilityRole="button"
                     accessibilityLabel={strings.ux.decreaseQuantity}
                     onPress={() => stepQuantity(line.key, -1)}
+                    onLongPress={() => setQuickQuantity(line.key, 1)}
                     style={styles.quantityButton}
                   >
                     <Ionicons name="remove" size={22} color={palette.primary} />
@@ -607,10 +664,36 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
                     accessibilityRole="button"
                     accessibilityLabel={strings.ux.increaseQuantity}
                     onPress={() => stepQuantity(line.key, 1)}
+                    onLongPress={() => setQuickQuantity(line.key, 10)}
                     style={styles.quantityButton}
                   >
                     <Ionicons name="add" size={22} color={palette.primary} />
                   </Pressable>
+                </View>
+                <View style={styles.quantityPresets}>
+                  {[1, 2, 5, 10].map((quantity) => (
+                    <Pressable
+                      key={quantity}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${strings.speedTools.setQuantity} ${quantity}`}
+                      onPress={() => setQuickQuantity(line.key, quantity)}
+                      style={[
+                        styles.quantityPreset,
+                        line.quantity === String(quantity) &&
+                          styles.quantityPresetActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.quantityPresetText,
+                          line.quantity === String(quantity) &&
+                            styles.quantityPresetTextActive,
+                        ]}
+                      >
+                        ×{quantity}
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
                 <View style={styles.lineFields}>
                   <Input
@@ -710,11 +793,6 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
             )}
           />
         </Card>
-        <Button
-          label={strings.invoiceDrafts.save}
-          loading={isSubmitting}
-          onPress={() => void submit()}
-        />
         {draftId ? (
           <Button
             label={strings.finalization.finalize}
@@ -723,10 +801,36 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
           />
         ) : null}
       </ScreenContainer>
+      <View style={styles.stickySummary}>
+        <View style={styles.stickyCopy}>
+          <Text style={styles.stickyLabel}>
+            {lines.length} {strings.speedTools.itemSummary} ·{" "}
+            {strings.invoiceDrafts.total}
+          </Text>
+          <Text style={styles.stickyTotal}>
+            {formatPaise(calculation?.totalPaise ?? 0)}
+          </Text>
+        </View>
+        <Button
+          label={strings.invoiceDrafts.save}
+          loading={isSubmitting}
+          onPress={() => void submit()}
+        />
+      </View>
       <SelectionModal
         visible={customerModal}
         title={strings.invoiceDrafts.selectCustomerTitle}
         options={customerOptions}
+        createActions={[
+          {
+            id: "customer",
+            label: (query) =>
+              query
+                ? `${strings.inlineAdd.createCustomer} “${query}”`
+                : strings.inlineAdd.addCustomer,
+            onCreate: openCustomerCreate,
+          },
+        ]}
         onClose={() => setCustomerModal(false)}
         onSelect={(id) => {
           setSelectedCustomer(
@@ -742,8 +846,66 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
         title={strings.invoiceDrafts.selectItemTitle}
         searchPlaceholder={strings.ux.searchItems}
         options={itemOptions}
+        createActions={[
+          ...(businessType !== "service"
+            ? [
+                {
+                  id: "product",
+                  label: (query: string) =>
+                    query
+                      ? `${strings.inlineAdd.createProduct} “${query}”`
+                      : strings.inlineAdd.addProduct,
+                  onCreate: (query: string) =>
+                    openCatalogCreate("product", query),
+                },
+              ]
+            : []),
+          ...(businessType !== "product"
+            ? [
+                {
+                  id: "service",
+                  label: (query: string) =>
+                    query
+                      ? `${strings.inlineAdd.createService} “${query}”`
+                      : strings.inlineAdd.addService,
+                  onCreate: (query: string) =>
+                    openCatalogCreate("service", query),
+                },
+              ]
+            : []),
+        ]}
         onClose={() => setItemModal(false)}
         onSelect={addItem}
+        onToggleFavorite={toggleFavorite}
+      />
+      <InlineCustomerSheet
+        visible={inlineCustomer}
+        initialName={inlineName}
+        onClose={() => setInlineCustomer(false)}
+        onSaved={(customer) => {
+          setCustomers((current) =>
+            [
+              ...current.filter((entry) => entry.id !== customer.id),
+              customer,
+            ].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+          setSelectedCustomer(customer);
+          setInlineCustomer(false);
+        }}
+      />
+      <InlineCatalogSheet
+        visible={inlineCatalogType !== null}
+        type={inlineCatalogType ?? "product"}
+        initialName={inlineName}
+        onClose={() => setInlineCatalogType(null)}
+        onSaved={(item) => {
+          setItems((current) => [
+            ...current.filter((entry) => entry.id !== item.id),
+            item,
+          ]);
+          appendItem(item);
+          setInlineCatalogType(null);
+        }}
       />
     </>
   );
@@ -771,7 +933,7 @@ function TotalRow({
 }
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
-    content: { gap: theme.spacing[5] },
+    content: { gap: theme.spacing[5], paddingBottom: 150 },
     header: {
       minHeight: theme.layout.headerHeight,
       flexDirection: "row",
@@ -855,6 +1017,41 @@ function createStyles(palette: AppPalette) {
       marginBottom: 2,
     },
     quantityInput: { flex: 1 },
+    quantityPresets: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    quantityPreset: {
+      minWidth: 48,
+      minHeight: 38,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: palette.border,
+      backgroundColor: palette.surfaceVariant,
+    },
+    quantityPresetActive: {
+      borderColor: palette.primary,
+      backgroundColor: palette.primarySoft,
+    },
+    quantityPresetText: { color: palette.muted, ...theme.typography.label },
+    quantityPresetTextActive: { color: palette.primarySoftText },
+    stickySummary: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      minHeight: 92,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: palette.surface,
+      borderTopWidth: 1,
+      borderTopColor: palette.border,
+    },
+    stickyCopy: { flex: 1 },
+    stickyLabel: { color: palette.muted, ...theme.typography.caption },
+    stickyTotal: { color: palette.text, ...theme.typography.sectionTitle },
     lineFields: { gap: theme.spacing[3] },
     totalRows: { gap: theme.spacing[2] },
     totalRow: {

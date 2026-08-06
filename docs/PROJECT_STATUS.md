@@ -43,6 +43,10 @@ Milestones 0–13 are implemented in source:
 10. Premium onboarding and vertical workflows — 15-step setup, dynamic business mode, Reports tab, Legal & Data hub, Migration 4 vertical details, category-specific invoice forms, transactional draft persistence, finalized display, and PDF export implemented in source; physical-phone verification pending
 11. Data safety and restore — underlying integrity/restore source retained, but backup/restore is postponed for this release; active preview controls are replaced by Coming Soon and destructive deletion remains safety-locked
 12. Complete light/dark consistency — all remaining static app/component theme colors converted to live palette; Expenses, forms, profiles, invoice/payment screens, selected states, secondary text, and legal/data surfaces corrected; physical-phone verification pending
+13. Smart Inline Add — query-aware New Customer/Product/Service actions, modal creation without leaving invoice, automatic select/add, business-mode filtering, category/unit resolution, and atomic opening-stock movements implemented; physical-phone verification pending
+14. Professional Product/Service schema and forms — Migration 5, persisted product/service professional fields, progressive Basic/Advanced sections, local image selection, service pricing/duration/staff/checklist, product inventory/accounting/optional details, and safe legacy defaults implemented; physical-phone verification pending
+15. Business Template Engine — Migration 6, nine schema-driven vertical templates, category alias resolution, sanitized per-item JSON persistence, cascade cleanup, dynamic catalog fields, and template-aware invoice workflow routing implemented; physical-phone verification pending
+16. Invoice speed tools — Migration 7 persistent favorites, favorite/recent-first suggestions, query search, duplicate increment, quick quantity presets, long-press quantity shortcuts, and live sticky total/save summary implemented; physical-phone verification pending
 
 ## Reports currently supported
 

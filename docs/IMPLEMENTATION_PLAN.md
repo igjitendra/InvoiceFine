@@ -116,6 +116,22 @@ All remaining direct `theme.colors` usage in app/components was removed. Expense
 - permission/privacy review
 - crash and error-path review without customer-data logging
 
+### Phase 13A — Smart Inline Add — source implemented
+
+Invoice customer and item selectors now expose query-aware create actions. A customer can be created in a theme-safe modal and immediately selected without leaving the draft. Products and services can be created in-place and immediately appended as invoice lines; available create actions respect Product/Service/Both business mode. New category and unit text is resolved transactionally, and product opening stock creates a matching opening stock movement in the same catalog transaction. Physical-phone modal, keyboard, and state-retention verification remains required.
+
+### Phase 13B — Professional Product/Service schema and forms — source implemented
+
+Migration 5 expands catalog records with persisted HSN/SAC, MRP and wholesale pricing, tax-inclusive mode, reorder level, storage/supplier, descriptions and images, physical product attributes, accounting mappings, expiry/batch/warranty/manufacturer data, service pricing model and duration, staff/appointment settings, warranty days, checklist templates, and internal/customer notes. Product and Service forms reveal only relevant sections, keep advanced fields collapsed by default, preserve stock adjustments as movements, and safely default existing catalog rows. Inline service creation now persists duration. Physical-phone form, picker, keyboard, and migration verification remains required.
+
+### Phase 13C — Business Template Engine — source implemented
+
+A schema-driven engine now resolves Medical, Garment, Mobile/Electronics, Repair, Salon, Agency, Freelancer, Restaurant/Food, and CSC/VLE businesses from onboarding category aliases. Each template exposes relevant product/service fields without duplicating entire forms. Migration 6 stores sanitized per-item template JSON with cascade deletion. The catalog form loads and persists template fields, and invoice workflow selection reuses the template workflow while retaining existing vertical invoice snapshots. Physical-phone category switching, migration, keyboard, and create/edit verification remains required.
+
+### Phase 13D — Suggestions, favorites, quick quantity, sticky summary — source implemented
+
+Invoice item selection now ranks persistent favorites first, recently sold items second, and the remaining catalog alphabetically while retaining query search and inline creation. Favorites are stored in Migration 7 and cascade-delete with items. Invoice lines provide ×1/×2/×5/×10 presets, long-press minus resets to one, long-press plus sets ten, and duplicate selection still increments quantity. A theme-aware sticky bottom summary keeps item count, live total, and Save/Update action visible while the draft scrolls. Physical-phone touch, keyboard, safe-area, and small-screen verification remains required.
+
 ### Later, only after approval
 
 - WhatsApp-oriented receipt workflow through system sharing

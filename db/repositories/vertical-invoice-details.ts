@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 import { getDatabase } from "@/db/database";
+import { templateForCategory } from "@/lib/business-template-engine";
 import {
   createEmptyVerticalDetails,
   verticalDetailKeys,
@@ -19,6 +20,8 @@ function isWorkflow(v: unknown): v is VerticalWorkflow {
   return typeof v === "string" && workflows.includes(v as VerticalWorkflow);
 }
 export function workflowForCategory(category: string): VerticalWorkflow {
+  const template = templateForCategory(category);
+  if (template) return template.workflow;
   const x = category.toLowerCase();
   if (x.includes("repair")) return "repair";
   if (x.includes("agency") || x.includes("digital")) return "agency";

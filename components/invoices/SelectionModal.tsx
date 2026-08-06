@@ -19,6 +19,12 @@ export type SelectionOption = {
   subtitle?: string;
   keywords?: string;
   recent?: boolean;
+  favorite?: boolean;
+};
+export type SelectionCreateAction = {
+  id: string;
+  label: (query: string) => string;
+  onCreate: (query: string) => void;
 };
 export function SelectionModal({
   visible,
@@ -27,6 +33,8 @@ export function SelectionModal({
   onSelect,
   onClose,
   searchPlaceholder,
+  createActions = [],
+  onToggleFavorite,
 }: {
   visible: boolean;
   title: string;
@@ -34,6 +42,8 @@ export function SelectionModal({
   onSelect: (id: string) => void;
   onClose: () => void;
   searchPlaceholder?: string;
+  createActions?: SelectionCreateAction[];
+  onToggleFavorite?: (id: string, favorite: boolean) => void;
 }) {
   const palette = useAppPalette();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -85,6 +95,29 @@ export function SelectionModal({
           ) : null}
         </View>
         <ScrollView keyboardShouldPersistTaps="handled">
+          {createActions.map((action) => (
+            <Pressable
+              key={action.id}
+              accessibilityRole="button"
+              onPress={() => action.onCreate(query.trim())}
+              style={({ pressed }) => [
+                styles.createRow,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.createIcon}>
+                <Ionicons name="add" size={22} color={palette.textOnPrimary} />
+              </View>
+              <Text style={styles.createText}>
+                {action.label(query.trim())}
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={19}
+                color={palette.primary}
+              />
+            </Pressable>
+          ))}
           {filtered.map((option) => (
             <Pressable
               key={option.id}
@@ -103,6 +136,27 @@ export function SelectionModal({
                   <Text style={styles.subtitle}>{option.subtitle}</Text>
                 ) : null}
               </View>
+              {onToggleFavorite ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    option.favorite
+                      ? strings.speedTools.removeFavorite
+                      : strings.speedTools.addFavorite
+                  }
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    onToggleFavorite(option.id, !option.favorite);
+                  }}
+                  style={styles.favoriteButton}
+                >
+                  <Ionicons
+                    name={option.favorite ? "star" : "star-outline"}
+                    size={22}
+                    color={option.favorite ? palette.warning : palette.muted}
+                  />
+                </Pressable>
+              ) : null}
               <Ionicons
                 name="add-circle-outline"
                 size={24}
@@ -159,8 +213,40 @@ function createStyles(palette: AppPalette) {
       borderBottomColor: palette.border,
       borderBottomWidth: theme.layout.borderWidth,
     },
+    createRow: {
+      minHeight: 64,
+      marginHorizontal: theme.layout.screenHorizontalPadding,
+      marginBottom: theme.spacing[2],
+      paddingHorizontal: theme.spacing[3],
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing[3],
+      backgroundColor: palette.primarySoft,
+      borderWidth: 1,
+      borderColor: palette.primary,
+      borderRadius: 16,
+    },
+    createIcon: {
+      width: 38,
+      height: 38,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 13,
+      backgroundColor: palette.primary,
+    },
+    createText: {
+      flex: 1,
+      color: palette.primarySoftText,
+      ...theme.typography.label,
+    },
     pressed: { backgroundColor: palette.primarySoft },
     copy: { flex: 1 },
+    favoriteButton: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     titleRow: {
       flexDirection: "row",
       alignItems: "center",
