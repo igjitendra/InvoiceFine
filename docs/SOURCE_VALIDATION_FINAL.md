@@ -17,6 +17,7 @@ SDK57_DEPENDENCY_MATRIX=PASS
 EXPO_CONFIG_MANIFEST=PASS
 FINAL_ROUTE_INVENTORY=PASS
 LOCAL_NOTIFICATIONS_ONLY=PASS
+EXPO_GO_NOTIFICATION_IMPORT_GUARD=PASS
 COMPLETE_SCHEMA9_BACKUP_COVERAGE=PASS
 AES_GCM_PBKDF2_FORMAT=PASS
 PREFLIGHT_BEFORE_ATOMIC_RESTORE=PASS
@@ -47,6 +48,7 @@ PHASE14H_FINAL_SOURCE_GATES=PASS
 - Added `scripts/run-regression-tests.sh` as the canonical regression inventory.
 - Strengthened `scripts/phone-qa.sh` with strict TypeScript, Expo config, explicit dependency checks, AppText/import audits, unsafe-TypeScript checks, and static-theme checks.
 - Added `tsx` to development dependencies so phone tests do not rely on a global installation.
+- Added an SDK 57 Expo Go runtime guard so `expo-notifications` is never evaluated in Expo Go; notification delivery remains development/preview-build-only.
 - Updated final physical-phone evidence and release checklists for Migrations 1–9, notifications, CSV, and encrypted `.ifb` recovery.
 
 ## Remaining release blockers

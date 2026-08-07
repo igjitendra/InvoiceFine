@@ -16,6 +16,7 @@ import {
 import { useAppPalette } from "@/hooks/useAppPalette";
 import {
   getNotificationPermissionState,
+  isNotificationRuntimeSupported,
   requestNotificationPermission,
   sendTestNotification,
   syncNotificationSchedule,
@@ -91,6 +92,13 @@ export default function NotificationSettingsScreen() {
     );
   }
   async function enable() {
+    if (!isNotificationRuntimeSupported) {
+      Alert.alert(
+        "Development build required",
+        "Expo Go cannot load Android notifications in SDK 57. Your preferences and service reminders remain saved, but delivery requires an InvoiceFine development or preview build.",
+      );
+      return;
+    }
     setSaving(true);
     try {
       const next = await requestNotificationPermission();
@@ -123,9 +131,11 @@ export default function NotificationSettingsScreen() {
         permission === "granted" ? await syncNotificationSchedule() : null;
       Alert.alert(
         "Preferences saved",
-        summary
-          ? `${summary.scheduled} local reminder${summary.scheduled === 1 ? "" : "s"} scheduled. ${summary.overdue} service reminder${summary.overdue === 1 ? " is" : "s are"} overdue.`
-          : "Enable Android notifications to schedule delivery.",
+        !isNotificationRuntimeSupported
+          ? "Preferences saved. Android notification delivery requires an InvoiceFine development or preview build; Expo Go remains usable without delivery."
+          : summary
+            ? `${summary.scheduled} local reminder${summary.scheduled === 1 ? "" : "s"} scheduled. ${summary.overdue} service reminder${summary.overdue === 1 ? " is" : "s are"} overdue.`
+            : "Enable Android notifications to schedule delivery.",
       );
     } catch {
       Alert.alert(
@@ -147,22 +157,34 @@ export default function NotificationSettingsScreen() {
       <SettingsSection title="ANDROID DELIVERY">
         <SettingsRow
           icon={
-            permission === "granted"
-              ? "checkmark-circle-outline"
-              : "notifications-outline"
+            permission === "unsupported"
+              ? "build-outline"
+              : permission === "granted"
+                ? "checkmark-circle-outline"
+                : "notifications-outline"
           }
           label={
-            permission === "granted"
-              ? "Notifications enabled"
-              : "Enable notifications"
+            permission === "unsupported"
+              ? "Development build required"
+              : permission === "granted"
+                ? "Notifications enabled"
+                : "Enable notifications"
           }
           description={
-            permission === "granted"
-              ? "Local scheduling is active on this device"
-              : "Permission is requested only when you press Enable"
+            permission === "unsupported"
+              ? "Expo Go stays usable; local delivery is disabled to prevent an SDK 57 startup crash"
+              : permission === "granted"
+                ? "Local scheduling is active on this device"
+                : "Permission is requested only when you press Enable"
           }
-          value={permission.toUpperCase()}
-          onPress={permission === "granted" ? undefined : () => void enable()}
+          value={
+            permission === "unsupported" ? "EXPO GO" : permission.toUpperCase()
+          }
+          onPress={
+            permission === "granted" || permission === "unsupported"
+              ? undefined
+              : () => void enable()
+          }
         />
       </SettingsSection>
       <SettingsSection
@@ -195,20 +217,28 @@ export default function NotificationSettingsScreen() {
           icon="alarm-outline"
           label="Customer Service Reminders"
           description="Customer, service, date, time and recurring follow-ups"
-          badge="READY"
+          badge={isNotificationRuntimeSupported ? "READY" : "SAVES ONLY"}
           onPress={() => router.push("/settings/reminders")}
         />
       </SettingsSection>
       <View style={styles.actions}>
         <Button
-          label="Save & Refresh Schedule"
+          label={
+            isNotificationRuntimeSupported
+              ? "Save & Refresh Schedule"
+              : "Save Preferences"
+          }
           loading={saving}
           onPress={() => void save()}
         />
         <Button
           label="Send Test Notification"
           variant="secondary"
-          disabled={permission !== "granted" || saving}
+          disabled={
+            !isNotificationRuntimeSupported ||
+            permission !== "granted" ||
+            saving
+          }
           onPress={() =>
             void sendTestNotification().catch(() =>
               Alert.alert(

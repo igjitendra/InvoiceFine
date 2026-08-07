@@ -29,7 +29,8 @@ export type ServiceReminderInput = {
   recurrence: ServiceReminderRecurrence;
 };
 
-export type NotificationPermissionState = "granted" | "denied" | "undetermined";
+export type NotificationPermissionState =
+  "granted" | "denied" | "undetermined" | "unsupported";
 export type NotificationSyncSummary = {
   scheduled: number;
   cancelled: number;

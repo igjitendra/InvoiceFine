@@ -85,6 +85,9 @@ bash scripts/phone-qa.sh
 
 ## Phase 14F notification/reminder gates
 
+- [ ] SDK 57 Expo Go starts without evaluating `expo-notifications` and shows a development-build-required state
+- [ ] Expo Go can save preferences/reminder data but does not claim or attempt notification delivery
+- [ ] Notification delivery gates are completed in an InvoiceFine development/preview build
 - [ ] No notification permission prompt appears merely from launching the app
 - [ ] Enable Notifications creates both Android channels and requests permission once
 - [ ] Denied permission leaves preferences/reminders saved without claiming delivery

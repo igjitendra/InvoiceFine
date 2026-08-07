@@ -97,6 +97,9 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 
 ## 2E. Notifications and service reminders
 
+- [ ] Expo Go opens without evaluating `expo-notifications`, without a startup crash, and shows Development build required.
+- [ ] Expo Go saves preferences and service-reminder records without claiming delivery.
+- [ ] Run all notification delivery checks below in an InvoiceFine development/preview build, not Expo Go.
 - [ ] Fresh install/upgrade opens without an unsolicited notification permission prompt.
 - [ ] Tap Enable Notifications; grant permission and verify Business Reminders and Customer Service Reminders channels in Android settings.
 - [ ] Send a test notification in foreground and background.

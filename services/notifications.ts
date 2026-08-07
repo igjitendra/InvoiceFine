@@ -1,4 +1,4 @@
-import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { getNotificationSettings } from "@/db/repositories/app-settings";
 import {
@@ -14,18 +14,35 @@ import type {
   NotificationSyncSummary,
 } from "@/types/reminder";
 
-const businessChannel = "business-reminders",
-  serviceChannel = "service-reminders";
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+type NotificationsModule = typeof import("expo-notifications");
+const businessChannel = "business-reminders";
+const serviceChannel = "service-reminders";
+export const isNotificationRuntimeSupported = Constants.appOwnership !== "expo";
+let notificationsPromise: Promise<NotificationsModule> | null = null;
+
+async function getNotifications(): Promise<NotificationsModule | null> {
+  if (!isNotificationRuntimeSupported) return null;
+  if (!notificationsPromise) {
+    notificationsPromise = import("expo-notifications").then(
+      (Notifications) => {
+        Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldPlaySound: true,
+            shouldSetBadge: false,
+            shouldShowBanner: true,
+            shouldShowList: true,
+          }),
+        });
+        return Notifications;
+      },
+    );
+  }
+  return notificationsPromise;
+}
+
 export async function prepareNotificationChannels(): Promise<void> {
-  if (Platform.OS !== "android") return;
+  const Notifications = await getNotifications();
+  if (!Notifications || Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync(businessChannel, {
     name: "Business reminders",
     description: "Due payments, low stock and business summaries",
@@ -43,6 +60,7 @@ export async function prepareNotificationChannels(): Promise<void> {
     lightColor: "#D93632",
   });
 }
+
 function state(status: string): NotificationPermissionState {
   return status === "granted"
     ? "granted"
@@ -50,14 +68,24 @@ function state(status: string): NotificationPermissionState {
       ? "denied"
       : "undetermined";
 }
+
 export async function getNotificationPermissionState(): Promise<NotificationPermissionState> {
+  const Notifications = await getNotifications();
+  if (!Notifications) return "unsupported";
   return state((await Notifications.getPermissionsAsync()).status);
 }
+
 export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
+  const Notifications = await getNotifications();
+  if (!Notifications) return "unsupported";
   await prepareNotificationChannels();
   return state((await Notifications.requestPermissionsAsync()).status);
 }
+
 export async function sendTestNotification(): Promise<void> {
+  const Notifications = await getNotifications();
+  if (!Notifications)
+    throw new Error("Notifications require an InvoiceFine development build.");
   await prepareNotificationChannels();
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -69,8 +97,11 @@ export async function sendTestNotification(): Promise<void> {
     trigger: null,
   });
 }
+
 async function cancel(id: string | null) {
   if (!id) return false;
+  const Notifications = await getNotifications();
+  if (!Notifications) return false;
   try {
     await Notifications.cancelScheduledNotificationAsync(id);
     return true;
@@ -78,8 +109,10 @@ async function cancel(id: string | null) {
     return false;
   }
 }
+
 export async function cancelAllInvoiceFineNotifications(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  const Notifications = await getNotifications();
+  if (Notifications) await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
 export async function cancelReminderNotification(
@@ -87,9 +120,10 @@ export async function cancelReminderNotification(
 ): Promise<void> {
   await cancel(id);
 }
+
 function nextTime(hour: number, minute: number, weekday?: number) {
-  const now = new Date(),
-    next = new Date(now);
+  const now = new Date();
+  const next = new Date(now);
   next.setHours(hour, minute, 0, 0);
   if (weekday === undefined) {
     if (next <= now) next.setDate(next.getDate() + 1);
@@ -99,6 +133,7 @@ function nextTime(hour: number, minute: number, weekday?: number) {
   }
   return next;
 }
+
 async function schedule(
   title: string,
   body: string,
@@ -107,6 +142,9 @@ async function schedule(
   channelId: string,
   reminderId?: string,
 ) {
+  const Notifications = await getNotifications();
+  if (!Notifications)
+    throw new Error("Notifications require an InvoiceFine development build.");
   return Notifications.scheduleNotificationAsync({
     content: {
       title,
@@ -121,15 +159,17 @@ async function schedule(
     },
   });
 }
+
 const inr = (paise: number) => `₹${(paise / 100).toFixed(2)}`;
+
 export async function syncNotificationSchedule(): Promise<NotificationSyncSummary> {
   const permission = await getNotificationPermissionState();
   if (permission !== "granted")
     return { scheduled: 0, cancelled: 0, overdue: 0 };
   await prepareNotificationChannels();
-  let scheduled = 0,
-    cancelled = 0,
-    overdue = 0;
+  let scheduled = 0;
+  let cancelled = 0;
+  let overdue = 0;
   const jobs = await listNotificationJobs();
   for (const job of jobs) {
     if (await cancel(job.notification_id)) cancelled++;
@@ -140,8 +180,8 @@ export async function syncNotificationSchedule(): Promise<NotificationSyncSummar
     if (await cancel(reminder.notificationId)) cancelled++;
     await setReminderNotification(reminder.id, null);
   }
-  const settings = await getNotificationSettings(),
-    summary = await getNotificationBusinessSummary();
+  const settings = await getNotificationSettings();
+  const summary = await getNotificationBusinessSummary();
   const createJob = async (
     key: string,
     title: string,

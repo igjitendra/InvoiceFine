@@ -32,7 +32,7 @@ assert "invoiceSettings?.defaultDueDays" in draft
 
 notifications = (root / "app/settings/notifications.tsx").read_text()
 assert "Permission is requested only when you press Enable" in notifications
-assert 'badge="READY"' in notifications
+assert 'badge={isNotificationRuntimeSupported ? "READY" : "SAVES ONLY"}' in notifications
 assert 'router.push("/settings/reminders")' in notifications
 
 data_controls = (root / "app/legal/data-controls.tsx").read_text()
