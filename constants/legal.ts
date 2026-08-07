@@ -18,14 +18,14 @@ export const legalDocuments = [
     title: "Refund Policy (Premium)",
     summary: "Premium purchase and refund information.",
     content:
-      "Premium purchase terms and refund eligibility follow the store or payment provider used for the transaction, together with applicable consumer law. Final commercial terms must be published before paid subscriptions launch.",
+      "Monthly, annual, and lifetime InvoiceFine Pro purchases are processed by Google Play. Refund eligibility and processing follow Google Play policy and applicable consumer law. A local TRYYEAR promotion is free, has no cash value, and is not a Google Play purchase.",
   },
   {
     slug: "subscription",
     title: "Subscription Policy",
     summary: "Premium billing and renewal terms.",
     content:
-      "InvoiceFine does not currently activate paid subscriptions in this build. Before subscriptions launch, price, billing period, renewal, cancellation, and feature access will be shown clearly before purchase.",
+      "InvoiceFine Pro offers a monthly auto-renewing subscription, an annual auto-renewing subscription, and a one-time lifetime purchase. Prices are displayed from Google Play before purchase. Subscriptions renew automatically unless cancelled in Google Play. Restore Purchases uses the active Google Play account; no InvoiceFine login is required. TRYYEAR is a local 365-day promotion and is not restored by Google Play.",
   },
   {
     slug: "backup",

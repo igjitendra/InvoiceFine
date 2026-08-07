@@ -19,6 +19,19 @@ const quantity = (value: number) =>
 export function createInvoiceHtml(data: InvoicePdfData): string {
   const size = data.pageSize === "a4" ? "A4" : "4in 6in";
   const compact = data.pageSize === "4x6";
+  const taxInvoice = data.kind === "tax_invoice";
+  const balanceDuePaise = Math.max(
+    0,
+    data.totalPaise - data.paidPaise - data.settlementDiscountPaise,
+  );
+  const logo = data.businessLogoUri
+    ? `<img class="logo" src="${escapeHtml(data.businessLogoUri)}" alt="Business logo">`
+    : "";
+  const signature = data.businessSignatureUri
+    ? `<div class="signature"><img src="${escapeHtml(
+        data.businessSignatureUri,
+      )}" alt="Authorized signature"><b>Authorized signature</b></div>`
+    : "";
   const itemRows = data.lines
     .map(
       (line, index) =>
@@ -26,9 +39,9 @@ export function createInvoiceHtml(data: InvoicePdfData): string {
           line.sku ? `<small>${escapeHtml(line.sku)}</small>` : ""
         }</td><td>${quantity(line.quantityScaled)} ${escapeHtml(line.unit)}</td><td>${money(
           line.unitPricePaise,
-        )}</td><td>${line.gstRateBasisPoints / 100}%</td><td>${money(
-          line.lineTotalPaise,
-        )}</td></tr>`,
+        )}</td>${
+          taxInvoice ? `<td>${line.gstRateBasisPoints / 100}%</td>` : ""
+        }<td>${money(line.lineTotalPaise)}</td></tr>`,
     )
     .join("");
   const verticalRows = data.verticalDetails
@@ -51,20 +64,30 @@ export function createInvoiceHtml(data: InvoicePdfData): string {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 @page{size:${size};margin:${compact ? "5mm" : "12mm"}}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#19191b;font-size:${
     compact ? "9px" : "11px"
-  };margin:0}header{display:flex;justify-content:space-between;border-bottom:2px solid #d93632;padding-bottom:8px}h1{margin:0;color:#d93632;font-size:${
+  };margin:0}header{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #d93632;padding-bottom:8px}.brand{display:flex;align-items:flex-start;gap:8px;min-width:0}.logo{width:${
+    compact ? "34px" : "46px"
+  };height:${compact ? "34px" : "46px"};object-fit:contain;border-radius:6px;flex:none}.brand-copy{min-width:0}h1{margin:0;color:#d93632;font-size:${
     compact ? "18px" : "24px"
-  }}h2,h3{margin:0 0 4px}.meta{text-align:right}.parties{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.box{border:1px solid #d7d7db;border-radius:7px;padding:8px}.job{margin:10px 0}.detail-row{display:grid;grid-template-columns:38% 62%;gap:8px;padding:3px 0;border-bottom:1px solid #ededf0}.detail-row span{color:#62626a}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #d7d7db;padding:${
+  };word-break:break-word}h2,h3{margin:0 0 4px}.meta{text-align:right;flex:none}.parties{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.box{border:1px solid #d7d7db;border-radius:7px;padding:8px}.job{margin:10px 0}.detail-row{display:grid;grid-template-columns:38% 62%;gap:8px;padding:3px 0;border-bottom:1px solid #ededf0}.detail-row span{color:#62626a}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #d7d7db;padding:${
     compact ? "4px 2px" : "6px 4px"
   };text-align:right}th:nth-child(2),td:nth-child(2){text-align:left}small{display:block;color:#6b7280}.totals{margin:10px 0 0 auto;width:${
     compact ? "65%" : "45%"
-  }}.totals div{display:flex;justify-content:space-between;padding:3px}.grand{font-weight:bold;border-top:2px solid #19191b;font-size:1.15em}.notes{margin-top:10px}.footer{margin-top:12px;text-align:center;color:#6b7280}</style></head><body>
-<header><div><h1>${escapeHtml(data.businessName)}</h1><div>${escapeHtml(
+  }}.totals div{display:flex;justify-content:space-between;padding:3px}.grand{font-weight:bold;border-top:2px solid #19191b;font-size:1.15em}.balance{font-weight:bold;color:#a61f1c}.signature{margin:12px 0 0 auto;width:${
+    compact ? "38%" : "30%"
+  };text-align:center}.signature img{display:block;width:100%;height:${
+    compact ? "28px" : "42px"
+  };object-fit:contain;margin-bottom:3px}.notes{margin-top:10px}.footer{margin-top:12px;text-align:center;color:#6b7280}</style></head><body>
+<header><div class="brand">${logo}<div class="brand-copy"><h1>${escapeHtml(
+    data.businessName,
+  )}</h1><div>${escapeHtml(
     data.businessAddress,
   )}</div><div>${escapeHtml(data.businessPhone)}</div>${
-    data.businessGstin
+    taxInvoice && data.businessGstin
       ? `<div>GSTIN: ${escapeHtml(data.businessGstin)}</div>`
       : ""
-  }</div><div class="meta"><h2>INVOICE</h2><b>${escapeHtml(
+  }</div></div></div><div class="meta"><h2>${
+    taxInvoice ? "TAX INVOICE" : "INVOICE"
+  }</h2><b>${escapeHtml(
     data.invoiceNumber,
   )}</b><div>Date: ${escapeHtml(data.invoiceDate)}</div>${
     data.dueDate ? `<div>Due: ${escapeHtml(data.dueDate)}</div>` : ""
@@ -72,28 +95,48 @@ export function createInvoiceHtml(data: InvoicePdfData): string {
 <section class="parties"><div class="box"><b>Bill to</b><div>${
     escapeHtml(data.customerName) || "Cash customer"
   }</div><div>${escapeHtml(data.customerAddress)}</div>${
-    data.customerGstin
+    taxInvoice && data.customerGstin
       ? `<div>GSTIN: ${escapeHtml(data.customerGstin)}</div>`
       : ""
   }</div><div class="box"><b>Page format</b><div>${
     data.pageSize === "a4" ? "A4" : "4 × 6 inch"
   }</div></div></section>${verticalSection}
-<table><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th><th>GST</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
+<table><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th>${
+    taxInvoice ? "<th>GST</th>" : ""
+  }<th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
 <div class="totals"><div><span>Subtotal</span><span>${money(
     data.subtotalPaise,
   )}</span></div>${
     data.discountPaise
       ? `<div><span>Discount</span><span>-${money(data.discountPaise)}</span></div>`
       : ""
-  }${data.cgstPaise ? `<div><span>CGST</span><span>${money(data.cgstPaise)}</span></div>` : ""}${
-    data.sgstPaise
+  }${
+    taxInvoice && data.cgstPaise
+      ? `<div><span>CGST</span><span>${money(data.cgstPaise)}</span></div>`
+      : ""
+  }${
+    taxInvoice && data.sgstPaise
       ? `<div><span>SGST</span><span>${money(data.sgstPaise)}</span></div>`
       : ""
-  }${data.igstPaise ? `<div><span>IGST</span><span>${money(data.igstPaise)}</span></div>` : ""}<div><span>Rounding</span><span>${money(
+  }${
+    taxInvoice && data.igstPaise
+      ? `<div><span>IGST</span><span>${money(data.igstPaise)}</span></div>`
+      : ""
+  }<div><span>Rounding</span><span>${money(
     data.roundingPaise,
   )}</span></div><div class="grand"><span>Total</span><span>${money(
     data.totalPaise,
-  )}</span></div></div>${
+  )}</span></div><div><span>Paid</span><span>${money(
+    data.paidPaise,
+  )}</span></div>${
+    data.settlementDiscountPaise > 0
+      ? `<div><span>Payment discount</span><span>${money(
+          data.settlementDiscountPaise,
+        )}</span></div>`
+      : ""
+  }<div class="balance"><span>Balance due</span><span>${money(
+    balanceDuePaise,
+  )}</span></div></div>${signature}${
     data.notes
       ? `<div class="notes"><b>Notes:</b> ${escapeHtml(data.notes)}</div>`
       : ""

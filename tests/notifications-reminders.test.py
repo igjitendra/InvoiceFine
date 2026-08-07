@@ -1,7 +1,7 @@
 import json,re,sqlite3
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]; db=sqlite3.connect(':memory:'); db.execute('PRAGMA foreign_keys=ON')
-for version in range(1,10):
+for version in range(1,11):
  p=next((root/'db/migrations').glob(f'{version:04d}-*.ts')); m=re.search(r'sql:\s*`(.*?)`',p.read_text(),re.S); assert m,p; db.executescript(m.group(1))
 now='2026-08-06T08:00:00Z'; db.execute("INSERT INTO customers(id,name,is_archived,created_at,updated_at)VALUES('c','Customer',0,?,?)",(now,now)); db.execute("INSERT INTO items(id,type,name,purchase_price_paise,selling_price_paise,gst_rate_basis_points,current_stock_scaled,is_archived,created_at,updated_at)VALUES('s','service','AC Service',0,50000,1800,0,0,?,?)",(now,now)); db.execute("INSERT INTO service_reminders(id,customer_id,item_id,title,remind_at,recurrence,status,created_at,updated_at)VALUES('r','c','s','AC follow-up','2026-08-07T09:00:00Z','yearly','pending',?,?)",(now,now)); db.execute("INSERT INTO notification_jobs(job_key,notification_id,scheduled_for,updated_at)VALUES('daily_report','native-1','2026-08-06T20:00:00Z',?)",(now,)); db.commit()
 assert db.execute("SELECT customer_id,item_id,recurrence,status FROM service_reminders").fetchone()==('c','s','yearly','pending'); assert db.execute("SELECT notification_id FROM notification_jobs").fetchone()[0]=='native-1'; assert db.execute('PRAGMA foreign_key_check').fetchall()==[]; assert db.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
@@ -12,4 +12,4 @@ reminders=(root/'db/repositories/reminders.ts').read_text(); assert 'runInTransa
 layout=(root/'app/_layout.tsx').read_text(); assert 'useNotificationCoordinator' in layout
 package=json.loads((root/'package.json').read_text()); assert package['dependencies']['expo-notifications']=='~57.0.8'
 app=json.loads((root/'app.json').read_text()); assert any((x=='expo-notifications') or (isinstance(x,list) and x[0]=='expo-notifications') for x in app['expo']['plugins']); assert 'android.permission.SCHEDULE_EXACT_ALARM' in app['expo']['android']['permissions']
-print('MIGRATION_REGISTRY_1_TO_9=PASS'); print('SERVICE_REMINDER_RELATIONS=PASS'); print('PERSISTED_NOTIFICATION_JOB_IDS=PASS'); print('EXPLICIT_ANDROID_PERMISSION=PASS'); print('LOCAL_ONLY_NO_PUSH_TOKEN=PASS'); print('EXPO_GO_STARTUP_GUARD=PASS'); print('ANDROID_NOTIFICATION_CHANNELS=PASS'); print('STARTUP_SCHEDULE_RECONCILIATION=PASS'); print('EXACT_ALARM_CONFIG=PASS')
+print('MIGRATION_REGISTRY_1_TO_10=PASS'); print('SERVICE_REMINDER_RELATIONS=PASS'); print('PERSISTED_NOTIFICATION_JOB_IDS=PASS'); print('EXPLICIT_ANDROID_PERMISSION=PASS'); print('LOCAL_ONLY_NO_PUSH_TOKEN=PASS'); print('EXPO_GO_STARTUP_GUARD=PASS'); print('ANDROID_NOTIFICATION_CHANNELS=PASS'); print('STARTUP_SCHEDULE_RECONCILIATION=PASS'); print('EXACT_ALARM_CONFIG=PASS')

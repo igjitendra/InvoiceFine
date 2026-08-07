@@ -1,5 +1,6 @@
 import type { VerticalInvoiceDetails } from "./vertical-workflow";
 import type { InvoicePageSize } from "./business";
+import type { InvoiceKind } from "./invoice";
 export type InvoicePdfLine = {
   description: string;
   sku: string | null;
@@ -11,6 +12,7 @@ export type InvoicePdfLine = {
   lineTotalPaise: number;
 };
 export type InvoicePdfData = {
+  kind: InvoiceKind;
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string | null;
@@ -21,6 +23,8 @@ export type InvoicePdfData = {
   businessAddress: string;
   businessPhone: string;
   businessGstin: string | null;
+  businessLogoUri: string | null;
+  businessSignatureUri: string | null;
   subtotalPaise: number;
   discountPaise: number;
   cgstPaise: number;
@@ -28,6 +32,8 @@ export type InvoicePdfData = {
   igstPaise: number;
   roundingPaise: number;
   totalPaise: number;
+  paidPaise: number;
+  settlementDiscountPaise: number;
   notes: string | null;
   pageSize: InvoicePageSize;
   verticalDetails: VerticalInvoiceDetails | null;

@@ -93,6 +93,7 @@ type InvoiceRow = {
   rounding_paise: number;
   total_paise: number;
   paid_paise: number;
+  settlement_discount_paise: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -403,7 +404,7 @@ async function invoices(
 ): Promise<SelectedCsvExport> {
   const range = rangeSql("invoice_date", bounds),
     rows = await db.getAllAsync<InvoiceRow>(
-      `SELECT invoice_number,kind,status,invoice_date,due_date,customer_name_snapshot customer_name,customer_phone_snapshot customer_phone,customer_gstin_snapshot customer_gstin,currency_code_snapshot currency_code,subtotal_paise,discount_paise,taxable_paise,cgst_paise,sgst_paise,igst_paise,rounding_paise,total_paise,paid_paise,notes,created_at,updated_at FROM invoices WHERE 1=1${range.sql} ORDER BY invoice_date DESC,created_at DESC`,
+      `SELECT invoice_number,kind,status,invoice_date,due_date,customer_name_snapshot customer_name,customer_phone_snapshot customer_phone,customer_gstin_snapshot customer_gstin,currency_code_snapshot currency_code,subtotal_paise,discount_paise,taxable_paise,cgst_paise,sgst_paise,igst_paise,rounding_paise,total_paise,paid_paise,settlement_discount_paise,notes,created_at,updated_at FROM invoices WHERE 1=1${range.sql} ORDER BY invoice_date DESC,created_at DESC`,
       ...range.params,
     );
   return {
@@ -431,6 +432,7 @@ async function invoices(
         "Rounding",
         "Total",
         "Paid",
+        "PaymentDiscount",
         "Outstanding",
         "Notes",
         "CreatedAt",
@@ -455,7 +457,8 @@ async function invoices(
         rupees(r.rounding_paise),
         rupees(r.total_paise),
         rupees(r.paid_paise),
-        rupees(r.total_paise - r.paid_paise),
+        rupees(r.settlement_discount_paise),
+        rupees(r.total_paise - r.paid_paise - r.settlement_discount_paise),
         value(r.notes),
         r.created_at,
         r.updated_at,

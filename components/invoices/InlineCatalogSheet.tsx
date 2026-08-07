@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -14,6 +15,7 @@ import { AppText as Text } from "@/components/ui/AppText";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/Button";
+import { showFreePlanLimit } from "@/components/monetization/free-plan-alert";
 import { Input } from "@/components/ui/Input";
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
@@ -43,6 +45,7 @@ export function InlineCatalogSheet({
   onClose,
   onSaved,
 }: Props) {
+  const router = useRouter();
   const palette = useAppPalette();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -98,7 +101,14 @@ export function InlineCatalogSheet({
       const item = await getCatalogItem(id);
       if (!item) throw new Error("Created item could not be loaded.");
       onSaved(item);
-    } catch {
+    } catch (error) {
+      if (
+        showFreePlanLimit(error, () => {
+          onClose();
+          router.push("/upgrade");
+        })
+      )
+        return;
       Alert.alert(
         type === "product"
           ? strings.inlineAdd.productErrorTitle

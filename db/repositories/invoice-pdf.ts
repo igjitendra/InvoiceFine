@@ -2,6 +2,7 @@ import { getDatabase } from "@/db/database";
 import type { InvoicePdfData, InvoicePdfLine } from "@/types/invoice-pdf";
 import { loadVerticalDetails } from "@/db/repositories/vertical-invoice-details";
 type Row = {
+  kind: "tax_invoice" | "non_tax_invoice";
   invoice_number: string;
   invoice_date: string;
   due_date: string | null;
@@ -12,6 +13,8 @@ type Row = {
   business_address_snapshot: string;
   business_phone_snapshot: string;
   business_gstin_snapshot: string | null;
+  business_logo_uri_snapshot: string | null;
+  business_signature_uri_snapshot: string | null;
   subtotal_paise: number;
   discount_paise: number;
   cgst_paise: number;
@@ -19,6 +22,8 @@ type Row = {
   igst_paise: number;
   rounding_paise: number;
   total_paise: number;
+  paid_paise: number;
+  settlement_discount_paise: number;
   notes: string | null;
   invoice_page_size: "a4" | "4x6";
 };
@@ -37,7 +42,7 @@ export async function loadInvoicePdfData(
 ): Promise<InvoicePdfData | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<Row>(
-    `SELECT i.invoice_number,i.invoice_date,i.due_date,i.customer_name_snapshot,i.customer_billing_address_snapshot,i.customer_gstin_snapshot,i.business_name_snapshot,i.business_address_snapshot,i.business_phone_snapshot,i.business_gstin_snapshot,i.subtotal_paise,i.discount_paise,i.cgst_paise,i.sgst_paise,i.igst_paise,i.rounding_paise,i.total_paise,i.notes,b.invoice_page_size FROM invoices i CROSS JOIN business_settings b WHERE i.id=? AND i.status<>'draft' LIMIT 1`,
+    `SELECT i.kind,i.invoice_number,i.invoice_date,i.due_date,i.customer_name_snapshot,i.customer_billing_address_snapshot,i.customer_gstin_snapshot,i.business_name_snapshot,i.business_address_snapshot,i.business_phone_snapshot,i.business_gstin_snapshot,i.business_logo_uri_snapshot,i.business_signature_uri_snapshot,i.subtotal_paise,i.discount_paise,i.cgst_paise,i.sgst_paise,i.igst_paise,i.rounding_paise,i.total_paise,i.paid_paise,i.settlement_discount_paise,i.notes,b.invoice_page_size FROM invoices i CROSS JOIN business_settings b WHERE i.id=? AND i.status<>'draft' LIMIT 1`,
     id,
   );
   if (!row) return null;
@@ -47,6 +52,7 @@ export async function loadInvoicePdfData(
     id,
   );
   return {
+    kind: row.kind,
     invoiceNumber: row.invoice_number,
     invoiceDate: row.invoice_date,
     dueDate: row.due_date,
@@ -57,6 +63,8 @@ export async function loadInvoicePdfData(
     businessAddress: row.business_address_snapshot,
     businessPhone: row.business_phone_snapshot,
     businessGstin: row.business_gstin_snapshot,
+    businessLogoUri: row.business_logo_uri_snapshot,
+    businessSignatureUri: row.business_signature_uri_snapshot,
     subtotalPaise: row.subtotal_paise,
     discountPaise: row.discount_paise,
     cgstPaise: row.cgst_paise,
@@ -64,6 +72,8 @@ export async function loadInvoicePdfData(
     igstPaise: row.igst_paise,
     roundingPaise: row.rounding_paise,
     totalPaise: row.total_paise,
+    paidPaise: row.paid_paise,
+    settlementDiscountPaise: row.settlement_discount_paise,
     notes: row.notes,
     pageSize: row.invoice_page_size,
     verticalDetails,

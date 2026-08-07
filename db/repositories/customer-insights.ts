@@ -12,7 +12,7 @@ export async function loadCustomerInsights(
   const db = await getDatabase();
   const [totals, lastInvoice, lastPayment] = await Promise.all([
     db.getFirstAsync<Totals>(
-      `SELECT COALESCE(SUM(total_paise),0) total_sales,COALESCE(SUM(paid_paise),0) received,COALESCE(SUM(total_paise-paid_paise),0) outstanding,COUNT(*) invoice_count FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled')`,
+      `SELECT COALESCE(SUM(total_paise),0) total_sales,COALESCE(SUM(paid_paise),0) received,COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0) outstanding,COUNT(*) invoice_count FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled')`,
       customerId,
     ),
     db.getFirstAsync<{

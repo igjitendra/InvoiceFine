@@ -45,6 +45,10 @@ export function CustomerLedgerScreen({ customerId }: { customerId: string }) {
           value={formatPaise(x?.paidPaise ?? 0)}
         />
         <Summary
+          label={strings.payments.paymentDiscount}
+          value={formatPaise(x?.discountPaise ?? 0)}
+        />
+        <Summary
           label={strings.payments.outstanding}
           value={formatPaise(x?.outstandingPaise ?? 0)}
         />

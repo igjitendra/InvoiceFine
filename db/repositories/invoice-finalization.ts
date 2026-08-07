@@ -18,6 +18,7 @@ type InvoiceRow = {
   status: InvoiceRecordStatus;
   customer_id: string | null;
   paid_paise: number;
+  settlement_discount_paise: number;
 };
 type BusinessRow = {
   id: string;
@@ -70,6 +71,7 @@ type SummaryRow = {
   rounding_paise: number;
   total_paise: number;
   paid_paise: number;
+  settlement_discount_paise: number;
 };
 type SummaryLineRow = {
   description_snapshot: string;
@@ -328,7 +330,7 @@ export async function loadFinalizedInvoiceSummary(
   const row = await database.getFirstAsync<SummaryRow>(
     `SELECT id, invoice_number, status, customer_name_snapshot, invoice_date,
       subtotal_paise, discount_paise, cgst_paise, sgst_paise, igst_paise,
-      rounding_paise, total_paise, paid_paise
+      rounding_paise, total_paise, paid_paise, settlement_discount_paise
      FROM invoices WHERE id = ? AND status <> 'draft'`,
     id,
   );
@@ -353,6 +355,7 @@ export async function loadFinalizedInvoiceSummary(
     roundingPaise: row.rounding_paise,
     totalPaise: row.total_paise,
     paidPaise: row.paid_paise,
+    settlementDiscountPaise: row.settlement_discount_paise,
     verticalDetails,
     lines: lineRows.map((line) => ({
       description: line.description_snapshot,

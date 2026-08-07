@@ -44,7 +44,7 @@ export async function saveCsvFilesToDirectory(
   if (files.length === 0) return 0;
   const permission =
     await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-  if (!permission.granted) throw new Error("Folder permission denied");
+  if (!permission.granted) return 0;
   for (const file of files) {
     const uri = await FileSystem.StorageAccessFramework.createFileAsync(
       permission.directoryUri,
@@ -61,10 +61,10 @@ export async function saveCsvFilesToDirectory(
 export async function saveCsvToDownloads(
   name: string,
   text: string,
-): Promise<void> {
+): Promise<boolean> {
   const permission =
     await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-  if (!permission.granted) throw new Error("Folder permission denied");
+  if (!permission.granted) return false;
   const uri = await FileSystem.StorageAccessFramework.createFileAsync(
     permission.directoryUri,
     name,
@@ -73,4 +73,5 @@ export async function saveCsvToDownloads(
   await FileSystem.writeAsStringAsync(uri, text, {
     encoding: FileSystem.EncodingType.UTF8,
   });
+  return true;
 }

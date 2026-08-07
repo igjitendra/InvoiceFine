@@ -1,4 +1,5 @@
 import { getDatabase } from "@/db/database";
+import { assertCanCreate } from "@/db/repositories/monetization";
 import type { Customer, CustomerInput } from "@/types/customer";
 
 type CustomerRow = {
@@ -90,6 +91,7 @@ export async function getCustomer(id: string): Promise<Customer | null> {
 
 export async function createCustomer(input: CustomerInput): Promise<string> {
   const database = await getDatabase();
+  await assertCanCreate("customer", database);
   const id = await createUuid();
   const timestamp = new Date().toISOString();
   await database.runAsync(

@@ -11,7 +11,7 @@ assert 'cancelAllInvoiceFineNotifications' in ui and 'syncNotificationSchedule' 
 assert 'DELETE FROM notification_jobs' in restore and 'notification_id=NULL' in restore
 assert 'runInTransaction' in restore and 'PRAGMA foreign_key_check' in restore and 'PRAGMA integrity_check' in restore
 db=sqlite3.connect(':memory:');db.execute('PRAGMA foreign_keys=ON')
-for version in range(1,10):
+for version in range(1,11):
  p=next((root/'db/migrations').glob(f'{version:04d}-*.ts'));m=re.search(r'sql:\s*`(.*?)`',p.read_text(),re.S);assert m;db.executescript(m.group(1))
 assert db.execute('PRAGMA foreign_key_check').fetchall()==[] and db.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
-print('COMPLETE_SCHEMA9_BACKUP_COVERAGE=PASS');print('AES_GCM_PBKDF2_FORMAT=PASS');print('PREFLIGHT_BEFORE_ATOMIC_RESTORE=PASS');print('DEVICE_NOTIFICATION_IDS_RESET=PASS');print('WRONG_PASSWORD_TAMPER_REJECTION=PASS')
+print('COMPLETE_SCHEMA10_BACKUP_COVERAGE=PASS');print('AES_GCM_PBKDF2_FORMAT=PASS');print('PREFLIGHT_BEFORE_ATOMIC_RESTORE=PASS');print('DEVICE_NOTIFICATION_IDS_RESET=PASS');print('WRONG_PASSWORD_TAMPER_REJECTION=PASS')

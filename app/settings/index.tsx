@@ -18,6 +18,16 @@ export default function SettingsHomeScreen() {
         onBack={() => router.back()}
       />
 
+      <SettingsSection title="INVOICEFINE PRO">
+        <SettingsRow
+          icon="diamond-outline"
+          label="Plans & Upgrade"
+          description="Free limits, TRYYEAR, Monthly, Annual and Lifetime"
+          badge="PRO"
+          onPress={() => router.push("/upgrade")}
+        />
+      </SettingsSection>
+
       <SettingsSection title="BUSINESS">
         <SettingsRow
           icon="business-outline"

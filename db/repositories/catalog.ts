@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 import { getDatabase } from "@/db/database";
+import { assertCanCreate } from "@/db/repositories/monetization";
 import { runInTransaction } from "@/db/transaction";
 import { parseRupeesToPaise } from "@/lib/currency";
 import { parseQuantityToScaled } from "@/lib/quantity";
@@ -355,6 +356,7 @@ export async function createCatalogItem(
   input: CatalogItemInput,
 ): Promise<string> {
   const database = await getDatabase();
+  await assertCanCreate("catalog", database);
   return runInTransaction(database, async (transaction) => {
     const id = await createUuid(transaction);
     const timestamp = new Date().toISOString();

@@ -167,6 +167,26 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
           value={invoice.totalPaise}
           strong
         />
+        <MoneyRow label={strings.payments.paid} value={invoice.paidPaise} />
+        {invoice.settlementDiscountPaise > 0 ? (
+          <MoneyRow
+            label={strings.payments.paymentDiscount}
+            value={invoice.settlementDiscountPaise}
+          />
+        ) : null}
+        <MoneyRow
+          label={strings.payments.outstanding}
+          value={Math.max(
+            0,
+            invoice.totalPaise -
+              invoice.paidPaise -
+              invoice.settlementDiscountPaise,
+          )}
+          strong={
+            invoice.totalPaise >
+            invoice.paidPaise + invoice.settlementDiscountPaise
+          }
+        />
       </Card>
       <Button
         label={strings.pdf.print}
@@ -192,7 +212,8 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
             .finally(() => setPdfBusy(false));
         }}
       />
-      {invoice.totalPaise > invoice.paidPaise &&
+      {invoice.totalPaise >
+        invoice.paidPaise + invoice.settlementDiscountPaise &&
       invoice.status !== "cancelled" ? (
         <Button
           label={strings.payments.record}

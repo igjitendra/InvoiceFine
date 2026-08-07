@@ -88,9 +88,44 @@ export default function CustomerCsvScreen() {
       const csv = exportCustomersCsv(await listCustomers("")),
         name = `InvoiceFine_Customers_${new Date().toISOString().slice(0, 10)}.csv`;
       if (mode === "share") await shareCsv(name, csv);
-      else await saveCsvToDownloads(name, csv);
+      else {
+        const saved = await saveCsvToDownloads(name, csv);
+        if (!saved) return;
+        Alert.alert("Export saved", "The customer CSV was saved successfully.");
+      }
     } catch {
       Alert.alert("Export failed", "Try again and choose a writable folder.");
+    }
+  }
+  async function saveSample() {
+    try {
+      const saved = await saveCsvToDownloads(
+        "InvoiceFine_Customers_Sample.csv",
+        customerSampleCsv,
+      );
+      if (saved)
+        Alert.alert(
+          "Sample saved",
+          "The customer CSV sample was saved successfully.",
+        );
+    } catch {
+      Alert.alert(
+        "Sample could not be saved",
+        "Choose a writable folder and try again.",
+      );
+    }
+  }
+  async function shareErrorReport() {
+    try {
+      await shareCsv(
+        "InvoiceFine_Customer_Import_Errors.csv",
+        errorReportCsv(rows),
+      );
+    } catch {
+      Alert.alert(
+        "Report could not be shared",
+        "Try again with a compatible sharing app.",
+      );
     }
   }
   const invalid = rows.filter((r) => r.errors.length),
@@ -116,12 +151,7 @@ export default function CustomerCsvScreen() {
           <Button
             label="Download Sample CSV"
             variant="secondary"
-            onPress={() =>
-              void saveCsvToDownloads(
-                "InvoiceFine_Customers_Sample.csv",
-                customerSampleCsv,
-              )
-            }
+            onPress={() => void saveSample()}
           />
         </View>
       </SettingsSection>
@@ -218,12 +248,7 @@ export default function CustomerCsvScreen() {
             <Button
               label="Share Error Report"
               variant="secondary"
-              onPress={() =>
-                void shareCsv(
-                  "InvoiceFine_Customer_Import_Errors.csv",
-                  errorReportCsv(rows),
-                )
-              }
+              onPress={() => void shareErrorReport()}
             />
           ) : null}
         </>

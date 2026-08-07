@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 import { getDatabase } from "@/db/database";
+import { assertCanCreate } from "@/db/repositories/monetization";
 import { runInTransaction } from "@/db/transaction";
 import { calculateInvoice } from "@/lib/invoice-calculations";
 import {
@@ -171,6 +172,7 @@ export async function saveInvoiceDraft(
   input: InvoiceDraftInput,
 ): Promise<string> {
   const database = await getDatabase();
+  if (!input.id) await assertCanCreate("invoice", database);
   return runInTransaction(database, async (transaction) => {
     const business = await transaction.getFirstAsync<BusinessRow>(
       `SELECT business_name, gstin, state_code, address, phone, email, logo_uri,

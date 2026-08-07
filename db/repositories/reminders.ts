@@ -210,7 +210,7 @@ export async function getNotificationBusinessSummary(): Promise<NotificationBusi
   weekStart.setDate(weekStart.getDate() - 6);
   const start = weekStart.toISOString().slice(0, 10);
   const due = await db.getFirstAsync<{ count: number; amount: number }>(
-    "SELECT COUNT(*) count,COALESCE(SUM(total_paise-paid_paise),0) amount FROM invoices WHERE due_date IS NOT NULL AND due_date<=? AND status IN('finalized','partially_paid','overdue')",
+    "SELECT COUNT(*) count,COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0) amount FROM invoices WHERE due_date IS NOT NULL AND due_date<=? AND status IN('finalized','partially_paid','overdue')",
     today,
   );
   const low = await db.getFirstAsync<{ count: number }>(

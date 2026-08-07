@@ -12,7 +12,11 @@ import { theme } from "@/constants/theme";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { getPaymentContext, recordPayment } from "@/db/repositories/payments";
 import { formatPaise, parseRupeesToPaise } from "@/lib/currency";
-import type { PaymentContext, PaymentMethod } from "@/types/payment";
+import type {
+  PaymentContext,
+  PaymentMethod,
+  PaymentSettlementMode,
+} from "@/types/payment";
 const methods: PaymentMethod[] = [
   "cash",
   "upi",
@@ -28,6 +32,8 @@ export function PaymentScreen({ invoiceId }: { invoiceId: string }) {
     [amount, setAmount] = useState(""),
     [date, setDate] = useState(new Date().toISOString().slice(0, 10)),
     [method, setMethod] = useState<PaymentMethod>("cash"),
+    [settlementMode, setSettlementMode] =
+      useState<PaymentSettlementMode>("keep_due"),
     [reference, setReference] = useState(""),
     [notes, setNotes] = useState(""),
     [loading, setLoading] = useState(true),
@@ -49,15 +55,21 @@ export function PaymentScreen({ invoiceId }: { invoiceId: string }) {
       );
     setSaving(true);
     try {
-      await recordPayment({
+      const result = await recordPayment({
         invoiceId,
         amountPaise: value,
         paymentDate: date,
         method,
         reference: reference.trim() || null,
         notes: notes.trim() || null,
+        settlementMode,
       });
-      Alert.alert(strings.payments.successTitle);
+      Alert.alert(
+        strings.payments.successTitle,
+        result.discountPaise > 0
+          ? `${formatPaise(result.discountPaise)} recorded as payment discount.`
+          : undefined,
+      );
       router.replace({ pathname: "/invoice/[id]", params: { id: invoiceId } });
     } catch {
       Alert.alert(
@@ -74,6 +86,11 @@ export function PaymentScreen({ invoiceId }: { invoiceId: string }) {
         <LoadingState />
       </ScreenContainer>
     );
+  const enteredPaise = parseRupeesToPaise(amount) ?? 0;
+  const remainingPaise = Math.max(
+    0,
+    (ctx?.outstandingPaise ?? 0) - enteredPaise,
+  );
   return (
     <ScreenContainer keyboardAware contentContainerStyle={styles.content}>
       <Text style={[styles.title, { color: p.text }]}>
@@ -90,6 +107,50 @@ export function PaymentScreen({ invoiceId }: { invoiceId: string }) {
           onChangeText={setAmount}
           keyboardType="decimal-pad"
         />
+        {remainingPaise > 0 ? (
+          <>
+            <Text style={[styles.label, { color: p.text }]}>
+              {strings.payments.remainingTreatment} ·{" "}
+              {formatPaise(remainingPaise)}
+            </Text>
+            <View style={styles.settlementOptions}>
+              {(
+                [
+                  ["keep_due", strings.payments.keepDue],
+                  ["discount_remaining", strings.payments.giveDiscount],
+                ] as const
+              ).map(([value, label]) => {
+                const selected = settlementMode === value;
+                return (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => setSettlementMode(value)}
+                    style={[
+                      styles.settlementOption,
+                      {
+                        borderColor: selected ? p.primary : p.borderStrong,
+                        backgroundColor: selected ? p.primary : p.surface,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{ color: selected ? p.textOnPrimary : p.text }}
+                    >
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            {settlementMode === "discount_remaining" ? (
+              <Text style={[styles.warning, { color: p.muted }]}>
+                {strings.payments.discountWarning}
+              </Text>
+            ) : null}
+          </>
+        ) : null}
         <Input
           label={strings.payments.date}
           value={date}
@@ -154,6 +215,17 @@ const styles = StyleSheet.create({
   info: { ...theme.typography.body },
   label: { ...theme.typography.label },
   methods: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing[2] },
+  settlementOptions: { flexDirection: "row", gap: theme.spacing[2] },
+  settlementOption: {
+    flex: 1,
+    minHeight: 48,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: theme.radii.small,
+  },
+  warning: { ...theme.typography.caption },
   method: {
     paddingHorizontal: 12,
     minHeight: 44,

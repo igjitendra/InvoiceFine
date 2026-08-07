@@ -13,6 +13,7 @@ MIGRATIONS = [
     "0007-invoice-speed-tools.ts",
     "0008-customer-csv-fields.ts",
     "0009-notifications-reminders.ts",
+    "0010-payment-settlement-discount.ts",
 ]
 RESTORE_ORDER = [
     "business_settings",
@@ -39,7 +40,7 @@ def migrate(connection: sqlite3.Connection) -> None:
         sql = re.search(r"sql:\s*`(.*?)`", source, re.S)
         assert sql
         connection.executescript(sql.group(1))
-    connection.execute("PRAGMA user_version=9")
+    connection.execute("PRAGMA user_version=10")
 
 
 def business(name: str, next_number: int = 1) -> dict[str, object]:

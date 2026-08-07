@@ -111,3 +111,5 @@ The latest dark-mode, skeleton, swipe, and haptic behavior also requires physica
 ## Not yet production-certified
 
 No production readiness claim is allowed until `docs/RELEASE_CHECKLIST.md` passes on a physical Android development/preview build.
+
+26. Phase 15 Monetization/Paywall — Free limits (5 invoices/day, 5 customers total, 5 combined catalog records), local one-installation TRYYEAR 365-day Pro, clock-rollback guard, screenshot-inspired Pro paywall, Monthly ₹29/Annual ₹99/Lifetime ₹999 product mapping, Google Play Restore Purchases, purchase acknowledgement, Expo Go guard and startup entitlement sync implemented; Play Console and physical licensed-tester checkout remain pending.

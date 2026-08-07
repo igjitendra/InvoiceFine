@@ -23,6 +23,7 @@ export type FinalizedInvoiceSummary = {
   roundingPaise: number;
   totalPaise: number;
   paidPaise: number;
+  settlementDiscountPaise: number;
   lines: FinalizedInvoiceLine[];
   verticalDetails: VerticalInvoiceDetails | null;
 };

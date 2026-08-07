@@ -15,12 +15,12 @@ bash scripts/phone-qa.sh
 - [ ] Required Expo/native dependencies resolve from `node_modules`
 - [ ] Expo public configuration loads
 - [ ] Strict TypeScript passes
-- [ ] Clean and every-version upgrade matrix for Migrations 1–9 passes
+- [ ] Clean and every-version upgrade matrix for Migrations 1–10 passes
 - [ ] Invoice calculation, vertical workflow, template, backup-format, and restore tests pass
 - [ ] Runtime strings/theme import audit passes
-- [ ] fresh database reaches schema version 9
-- [ ] databases starting at every version 1–8 upgrade without reset/data loss
-- [ ] migration rerun is idempotent and schema registry remains exactly 1–9
+- [ ] fresh database reaches schema version 10
+- [ ] databases starting at every version 1–9 upgrade without reset/data loss
+- [ ] migration rerun is idempotent and schema registry remains exactly 1–10
 - [ ] no unsafe TypeScript suppression
 - [ ] no business SQL outside `db/`
 - [ ] approved dependencies only and Expo-compatible versions
@@ -168,3 +168,13 @@ bash scripts/phone-qa.sh
 - [ ] restart app/device during persistence tests
 - [ ] verify upgrade install preserves data
 - [ ] only then prepare production signing/build
+
+## Monetization launch blockers
+
+- [ ] Set a permanent Android application ID before creating Play products.
+- [ ] Create subscription `invoicefine_pro` with base plans `monthly` (₹29/month) and `yearly` (₹99/year).
+- [ ] Create non-consumable one-time product `invoicefine_pro_lifetime` (₹999).
+- [ ] Install `expo-iap` and build a custom development client; Expo Go is not a Billing test environment.
+- [ ] Upload a signed AAB to an internal/closed testing track and add licensed testers.
+- [ ] Verify localized prices, purchase acknowledgement, cancellation, expiry, refund, offline grace and cross-device restore.
+- [ ] Publish transparent subscription, refund, privacy and TRYYEAR local-only terms before production.

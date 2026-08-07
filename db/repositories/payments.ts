@@ -19,6 +19,7 @@ type Inv = {
   customer_name_snapshot: string | null;
   total_paise: number;
   paid_paise: number;
+  settlement_discount_paise: number;
 };
 type PayRow = {
   id: string;
@@ -41,7 +42,7 @@ export async function getPaymentContext(
 ): Promise<PaymentContext | null> {
   const db = await getDatabase();
   const x = await db.getFirstAsync<Inv>(
-    `SELECT id,invoice_number,status,customer_id,customer_name_snapshot,total_paise,paid_paise FROM invoices WHERE id=? AND status NOT IN('draft','cancelled')`,
+    `SELECT id,invoice_number,status,customer_id,customer_name_snapshot,total_paise,paid_paise,settlement_discount_paise FROM invoices WHERE id=? AND status NOT IN('draft','cancelled')`,
     id,
   );
   return x
@@ -50,18 +51,24 @@ export async function getPaymentContext(
         customerName: x.customer_name_snapshot,
         totalPaise: x.total_paise,
         paidPaise: x.paid_paise,
-        outstandingPaise: x.total_paise - x.paid_paise,
+        settlementDiscountPaise: x.settlement_discount_paise,
+        outstandingPaise: Math.max(
+          0,
+          x.total_paise - x.paid_paise - x.settlement_discount_paise,
+        ),
       }
     : null;
 }
-export async function recordPayment(input: PaymentInput): Promise<string> {
+export async function recordPayment(
+  input: PaymentInput,
+): Promise<{ paymentId: string; discountPaise: number }> {
   const db = await getDatabase();
   return runInTransaction(db, async (tx) => {
     if (!Number.isSafeInteger(input.amountPaise) || input.amountPaise <= 0)
       throw new Error("Invalid amount");
     if (!isValidLocalDate(input.paymentDate)) throw new Error("Invalid date");
     const inv = await tx.getFirstAsync<Inv>(
-      `SELECT id,invoice_number,status,customer_id,customer_name_snapshot,total_paise,paid_paise FROM invoices WHERE id=?`,
+      `SELECT id,invoice_number,status,customer_id,customer_name_snapshot,total_paise,paid_paise,settlement_discount_paise FROM invoices WHERE id=?`,
       input.invoiceId,
     );
     if (
@@ -69,7 +76,8 @@ export async function recordPayment(input: PaymentInput): Promise<string> {
       !["finalized", "partially_paid", "overdue"].includes(inv.status)
     )
       throw new Error("Invoice unavailable");
-    const outstanding = inv.total_paise - inv.paid_paise;
+    const outstanding =
+      inv.total_paise - inv.paid_paise - inv.settlement_discount_paise;
     if (input.amountPaise > outstanding) throw new Error("Overpayment");
     const id = await uuid(tx),
       now = new Date().toISOString();
@@ -86,18 +94,25 @@ export async function recordPayment(input: PaymentInput): Promise<string> {
       now,
       now,
     );
-    const paid = inv.paid_paise + input.amountPaise,
-      status = paid === inv.total_paise ? "paid" : "partially_paid";
+    const paid = inv.paid_paise + input.amountPaise;
+    const remaining = outstanding - input.amountPaise;
+    const discountPaise =
+      input.settlementMode === "discount_remaining" ? remaining : 0;
+    const settlementDiscount = inv.settlement_discount_paise + discountPaise;
+    const status =
+      paid + settlementDiscount === inv.total_paise ? "paid" : "partially_paid";
     const u = await tx.runAsync(
-      `UPDATE invoices SET paid_paise=?,status=?,updated_at=? WHERE id=? AND paid_paise=?`,
+      `UPDATE invoices SET paid_paise=?,settlement_discount_paise=?,status=?,updated_at=? WHERE id=? AND paid_paise=? AND settlement_discount_paise=?`,
       paid,
+      settlementDiscount,
       status,
       now,
       input.invoiceId,
       inv.paid_paise,
+      inv.settlement_discount_paise,
     );
     if (u.changes !== 1) throw new Error("Payment conflict");
-    return id;
+    return { paymentId: id, discountPaise };
   });
 }
 export async function listInvoicePayments(
@@ -133,8 +148,9 @@ export async function loadCustomerLedger(
     invoice_date: string;
     total_paise: number;
     paid_paise: number;
+    settlement_discount_paise: number;
   }>(
-    `SELECT id,invoice_number,invoice_date,total_paise,paid_paise FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled') ORDER BY invoice_date`,
+    `SELECT id,invoice_number,invoice_date,total_paise,paid_paise,settlement_discount_paise FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled') ORDER BY invoice_date`,
     customerId,
   );
   const pays = await db.getAllAsync<{
@@ -163,14 +179,26 @@ export async function loadCustomerLedger(
       debitPaise: 0,
       creditPaise: x.amount_paise,
     })),
+    ...invoices
+      .filter((x) => x.settlement_discount_paise > 0)
+      .map((x) => ({
+        id: `discount-${x.id}`,
+        date: x.invoice_date,
+        kind: "discount" as const,
+        label: `Payment discount · ${x.invoice_number}`,
+        debitPaise: 0,
+        creditPaise: x.settlement_discount_paise,
+      })),
   ].sort((a, b) => b.date.localeCompare(a.date));
   const invoiced = invoices.reduce((n, x) => n + x.total_paise, 0),
-    paid = pays.reduce((n, x) => n + x.amount_paise, 0);
+    paid = pays.reduce((n, x) => n + x.amount_paise, 0),
+    discount = invoices.reduce((n, x) => n + x.settlement_discount_paise, 0);
   return {
     customerName: c.name,
     invoicedPaise: invoiced,
     paidPaise: paid,
-    outstandingPaise: invoiced - paid,
+    discountPaise: discount,
+    outstandingPaise: invoiced - paid - discount,
     entries,
   };
 }

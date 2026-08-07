@@ -10,6 +10,12 @@ import { useAppPalette } from "@/hooks/useAppPalette";
 
 const entries = [
   {
+    icon: "diamond-outline" as const,
+    label: "InvoiceFine Pro",
+    description: "Plans, TRYYEAR promo and Restore Purchases",
+    path: "/upgrade" as const,
+  },
+  {
     icon: "settings-outline" as const,
     label: "Settings",
     description: "Business, invoices, appearance, data and app preferences",

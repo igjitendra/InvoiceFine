@@ -61,15 +61,18 @@ export function resolveInvoiceTaxMode(
   customerStateCode: string | null,
 ): InvoiceTaxMode {
   if (kind === "non_tax_invoice") return "none";
-  if (
-    !isVerifiedStateCode(businessStateCode) ||
-    !isVerifiedStateCode(customerStateCode)
-  ) {
+  if (!isVerifiedStateCode(businessStateCode)) {
     throw new Error(
-      "Verified business and customer state codes are required for a tax invoice.",
+      "A verified business state code is required for a tax invoice.",
     );
   }
-  return businessStateCode.trim() === customerStateCode.trim()
+  // Unregistered/cash customers may not have a saved state. Treat the sale as
+  // local until an explicit customer state is supplied, while keeping a saved
+  // out-of-state code authoritative for IGST.
+  const placeOfSupply = isVerifiedStateCode(customerStateCode)
+    ? customerStateCode.trim()
+    : businessStateCode.trim();
+  return businessStateCode.trim() === placeOfSupply
     ? "intra_state"
     : "inter_state";
 }

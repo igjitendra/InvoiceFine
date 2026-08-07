@@ -152,9 +152,14 @@ assertEqual(
   7500,
   "Outstanding amount",
 );
+assertEqual(
+  resolveInvoiceTaxMode("tax_invoice", "09", null),
+  "intra_state",
+  "Missing customer state defaults to local sale",
+);
 assertThrows(
-  () => resolveInvoiceTaxMode("tax_invoice", "09", null),
-  "Missing state",
+  () => resolveInvoiceTaxMode("tax_invoice", null, "09"),
+  "Missing business state",
 );
 assertThrows(() => calculateOutstandingPaise(100, 101), "Overpayment");
 assertThrows(

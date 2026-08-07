@@ -20,7 +20,7 @@ The envelope exposes only format/version compatibility metadata. Table content a
 ## Export safety
 
 1. Run SQLite integrity check.
-2. Read every schema-9 business table, including templates, favorites and service reminders. Local image binaries are not embedded; only stored URI references are represented.
+2. Read every schema-10 business table, including templates, favorites and service reminders. Local image binaries are not embedded; only stored URI references are represented.
 3. Build exact table counts and internal corruption checksum.
 4. Encrypt the full manifest.
 5. Ask the user for a destination folder and write one `.ifb` file.

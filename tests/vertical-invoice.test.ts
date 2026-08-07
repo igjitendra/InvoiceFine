@@ -25,6 +25,7 @@ equal(
 );
 
 const invoice: InvoicePdfData = {
+  kind: "non_tax_invoice",
   invoiceNumber: "INV-0001",
   invoiceDate: "2026-08-05",
   dueDate: null,
@@ -35,6 +36,8 @@ const invoice: InvoicePdfData = {
   businessAddress: "India",
   businessPhone: "9999999999",
   businessGstin: null,
+  businessLogoUri: null,
+  businessSignatureUri: null,
   subtotalPaise: 10000,
   discountPaise: 0,
   cgstPaise: 0,
@@ -42,6 +45,8 @@ const invoice: InvoicePdfData = {
   igstPaise: 0,
   roundingPaise: 0,
   totalPaise: 10000,
+  paidPaise: 0,
+  settlementDiscountPaise: 0,
   notes: null,
   pageSize: "a4",
   verticalDetails: details,

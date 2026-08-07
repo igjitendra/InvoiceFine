@@ -319,6 +319,10 @@ export const strings = {
     invoiceType: "Invoice type",
     taxInvoice: "Tax invoice",
     nonTaxInvoice: "Non-tax invoice",
+    taxStateFallback:
+      "Customer state code is missing. GST is calculated as a local sale using the business state.",
+    taxBusinessStateRequired:
+      "Add a valid 2-digit business state code before creating a tax invoice.",
     invoiceDate: "Invoice date",
     dueDate: "Due date",
     dateHelper: "Use YYYY-MM-DD",
@@ -400,6 +404,12 @@ export const strings = {
     save: "Save payment",
     outstanding: "Outstanding",
     paid: "Paid",
+    paymentDiscount: "Payment discount",
+    remainingTreatment: "Remaining amount",
+    keepDue: "Keep as due",
+    giveDiscount: "Give discount & close",
+    discountWarning:
+      "The unpaid balance will be recorded as a payment discount. Actual money received stays unchanged.",
     history: "Payment history",
     successTitle: "Payment saved",
     errorTitle: "Payment could not be saved",

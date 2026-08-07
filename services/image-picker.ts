@@ -1,4 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";
 
 type PickBusinessImageOptions = {
   aspect: [number, number];
@@ -18,5 +19,16 @@ export async function pickBusinessImage({
     return null;
   }
 
-  return result.assets[0]?.uri ?? null;
+  const asset = result.assets[0];
+  if (!asset) return null;
+  if (!FileSystem.documentDirectory) return asset.uri;
+  const extension =
+    asset.mimeType === "image/png"
+      ? "png"
+      : asset.mimeType === "image/webp"
+        ? "webp"
+        : "jpg";
+  const destination = `${FileSystem.documentDirectory}invoicefine-business-${Date.now()}.${extension}`;
+  await FileSystem.copyAsync({ from: asset.uri, to: destination });
+  return destination;
 }

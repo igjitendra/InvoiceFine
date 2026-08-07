@@ -7,12 +7,14 @@ import { AppErrorBoundary } from "@/components/ui/AppErrorBoundary";
 import { DatabaseStartupState } from "@/components/ui/DatabaseStartupState";
 import { AppearanceProvider } from "@/hooks/useAppearance";
 import { useAppPalette } from "@/hooks/useAppPalette";
+import { useBillingEntitlementSync } from "@/hooks/useBillingEntitlementSync";
 import { useDatabaseInitialization } from "@/hooks/useDatabaseInitialization";
 import { useNotificationCoordinator } from "@/hooks/useNotificationCoordinator";
 
 function RootNavigator() {
   const { retry, status } = useDatabaseInitialization();
   useNotificationCoordinator(status === "ready");
+  useBillingEntitlementSync(status === "ready");
   if (status !== "ready")
     return <DatabaseStartupState onRetry={retry} status={status} />;
   return <Stack screenOptions={{ headerShown: false }} />;

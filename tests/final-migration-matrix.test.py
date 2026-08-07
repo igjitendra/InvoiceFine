@@ -11,7 +11,7 @@ for path in sorted((ROOT / "db/migrations").glob("[0-9][0-9][0-9][0-9]-*.ts")):
     sql = re.search(r"sql:\s*`(.*?)`", source, re.S).group(1)
     MIGRATIONS.append((version, name, sql))
 
-assert [item[0] for item in MIGRATIONS] == list(range(1, 10))
+assert [item[0] for item in MIGRATIONS] == list(range(1, 11))
 
 
 def registry(connection: sqlite3.Connection) -> None:
@@ -58,7 +58,7 @@ expected_item_columns = {
     "service_pricing_model", "checklist_json", "customer_notes",
 }
 
-for starting_version in range(10):
+for starting_version in range(11):
     database = sqlite3.connect(":memory:")
     database.execute("PRAGMA foreign_keys=ON")
     registry(database)
@@ -68,7 +68,7 @@ for starting_version in range(10):
         seed(database, str(starting_version))
     for migration in MIGRATIONS[starting_version:]:
         apply(database, migration)
-    assert database.execute("PRAGMA user_version").fetchone()[0] == 9
+    assert database.execute("PRAGMA user_version").fetchone()[0] == 10
     rows = database.execute("SELECT version,name FROM schema_migrations ORDER BY version").fetchall()
     assert rows == [(version, name) for version, name, _ in MIGRATIONS]
     tables = {row[0] for row in database.execute("SELECT name FROM sqlite_master WHERE type='table'")}
@@ -77,6 +77,8 @@ for starting_version in range(10):
     assert expected_item_columns <= item_columns
     customer_columns = {row[1] for row in database.execute('PRAGMA table_info("customers")')}
     assert {"shipping_address", "state_name", "pincode"} <= customer_columns
+    invoice_columns = {row[1] for row in database.execute('PRAGMA table_info("invoices")')}
+    assert "settlement_discount_paise" in invoice_columns
     indexes = {row[0] for row in database.execute("SELECT name FROM sqlite_master WHERE type='index'")}
     assert {"idx_catalog_template_id", "idx_item_favorites_created", "idx_service_reminders_due"} <= indexes
     assert database.execute("PRAGMA foreign_key_check").fetchall() == []
@@ -96,9 +98,9 @@ runner = (ROOT / "db/migrations/index.ts").read_text()
 assert "withExclusiveTransactionAsync" in runner
 assert "PRAGMA user_version" in runner
 assert runner.count("Migration,") >= 8
-print("MIGRATION_SEQUENCE_1_TO_9=PASS")
-print("CLEAN_DATABASE_TO_9=PASS")
-print("UPGRADE_MATRIX_1_TO_9=PASS")
+print("MIGRATION_SEQUENCE_1_TO_10=PASS")
+print("CLEAN_DATABASE_TO_10=PASS")
+print("UPGRADE_MATRIX_1_TO_10=PASS")
 print("UPGRADE_DATA_PRESERVATION=PASS")
 print("MIGRATION_IDEMPOTENCY=PASS")
 print("FINAL_SCHEMA_FOREIGN_KEYS_AND_INTEGRITY=PASS")

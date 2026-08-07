@@ -80,7 +80,7 @@ Applied migration version/name/time. Never reset a user database to upgrade.
 
 Finalization validates a draft, allocates one number, stores snapshots/totals, mutates eligible product stock, writes movements, and advances numbering atomically.
 
-Payment validates amount/outstanding, inserts payment, and updates paid/status atomically with conflict protection.
+Payment validates amount/outstanding and inserts the actual money received transactionally. Migration 10 adds `invoices.settlement_discount_paise`: Record Payment can either keep the unpaid remainder due or explicitly waive it as a payment discount and close the invoice. The original finalized/GST total is preserved, actual receipts are never inflated, and receivables use `total_paise - paid_paise - settlement_discount_paise`. A GST value adjustment still requires a separate credit-note workflow.
 
 Cancellation preserves history and reverses eligible stock atomically; invoices with payments follow cancellation restrictions.
 

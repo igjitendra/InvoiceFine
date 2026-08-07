@@ -36,7 +36,7 @@ export async function loadDashboardData(
       endDate,
     ),
     db.getFirstAsync<Num>(
-      `SELECT COALESCE(SUM(total_paise-paid_paise),0)value FROM invoices WHERE status IN('finalized','partially_paid','overdue')`,
+      `SELECT COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0)value FROM invoices WHERE status IN('finalized','partially_paid','overdue')`,
     ),
     db.getFirstAsync<Num>(
       `SELECT COALESCE(SUM((ii.cost_price_paise*ii.quantity_scaled+500)/1000),0)value FROM invoice_items ii JOIN invoices i ON i.id=ii.invoice_id WHERE i.invoice_date BETWEEN ? AND ? AND i.status IN('finalized','partially_paid','paid','overdue') AND ii.item_type='product'`,

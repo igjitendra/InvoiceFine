@@ -11,6 +11,7 @@ import { businessTemplateEngineMigration } from "./0006-business-template-engine
 import { invoiceSpeedToolsMigration } from "./0007-invoice-speed-tools";
 import { customerCsvFieldsMigration } from "./0008-customer-csv-fields";
 import { notificationsRemindersMigration } from "./0009-notifications-reminders";
+import { paymentSettlementDiscountMigration } from "./0010-payment-settlement-discount";
 
 export type DatabaseMigration = {
   name: string;
@@ -28,6 +29,7 @@ const migrations: readonly DatabaseMigration[] = [
   invoiceSpeedToolsMigration,
   customerCsvFieldsMigration,
   notificationsRemindersMigration,
+  paymentSettlementDiscountMigration,
 ];
 
 const migrationTableSql = `

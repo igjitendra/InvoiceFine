@@ -21,7 +21,7 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Copy the existing app data/device state before testing.
 - [ ] Install/update without clearing app data.
 - [ ] Existing customers, products, drafts, invoices, payments, expenses, images, and settings remain available.
-- [ ] Migrations 1–9 complete without a startup loop or database reset.
+- [ ] Migrations 1–10 complete without a startup loop or database reset.
 - [ ] Force-stop and reopen three times; no render error appears.
 - [ ] Rotate request is ignored because portrait orientation is intentional.
 
@@ -53,6 +53,7 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 
 ## 2B. Customer, Product and Service CSV
 
+- [ ] Cancel/deny the folder picker for each CSV save action; no console error appears and no file/data changes occur.
 - [ ] Save each sample to Downloads, reopen it, and confirm smart mapping.
 - [ ] Confirm manual mapping cycles through valid fields and returns to Ignore.
 - [ ] Preview files with more than 20 rows; only the first 20 render while totals cover all rows.
@@ -86,7 +87,7 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Keep the original app open; verify export did not modify record counts.
 - [ ] Choose the `.ifb`, enter a wrong password, and confirm current records remain unchanged.
 - [ ] Modify one character in a copied `.ifb`; confirm authentication fails before preview.
-- [ ] Enter the correct password; confirm created time, schema 9 and record count preview.
+- [ ] Enter the correct password; confirm created time, schema 10 and record count preview.
 - [ ] Cancel at the final destructive warning; confirm current records remain unchanged.
 - [ ] On test data only, confirm restore and verify profile, customers, catalog, templates, favorites, invoices, payments, expenses, stock and service reminders.
 - [ ] Verify restored reminder native IDs are replaced and notifications are not duplicated.
@@ -140,12 +141,20 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Finalizing a product invoice reduces stock exactly once.
 - [ ] Repeated finalize tap does not allocate two invoice numbers or stock movements.
 - [ ] Cancel eligible invoice and verify stock reversal exactly once.
-- [ ] Record partial payment, final payment, and rejected overpayment.
+- [ ] Record ₹200 against ₹230 and test both choices: Keep as due leaves ₹30 outstanding; Give discount & close records ₹30 Payment discount, keeps actual received at ₹200, sets Balance due to ₹0, and closes the invoice.
+- [ ] Verify finalized screen, PDF, customer ledger, dashboard/report outstanding, reminders and invoice CSV all exclude the waived ₹30 from receivables.
+- [ ] Record final payment and verify overpayment is rejected.
 - [ ] Customer ledger and receivables match invoice/payment totals.
 - [ ] Add expense and confirm gross/net profit reports.
 
 ## 6. PDF and sharing
 
+- [ ] Finalized PDF shows the saved business/shop name, logo and authorized signature.
+- [ ] Non-tax invoice hides GST columns, rates, GSTIN and tax totals completely.
+- [ ] Tax invoice with a missing customer state uses the business state as a visible local-sale fallback; an explicit different customer state produces IGST.
+- [ ] Verify 2 × ₹99 at 18% GST produces the expected tax breakdown and rounded total.
+- [ ] Record a partial payment (for example ₹200 against ₹230); screen and PDF show Total ₹230, Paid ₹200 and Balance due ₹30.
+- [ ] Print and Share PDF work repeatedly with a readable invoice filename.
 - [ ] Generate A4 PDF; one invoice uses one page and content is not clipped.
 - [ ] Generate 4×6 PDF; page dimensions and text are usable.
 - [ ] Print and share both sizes through Android chooser.
@@ -170,3 +179,18 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Upgrade install preserves real test data.
 - [ ] A signed preview build passes the offline matrix.
 - [ ] Production build/signing starts only after these gates pass.
+
+## 12. Phase 15 monetization and paywall
+
+- [ ] Free plan blocks the sixth invoice draft created on the same local calendar day and permits creation after the next valid day begins.
+- [ ] Free plan blocks the sixth customer and sixth combined product/service record, including inline creation from Invoice.
+- [ ] Existing records remain readable/editable after a limit is reached; no records are deleted.
+- [ ] Limit alert opens InvoiceFine Pro and all paywall content is readable in light/dark and small/large text.
+- [ ] TRYYEAR activates 365 days once, rejects a second activation and is not extended by moving the device date backwards.
+- [ ] Confirm clearing app data resets the accepted local promo limitation and also clears local business data unless restored separately.
+- [ ] Expo Go opens the paywall without native-module crash and clearly says a development build is required for purchase/restore.
+- [ ] In a licensed Play development/closed-test build, verify Monthly, Annual and Lifetime display Play-localized prices.
+- [ ] Complete each test purchase, confirm acknowledgement, force-stop/reopen and verify Unlimited remains active.
+- [ ] On a second phone using the same Play account, Restore Purchases restores active Monthly/Annual and Lifetime; TRYYEAR does not restore.
+- [ ] Cancel/expire test subscriptions and confirm access falls back after verification/offline grace without deleting data.
+- [ ] Confirm no InvoiceFine login, cloud backup, push token or off-device business-data transfer was introduced.

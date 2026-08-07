@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { showFreePlanLimit } from "@/components/monetization/free-plan-alert";
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
 import {
@@ -90,7 +91,8 @@ export function CustomerForm({
         await createCustomer(values);
         router.back();
       }
-    } catch {
+    } catch (error) {
+      if (showFreePlanLimit(error, () => router.push("/upgrade"))) return;
       Alert.alert(
         editing
           ? strings.customers.messages.updateErrorTitle

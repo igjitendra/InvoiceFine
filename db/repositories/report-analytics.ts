@@ -63,7 +63,7 @@ export async function loadReportAnalytics(
       endDate,
     ),
     db.getFirstAsync<{ paid_paise: number; pending_paise: number }>(
-      `SELECT COALESCE(SUM(paid_paise),0)paid_paise,COALESCE(SUM(total_paise-paid_paise),0)pending_paise FROM invoices WHERE invoice_date BETWEEN ? AND ? AND status IN('finalized','partially_paid','paid','overdue')`,
+      `SELECT COALESCE(SUM(paid_paise),0)paid_paise,COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0)pending_paise FROM invoices WHERE invoice_date BETWEEN ? AND ? AND status IN('finalized','partially_paid','paid','overdue')`,
       startDate,
       endDate,
     ),

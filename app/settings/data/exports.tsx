@@ -177,9 +177,16 @@ export default function SelectedExportsScreen() {
         );
         return;
       }
-      await saveCsvFilesToDirectory(
+      const saved = await saveCsvFilesToDirectory(
         nonEmpty.map((file) => ({ name: file.fileName, text: file.csv })),
       );
+      if (!saved) {
+        Alert.alert(
+          "Export cancelled",
+          "No folder was selected. No files were written and app data was not changed.",
+        );
+        return;
+      }
       Alert.alert(
         "Export complete",
         `${nonEmpty.length} CSV file${nonEmpty.length === 1 ? "" : "s"} saved.${empty.length ? ` ${empty.map((file) => file.label).join(", ")} skipped because empty.` : ""}`,

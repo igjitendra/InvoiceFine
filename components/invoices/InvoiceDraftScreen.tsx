@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/components/ui/AppText";
+import { showFreePlanLimit } from "@/components/monetization/free-plan-alert";
 import { useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -427,7 +428,8 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
       );
       if (!draftId)
         router.replace({ pathname: "/invoice/[id]", params: { id } });
-    } catch {
+    } catch (error) {
+      if (showFreePlanLimit(error, () => router.push("/upgrade"))) return;
       Alert.alert(
         strings.invoiceDrafts.saveErrorTitle,
         strings.invoiceDrafts.saveErrorDescription,
@@ -578,6 +580,15 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
               </View>
             )}
           />
+          {kind === "tax_invoice" ? (
+            <Text style={styles.helper}>
+              {businessStateCode
+                ? selectedCustomer?.stateCode
+                  ? ""
+                  : strings.invoiceDrafts.taxStateFallback
+                : strings.invoiceDrafts.taxBusinessStateRequired}
+            </Text>
+          ) : null}
           <Controller
             control={control}
             name="invoiceDate"
@@ -761,10 +772,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
                 label={strings.invoiceDrafts.totalDiscount}
                 value={-calculation.discountPaise}
               />
-              <TotalRow
-                label={strings.invoiceDrafts.taxable}
-                value={calculation.taxablePaise}
-              />
+              {kind === "tax_invoice" ? (
+                <TotalRow
+                  label={strings.invoiceDrafts.taxable}
+                  value={calculation.taxablePaise}
+                />
+              ) : null}
               {calculation.cgstPaise > 0 ? (
                 <TotalRow
                   label={strings.invoiceDrafts.cgst}

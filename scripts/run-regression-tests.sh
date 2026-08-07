@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 python3 tests/final-migration-matrix.test.py
 python3 tests/release-manifest.test.py
+python3 tests/csv-file-cancellation.test.py
 python3 tests/business-template-migration.test.py
 python3 tests/professional-catalog.test.py
 python3 tests/inline-add.test.py
@@ -21,6 +22,9 @@ python3 tests/notifications-reminders.test.py
 node --import tsx tests/reminders.test.ts
 node --import tsx tests/business-template-engine.test.ts
 node --import tsx tests/invoice-calculations.test.ts
+node --import tsx tests/invoice-pdf-html.test.ts
+python3 tests/payment-settlement-discount.test.py
+python3 tests/monetization.test.py
 node --import tsx tests/vertical-invoice.test.ts
 node --import tsx tests/data-backup.test.ts
 node --import tsx tests/encrypted-backup-format.test.ts

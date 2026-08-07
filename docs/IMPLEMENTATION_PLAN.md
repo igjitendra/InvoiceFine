@@ -176,3 +176,11 @@ A dedicated final migration matrix now builds a clean database and upgrades seed
 ## Completion standard
 
 A phase is complete only after source checks and phone TypeScript pass, affected workflows are runtime-tested, and documentation reflects actual behavior. Never convert a sandbox/parser result into a physical-device claim.
+
+## Phase 15 — Monetization, free limits and Play Billing
+
+InvoiceFine now defines one Pro entitlement shared by Monthly, Annual, Lifetime and the local TRYYEAR promotion. Free access permits five invoice drafts per local calendar day, five customers total, and five combined product/service records total; existing records are never deleted when a limit is reached. Repository-level gates protect full forms and zero-navigation inline creation, while limit alerts link to the Upgrade screen.
+
+The Upgrade screen follows the approved paywall structure: feature cards, Monthly, Annual Best Value and Lifetime choices, an expandable promo-code field, Restore Purchases, Support, secure-payment disclosure and legal links. `TRYYEAR` grants 365 days of local Pro access once per installation. A monotonic stored clock prevents simple date rollback, but clearing app data/reinstalling can reset the local redemption, as explicitly accepted. TRYYEAR is not restored by Google Play and does not auto-charge when it expires.
+
+Paid products use `expo-iap`: subscription product `invoicefine_pro` with `monthly` and `yearly` base plans, and non-consumable product `invoicefine_pro_lifetime`. Store-localized prices replace fallbacks in a development/Play build. Purchases are acknowledged with `finishTransaction`; active subscription and lifetime purchases are restored from the current Google Play account without an InvoiceFine login. Static native imports are avoided so Expo Go startup remains safe, although checkout/restore require a development or Play build. No cloud backup or InvoiceFine account was added. Physical Play Billing certification remains blocked on Android package name, Play Console product configuration, licensed tester build and signed AAB.

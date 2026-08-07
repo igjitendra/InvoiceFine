@@ -85,6 +85,34 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
       setBusy(false);
     }
   }
+  async function saveSample() {
+    try {
+      const saved = await saveCsvToDownloads(
+        `InvoiceFine_${type}_sample.csv`,
+        sample,
+      );
+      if (saved)
+        Alert.alert("Sample saved", "The CSV sample was saved successfully.");
+    } catch {
+      Alert.alert(
+        "Sample could not be saved",
+        "Choose a writable folder and try again.",
+      );
+    }
+  }
+  async function shareReport() {
+    try {
+      await shareCsv(
+        `InvoiceFine_${type}_import_report.csv`,
+        catalogErrorReportCsv(rows),
+      );
+    } catch {
+      Alert.alert(
+        "Report could not be shared",
+        "Try again with a compatible sharing app.",
+      );
+    }
+  }
   const invalid = rows.filter((r) => r.errors.length),
     valid = rows.length - invalid.length,
     warnings = rows.filter((r) => r.warnings.length);
@@ -101,9 +129,7 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
           <Button
             label={`Save ${type} sample CSV`}
             variant="secondary"
-            onPress={() =>
-              void saveCsvToDownloads(`InvoiceFine_${type}_sample.csv`, sample)
-            }
+            onPress={() => void saveSample()}
           />
           <Button label="Choose CSV File" onPress={() => void choose()} />
           {fileName ? (
@@ -208,12 +234,7 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
             <Button
               label="Share Error / Warning Report"
               variant="secondary"
-              onPress={() =>
-                void shareCsv(
-                  `InvoiceFine_${type}_import_report.csv`,
-                  catalogErrorReportCsv(rows),
-                )
-              }
+              onPress={() => void shareReport()}
             />
           ) : null}
         </>
