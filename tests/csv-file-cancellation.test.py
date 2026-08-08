@@ -6,6 +6,8 @@ customers=(root/'app/settings/data/customers.tsx').read_text()
 exports=(root/'app/settings/data/exports.tsx').read_text()
 assert 'if (!permission.granted) return 0' in service
 assert 'if (!permission.granted) return false' in service
+assert 'copyToCacheDirectory: false' in service
+assert 'new File(asset.uri).text()' in service
 assert 'throw new Error("Folder permission denied")' not in service
 assert 'void saveCsvToDownloads' not in catalog
 assert 'void shareCsv' not in catalog

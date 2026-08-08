@@ -194,8 +194,13 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
         onPress={() => {
           setPdfBusy(true);
           void printInvoicePdf(id)
-            .catch(() =>
-              Alert.alert(strings.pdf.errorTitle, strings.pdf.errorDescription),
+            .catch((error: unknown) =>
+              Alert.alert(
+                strings.pdf.errorTitle,
+                error instanceof Error
+                  ? error.message
+                  : strings.pdf.errorDescription,
+              ),
             )
             .finally(() => setPdfBusy(false));
         }}
@@ -206,8 +211,13 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
         onPress={() => {
           setPdfBusy(true);
           void shareInvoicePdf(id)
-            .catch(() =>
-              Alert.alert(strings.pdf.errorTitle, strings.pdf.errorDescription),
+            .catch((error: unknown) =>
+              Alert.alert(
+                strings.pdf.errorTitle,
+                error instanceof Error
+                  ? error.message
+                  : strings.pdf.errorDescription,
+              ),
             )
             .finally(() => setPdfBusy(false));
         }}

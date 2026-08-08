@@ -28,13 +28,6 @@ export const legalDocuments = [
       "InvoiceFine Pro offers a monthly auto-renewing subscription, an annual auto-renewing subscription, and a one-time lifetime purchase. Prices are displayed from Google Play before purchase. Subscriptions renew automatically unless cancelled in Google Play. Restore Purchases uses the active Google Play account; no InvoiceFine login is required. TRYYEAR is a local 365-day promotion and is not restored by Google Play.",
   },
   {
-    slug: "backup",
-    title: "Data & Backup Policy",
-    summary: "Your responsibility for offline records.",
-    content:
-      "The primary database is stored locally on the device. Encrypted .ifb backup files use a user-chosen password that InvoiceFine never stores or can recover. Device loss, reset, app removal, forgotten passwords, or storage corruption may make local data unavailable, so keep tested backup copies and passwords separately.",
-  },
-  {
     slug: "licenses",
     title: "Third-Party Licenses",
     summary: "Open-source software notices.",
@@ -67,6 +60,6 @@ export const legalDocuments = [
     title: "App Version & Changelog",
     summary: "Current release information.",
     content:
-      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, premium onboarding, live appearance controls, professional Settings, CSV tools, local notifications, customer service reminders, and encrypted .ifb backup/restore.",
+      "Version 1.0.0. Current source includes offline invoices, customers, catalog, stock, payments, expenses, reports, PDF output, premium onboarding, live appearance controls, professional Settings, CSV tools, local notifications, and customer service reminders.",
   },
 ] as const;

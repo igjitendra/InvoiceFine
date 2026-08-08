@@ -48,7 +48,7 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Change Invoice Prefix, A4/4×6 and Default Due Days; force-stop/reopen and verify persistence.
 - [ ] Create a new invoice and verify its due date; reopen an existing draft and confirm its saved date is unchanged.
 - [ ] Save notification preferences; confirm Android permission is requested only after pressing Enable Notifications.
-- [ ] Customer/Product/Service CSV, service reminders and encrypted backup/restore are active; Delete Local Data, default notes, terms and watermarks remain visibly planned/locked.
+- [ ] Customer/Product/Service CSV, service reminders and password-free backup/restore are active; Delete Local Data, default notes, terms and watermarks remain visibly planned/locked.
 - [ ] Privacy, Terms, Version/Changelog, Licenses and support email open correctly.
 
 ## 2B. Customer, Product and Service CSV
@@ -78,22 +78,22 @@ Automated checks are necessary but do not prove Android runtime behavior. Run `b
 - [ ] Select an empty dataset and verify the clear no-records/skipped message.
 - [ ] Reopen the app and confirm no source records were modified by export.
 
-## 2D. Encrypted backup and restore
+## 2D. Simple backup and restore
 
-- [ ] Open Settings → Import & Export → Encrypted Backup & Restore.
-- [ ] Confirm short and mismatched passwords are rejected.
+- [ ] Open Settings → Import & Export → Backup & Restore.
+- [ ] Confirm there are no password fields.
 - [ ] Create a backup and select a user-controlled Android folder.
-- [ ] Confirm the saved file ends in `.ifb` and does not expose customer text when opened.
+- [ ] Confirm the saved file ends in `.ifb`; keep it private because its contents are readable.
 - [ ] Keep the original app open; verify export did not modify record counts.
-- [ ] Choose the `.ifb`, enter a wrong password, and confirm current records remain unchanged.
-- [ ] Modify one character in a copied `.ifb`; confirm authentication fails before preview.
-- [ ] Enter the correct password; confirm created time, schema 10 and record count preview.
+- [ ] Choose the `.ifb`; confirm validation happens automatically and current records remain unchanged.
+- [ ] Modify one character in a copied `.ifb`; confirm checksum validation fails before preview.
+- [ ] Choose the original file; confirm created time, schema 10 and record count preview.
 - [ ] Cancel at the final destructive warning; confirm current records remain unchanged.
 - [ ] On test data only, confirm restore and verify profile, customers, catalog, templates, favorites, invoices, payments, expenses, stock and service reminders.
 - [ ] Verify restored reminder native IDs are replaced and notifications are not duplicated.
 - [ ] Force a restore constraint failure in a test build and confirm full rollback.
 - [ ] Test picker cancellation, denied folder permission, low storage and a large database.
-- [ ] Confirm password never appears in app storage, logs, the `.ifb` header or Settings.
+- [ ] Confirm the UI warns that the password-free `.ifb` file is readable and must be kept private.
 - [ ] Verify the warning that local image files are not embedded; URI references alone may not recover after device loss.
 
 ## 2E. Notifications and service reminders

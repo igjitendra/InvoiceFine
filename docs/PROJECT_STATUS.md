@@ -54,7 +54,7 @@ Milestones 0–13 are implemented in source:
 21. Phase 14D Product/Service CSV — separate samples and import flows, smart mapping, validation, duplicate SKU/barcode policies, category/unit auto-create, product opening-stock movement, service SAC pending classification and reports implemented with schema version 8; physical-phone verification pending
 22. Phase 14E Selected CSV Exports — seven selectable datasets, live row counts, date/archive filters, multi-file folder save, single-file sharing, readable financial/stock formatting, empty-data handling and read-only queries implemented with schema version 8; physical-phone verification pending
 23. Phase 14F Notifications and Service Reminders — explicit Android permission, local-only channels, due/stock/daily/weekly schedules, persisted native job reconciliation, Migration 9 customer-service reminders, recurrence, completion/cancellation, overdue state, test alert and tap routing implemented for development/preview builds; SDK 57 Expo Go startup is guarded with data-only preferences/reminders and a clear build-required state; physical delivery verification pending
-24. Phase 14G Encrypted Backup/Restore — complete schema-9 `.ifb` export, AES-256-GCM, PBKDF2-SHA-256 with random salt and 210,000 iterations, password policy, picker/save workflow, authenticated preflight preview, exclusive transactional restore/rollback, notification-ID reset and schedule rebuild implemented; physical-phone verification pending
+24. Phase 14G Simple Backup/Restore — complete password-free schema `.ifb` export, one-step picker and automatic preflight preview, exclusive transactional restore/rollback, notification-ID reset and schedule rebuild implemented; backup files are readable and must be stored privately; physical-phone verification pending
 25. Phase 14H Final Migration, Regression and Phone QA — clean plus every-version 1–8 upgrade matrix to schema 9, data preservation/idempotency/schema integrity gates, centralized full regression runner, explicit `tsx` test dependency, strengthened Termux strict-TypeScript runner, final manifest/route audit and evidence checklist implemented; physical-phone execution pending
 
 ## Reports currently supported
@@ -105,7 +105,7 @@ The latest dark-mode, skeleton, swipe, and haptic behavior also requires physica
 - Validate every report chart with empty, single-point, and large datasets.
 - Validate 360dp width, large fonts, TalkBack, keyboard, light/dark switching, and Android gesture navigation.
 - Validate Expo development/preview build, not only Expo Go.
-- Physically verify encrypted `.ifb` export/import, wrong-password/tamper rejection, rollback and large-data performance before production certification.
+- Physically verify password-free `.ifb` save/share/import, checksum rejection, rollback and large-data performance before production certification.
 - Confirm no real customer data or credentials are included in support ZIPs.
 
 ## Not yet production-certified

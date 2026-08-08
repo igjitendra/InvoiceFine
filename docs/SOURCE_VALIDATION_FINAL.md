@@ -69,7 +69,7 @@ PHASE14H_FINAL_SOURCE_GATES=PASS
 - Install dependencies and run `bash scripts/phone-qa.sh`; retain the complete output.
 - Resolve any phone strict-TypeScript or Expo config error before runtime QA.
 - Complete `docs/PHONE_QA_FINAL.md` on an upgrade install and fresh test install.
-- Verify exact alarms, reboot behavior, encrypted backup/restore, PDFs, file pickers, sharing, offline workflows, large fonts, 360dp, light/dark, keyboard, and TalkBack.
+- Verify exact alarms, reboot behavior, password-free backup/restore, PDFs, file pickers, sharing, offline workflows, large fonts, 360dp, light/dark, keyboard, and TalkBack.
 - Repeat the offline matrix in a signed preview build.
 - Production signing/build must wait until all required gates pass.
 

@@ -61,8 +61,13 @@ export default function CustomerCsvScreen() {
       setMapping(parsed.mapping);
       setRows(parsed.rows);
       setSummary(null);
-    } catch {
-      Alert.alert("CSV could not be opened", "Choose a valid UTF-8 CSV file.");
+    } catch (error) {
+      Alert.alert(
+        "CSV could not be opened",
+        error instanceof Error
+          ? error.message
+          : "Choose a valid UTF-8 CSV file.",
+      );
     }
   }
   function cycle(header: string) {
@@ -129,7 +134,8 @@ export default function CustomerCsvScreen() {
     }
   }
   const invalid = rows.filter((r) => r.errors.length),
-    valid = rows.length - invalid.length;
+    valid = rows.length - invalid.length,
+    hasNameMapping = Object.values(mapping).includes("name");
   return (
     <ScreenContainer contentContainerStyle={s.content}>
       <SettingsHeader
@@ -144,7 +150,7 @@ export default function CustomerCsvScreen() {
             onPress={() => void exportData("share")}
           />
           <Button
-            label="Save to Downloads"
+            label="Download Customers CSV"
             variant="secondary"
             onPress={() => void exportData("save")}
           />
@@ -241,7 +247,7 @@ export default function CustomerCsvScreen() {
           <Button
             label={`Import ${valid} Valid Rows`}
             loading={busy}
-            disabled={!valid || !mapping.name}
+            disabled={!valid || !hasNameMapping}
             onPress={() => void run()}
           />
           {invalid.length ? (

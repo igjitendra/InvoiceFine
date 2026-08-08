@@ -58,8 +58,13 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
       if (!file) return;
       setFileName(file.name);
       apply(file.text);
-    } catch {
-      Alert.alert("CSV could not be opened", "Choose a valid UTF-8 CSV file.");
+    } catch (error) {
+      Alert.alert(
+        "CSV could not be opened",
+        error instanceof Error
+          ? error.message
+          : "Choose a valid UTF-8 CSV file.",
+      );
     }
   }
   function cycle(header: string) {
@@ -115,7 +120,8 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
   }
   const invalid = rows.filter((r) => r.errors.length),
     valid = rows.length - invalid.length,
-    warnings = rows.filter((r) => r.warnings.length);
+    warnings = rows.filter((r) => r.warnings.length),
+    hasNameMapping = Object.values(mapping).includes("name");
   const sample = type === "product" ? productSampleCsv : serviceSampleCsv;
   return (
     <ScreenContainer contentContainerStyle={styles.content}>
@@ -227,7 +233,7 @@ export function CatalogCsvScreen({ type }: { type: CatalogItemType }) {
           <Button
             label={`Import ${valid} Valid Rows`}
             loading={busy}
-            disabled={!valid || !mapping.name}
+            disabled={!valid || !hasNameMapping}
             onPress={() => void run()}
           />
           {invalid.length || warnings.length ? (

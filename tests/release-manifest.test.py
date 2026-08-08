@@ -19,7 +19,7 @@ plugins=[entry if isinstance(entry,str) else entry[0] for entry in app['plugins'
 for plugin in ('expo-router','expo-image-picker','expo-sharing','expo-notifications'): assert plugin in plugins
 assert app['android']['permissions']==['android.permission.SCHEDULE_EXACT_ALARM']
 assert app['android']['allowBackup'] is True and app['experiments']['typedRoutes'] is True
-for route in ('app/_layout.tsx','app/settings/notifications.tsx','app/settings/reminders/index.tsx','app/settings/data/exports.tsx','app/legal/data-controls.tsx'):
+for route in ('app/_layout.tsx','app/settings/notifications.tsx','app/settings/reminders/index.tsx','app/settings/data/exports.tsx'):
  assert (root/route).is_file(),route
 all_source='\n'.join(path.read_text(errors='ignore') for folder in ('app','components','db','hooks','lib','services') for path in (root/folder).rglob('*') if path.suffix in ('.ts','.tsx'))
 assert 'getExpoPushTokenAsync' not in all_source and 'getDevicePushTokenAsync' not in all_source

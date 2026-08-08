@@ -63,14 +63,6 @@ export default function SettingsHomeScreen() {
           badge="CSV"
           onPress={() => router.push("/settings/data")}
         />
-        <SettingsRow
-          index={1}
-          icon="shield-checkmark-outline"
-          label="Backup, Restore & Delete"
-          description="Safety-locked until encrypted recovery is verified"
-          badge="LOCKED"
-          onPress={() => router.push("/legal/data-controls")}
-        />
       </SettingsSection>
 
       <SettingsSection title="NOTIFICATIONS">

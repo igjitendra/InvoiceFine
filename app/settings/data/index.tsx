@@ -40,15 +40,6 @@ export default function DataToolsScreen() {
           onPress={() => router.push("/settings/data/services")}
         />
       </SettingsSection>
-      <SettingsSection title="BACKUP & RECOVERY">
-        <SettingsRow
-          icon="shield-checkmark-outline"
-          label="Encrypted Backup & Restore"
-          description="Password-protected complete database .ifb recovery file"
-          badge="READY"
-          onPress={() => router.push("/legal/data-controls")}
-        />
-      </SettingsSection>
       <SettingsSection title="EXPORTS">
         <SettingsRow
           icon="download-outline"

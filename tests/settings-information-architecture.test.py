@@ -17,8 +17,7 @@ for route in required_routes:
 hub = (root / "app/settings/index.tsx").read_text()
 for section in ("BUSINESS", "APPEARANCE", "INVOICE", "DATA", "NOTIFICATIONS", "ABOUT"):
     assert f'title="{section}"' in hub
-assert 'badge="LOCKED"' in hub
-assert 'router.push("/legal/data-controls")' in hub
+assert 'router.push("/legal/data-controls")' not in hub
 
 repository = (root / "db/repositories/app-settings.ts").read_text()
 assert "payment_terms_days" in repository
@@ -34,12 +33,6 @@ notifications = (root / "app/settings/notifications.tsx").read_text()
 assert "Permission is requested only when you press Enable" in notifications
 assert 'badge={isNotificationRuntimeSupported ? "READY" : "SAVES ONLY"}' in notifications
 assert 'router.push("/settings/reminders")' in notifications
-
-data_controls = (root / "app/legal/data-controls.tsx").read_text()
-assert "AES-256-GCM" in data_controls
-assert "Decrypt & validate" in data_controls
-assert "Replace local data" in data_controls
-assert "Deletion remains safety-locked" in data_controls
 
 legal = (root / "constants/legal.ts").read_text()
 assert "jitendraeditiz@gmail.com" in legal

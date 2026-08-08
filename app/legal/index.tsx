@@ -77,31 +77,6 @@ export default function LegalHub() {
             <Ionicons name="chevron-forward" size={19} color={palette.muted} />
           </Pressable>
         ))}
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push("/legal/data-controls")}
-          style={[
-            styles.row,
-            { borderTopColor: palette.border, borderTopWidth: 1 },
-          ]}
-        >
-          <View style={[styles.icon, { backgroundColor: palette.primarySoft }]}>
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={20}
-              color={palette.primary}
-            />
-          </View>
-          <View style={styles.copy}>
-            <Text style={[styles.label, { color: palette.text }]}>
-              Export or delete local data
-            </Text>
-            <Text style={[styles.summary, { color: palette.muted }]}>
-              Data ownership and safety controls
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={19} color={palette.muted} />
-        </Pressable>
       </View>
     </ScreenContainer>
   );

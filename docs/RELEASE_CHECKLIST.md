@@ -64,23 +64,23 @@ bash scripts/phone-qa.sh
 - [ ] no real data in logs, fixtures, screenshots, or support ZIPs
 - [ ] Android backup behavior matches `docs/BACKUP_STRATEGY.md`
 - [ ] uninstall/clear-data warning is documented
-- [ ] encrypted `.ifb` database backup/restore is active; Delete Local Data remains locked
+- [ ] password-free `.ifb` database backup/restore is active; readable files carry a privacy warning; Delete Local Data remains locked
 
-## Phase 14G encrypted backup/restore gates
+## Phase 14G simple backup/restore gates
 
-- [ ] `expo-crypto` and `@noble/hashes` resolve with strict TypeScript
-- [ ] Password shorter than 8 or mismatched confirmation is rejected
-- [ ] Export writes only `.ifb`, never raw database JSON
-- [ ] SQLite integrity passes before encryption and source records remain unchanged
+- [ ] Save and Share create a valid password-free `.ifb` file
+- [ ] Selecting `.ifb` automatically validates it before Restore is enabled
+- [ ] Export writes only `.ifb` from the UI
+- [ ] SQLite integrity passes before export and source records remain unchanged
 - [ ] Schema-9 tables, templates, favorites and service reminders are represented
-- [ ] Wrong password, changed header and changed ciphertext all fail before mutation
-- [ ] Correct password shows created date, schema and record count before restore
+- [ ] Changed content/checksum fails before mutation
+- [ ] Valid file shows created date, schema and record count before restore
 - [ ] Different schema version and invalid business-profile count are rejected
 - [ ] Confirmed restore is atomic and rolls back after a forced constraint failure
 - [ ] Notification native IDs are cleared and schedules rebuild after restore
-- [ ] Large-dataset encryption/decryption remains responsive on the target phone
+- [ ] Large-dataset save/validation remains responsive on the target phone
 - [ ] Low-storage, picker cancellation and interrupted save leave database unchanged
-- [ ] Password is absent from logs, files, SQLite and settings storage
+- [ ] UI clearly warns that password-free backup content is readable
 - [ ] Local image references are retained; non-embedded image-file limitation is visible
 
 ## Phase 14F notification/reminder gates
@@ -137,9 +137,9 @@ bash scripts/phone-qa.sh
 - [ ] Invoice prefix, A4/4×6 and due-day defaults persist after restart
 - [ ] A new invoice receives the saved default due date; existing drafts keep their own date
 - [ ] Notification choices persist; Android permission is requested only from the explicit Enable action
-- [ ] Customer/Product/Service CSV, service reminders and encrypted recovery open; notes, terms and watermark controls remain clearly non-active
+- [ ] Customer/Product/Service CSV, service reminders and password-free recovery open; notes, terms and watermark controls remain clearly non-active
 - [ ] Privacy, Terms, Version/Changelog and support email destinations work
-- [ ] Encrypted backup/restore opens; Delete Local Data remains safety-locked
+- [ ] Backup/restore opens without password fields; Delete Local Data remains safety-locked
 
 ## Phase 14A appearance gates
 

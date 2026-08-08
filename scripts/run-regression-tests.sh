@@ -4,11 +4,11 @@ cd "$(dirname "$0")/.."
 python3 tests/final-migration-matrix.test.py
 python3 tests/release-manifest.test.py
 python3 tests/csv-file-cancellation.test.py
+python3 tests/csv-import-button.test.py
 python3 tests/business-template-migration.test.py
 python3 tests/professional-catalog.test.py
 python3 tests/inline-add.test.py
 python3 tests/invoice-speed-tools.test.py
-python3 tests/data-restore.test.py
 node --import tsx tests/appearance-preferences.test.ts
 python3 tests/appearance-live-theme.test.py
 python3 tests/settings-information-architecture.test.py
@@ -23,10 +23,8 @@ node --import tsx tests/reminders.test.ts
 node --import tsx tests/business-template-engine.test.ts
 node --import tsx tests/invoice-calculations.test.ts
 node --import tsx tests/invoice-pdf-html.test.ts
+python3 tests/pdf-runtime-fallback.test.py
 python3 tests/payment-settlement-discount.test.py
 python3 tests/monetization.test.py
 node --import tsx tests/vertical-invoice.test.ts
-node --import tsx tests/data-backup.test.ts
-node --import tsx tests/encrypted-backup-format.test.ts
-python3 tests/encrypted-backup-restore.test.py
 printf '\nFULL_REGRESSION_SUITE=PASS\n'
