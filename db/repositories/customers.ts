@@ -144,6 +144,15 @@ export async function updateCustomer(
 
 export async function archiveCustomer(id: string): Promise<void> {
   const database = await getDatabase();
+  const balance = await database.getFirstAsync<{ outstanding: number }>(
+    `SELECT COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0) outstanding
+     FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled')`,
+    id,
+  );
+  if ((balance?.outstanding ?? 0) > 0)
+    throw new Error(
+      "This customer has an outstanding payment. Clear the due invoices before deleting the customer.",
+    );
   const result = await database.runAsync(
     `UPDATE customers SET is_archived = 1, updated_at = ?
      WHERE id = ? AND is_archived = 0`,

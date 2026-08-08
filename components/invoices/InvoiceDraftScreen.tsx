@@ -456,10 +456,12 @@ export function InvoiceDraftScreen({ draftId }: { draftId?: string }) {
                 );
                 router.replace("/(tabs)/invoices");
               })
-              .catch(() =>
+              .catch((error: unknown) =>
                 Alert.alert(
                   strings.finalization.finalizeErrorTitle,
-                  strings.finalization.finalizeErrorDescription,
+                  error instanceof Error
+                    ? error.message
+                    : strings.finalization.finalizeErrorDescription,
                 ),
               )
               .finally(() => setFinalizing(false));

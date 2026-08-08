@@ -57,6 +57,11 @@ type StockMovementRow = {
   item_id: string;
   quantity_delta_scaled: number;
 };
+type ProductStockRow = {
+  id: string;
+  name: string;
+  current_stock_scaled: number;
+};
 type SummaryRow = {
   id: string;
   invoice_number: string;
@@ -168,6 +173,32 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
       business.next_invoice_number,
     );
 
+    const requiredStock = new Map<string, number>();
+    for (const line of lines) {
+      if (line.item_type !== "product") continue;
+      if (!line.item_id)
+        throw new Error("A product line must reference a catalog product.");
+      requiredStock.set(
+        line.item_id,
+        (requiredStock.get(line.item_id) ?? 0) + line.quantity_scaled,
+      );
+    }
+    for (const [itemId, required] of requiredStock) {
+      const product = await transaction.getFirstAsync<ProductStockRow>(
+        `SELECT id,name,current_stock_scaled FROM items
+         WHERE id=? AND type='product' AND is_archived=0`,
+        itemId,
+      );
+      if (!product) throw new Error("A product is unavailable.");
+      if (product.current_stock_scaled < required) {
+        const available = product.current_stock_scaled / 1000;
+        const requested = required / 1000;
+        throw new Error(
+          `Not enough stock for ${product.name}. Available ${available}, requested ${requested}.`,
+        );
+      }
+    }
+
     for (let index = 0; index < lines.length; index += 1) {
       const line = lines[index];
       const calculatedLine = calculation.lines[index];
@@ -185,25 +216,27 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
         line.id,
         id,
       );
-      if (line.item_type !== "product") continue;
-      if (!line.item_id)
-        throw new Error("A product line must reference a catalog product.");
+    }
+    for (const [itemId, required] of requiredStock) {
       const updated = await transaction.runAsync(
         `UPDATE items SET current_stock_scaled = current_stock_scaled - ?, updated_at = ?
-         WHERE id = ? AND type = 'product' AND is_archived = 0`,
-        line.quantity_scaled,
+         WHERE id = ? AND type = 'product' AND is_archived = 0
+           AND current_stock_scaled >= ?`,
+        required,
         timestamp,
-        line.item_id,
+        itemId,
+        required,
       );
-      if (updated.changes !== 1) throw new Error("A product is unavailable.");
+      if (updated.changes !== 1)
+        throw new Error("Stock changed. Review product availability and try again.");
       await transaction.runAsync(
         `INSERT INTO stock_movements (
           id, item_id, type, quantity_delta_scaled, reference_type, reference_id,
           reason, occurred_at, created_at
         ) VALUES (?, ?, 'sale', ?, 'invoice', ?, NULL, ?, ?)`,
         await createUuid(transaction),
-        line.item_id,
-        -line.quantity_scaled,
+        itemId,
+        -required,
         id,
         timestamp,
         timestamp,
@@ -264,6 +297,54 @@ export async function finalizeInvoice(id: string): Promise<FinalizationResult> {
     if (numbering.changes !== 1)
       throw new Error("Invoice number allocation did not complete.");
     return { invoiceNumber, alreadyFinalized: false };
+  });
+}
+
+export async function deleteInvoice(id: string): Promise<void> {
+  const database = await getDatabase();
+  await runInTransaction(database, async (transaction) => {
+    const invoice = await transaction.getFirstAsync<InvoiceRow>(
+      `SELECT id,invoice_number,kind,status,customer_id,paid_paise,
+        settlement_discount_paise FROM invoices WHERE id=?`,
+      id,
+    );
+    if (!invoice) throw new Error("Invoice is unavailable.");
+    const payment = await transaction.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) count FROM payments WHERE invoice_id=?",
+      id,
+    );
+    if (
+      (payment?.count ?? 0) > 0 ||
+      invoice.paid_paise > 0 ||
+      invoice.settlement_discount_paise > 0
+    ) {
+      throw new Error(
+        "This invoice has payment history and cannot be deleted. Keep it for correct customer balances.",
+      );
+    }
+    if (invoice.status !== "draft" && invoice.status !== "cancelled") {
+      const movements = await transaction.getAllAsync<StockMovementRow>(
+        `SELECT item_id,quantity_delta_scaled FROM stock_movements
+         WHERE reference_type='invoice' AND reference_id=? AND type='sale'`,
+        id,
+      );
+      const timestamp = new Date().toISOString();
+      for (const movement of movements) {
+        await transaction.runAsync(
+          `UPDATE items SET current_stock_scaled=current_stock_scaled+?,updated_at=?
+           WHERE id=?`,
+          -movement.quantity_delta_scaled,
+          timestamp,
+          movement.item_id,
+        );
+      }
+    }
+    await transaction.runAsync(
+      "DELETE FROM stock_movements WHERE reference_type='invoice' AND reference_id=?",
+      id,
+    );
+    const result = await transaction.runAsync("DELETE FROM invoices WHERE id=?", id);
+    if (result.changes !== 1) throw new Error("Invoice was not deleted.");
   });
 }
 

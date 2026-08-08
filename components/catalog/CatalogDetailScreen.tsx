@@ -4,6 +4,7 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { strings } from "@/constants/strings";
 import { useCatalogItem } from "@/hooks/useCatalogItem";
 import { CatalogForm } from "./CatalogForm";
+import { ProductProfileScreen } from "./ProductProfileScreen";
 
 export function CatalogDetailScreen({ id }: { id: string }) {
   const { item, loading, error, retry } = useCatalogItem(id);
@@ -25,5 +26,9 @@ export function CatalogDetailScreen({ id }: { id: string }) {
         />
       </ScreenContainer>
     );
-  return <CatalogForm item={item} />;
+  return item.type === "product" ? (
+    <ProductProfileScreen id={id} />
+  ) : (
+    <CatalogForm item={item} />
+  );
 }

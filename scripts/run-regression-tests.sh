@@ -25,6 +25,7 @@ node --import tsx tests/invoice-calculations.test.ts
 node --import tsx tests/invoice-pdf-html.test.ts
 python3 tests/pdf-runtime-fallback.test.py
 python3 tests/payment-settlement-discount.test.py
+python3 tests/inventory-product-profile-delete.test.py
 python3 tests/monetization.test.py
 node --import tsx tests/vertical-invoice.test.ts
 printf '\nFULL_REGRESSION_SUITE=PASS\n'

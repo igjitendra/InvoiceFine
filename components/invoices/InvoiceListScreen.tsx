@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/components/ui/AppText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -12,6 +12,7 @@ import { routes } from "@/constants/routes";
 import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
 import { listInvoiceDrafts } from "@/db/repositories/invoice-drafts";
+import { deleteInvoice } from "@/db/repositories/invoice-finalization";
 import { useAppPalette } from "@/hooks/useAppPalette";
 import { formatPaise } from "@/lib/currency";
 import type { InvoiceDraftListItem } from "@/types/invoice-draft";
@@ -44,6 +45,31 @@ export function InvoiceListScreen() {
   );
   function open(id: string) {
     router.push({ pathname: "/invoice/[id]", params: { id } });
+  }
+  function confirmDelete(item: InvoiceDraftListItem) {
+    Alert.alert(
+      "Delete invoice?",
+      item.status === "draft"
+        ? "This draft will be permanently deleted."
+        : "Only invoices without payment history can be deleted. Sold stock will be restored automatically.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete invoice",
+          style: "destructive",
+          onPress: () => {
+            void deleteInvoice(item.id)
+              .then(() => setAttempt((value) => value + 1))
+              .catch((cause: unknown) =>
+                Alert.alert(
+                  "Invoice could not be deleted",
+                  cause instanceof Error ? cause.message : "Please try again.",
+                ),
+              );
+          },
+        },
+      ],
+    );
   }
   return (
     <SafeAreaView
@@ -96,6 +122,13 @@ export function InvoiceListScreen() {
                   icon: "open-outline",
                   onPress: () => open(item.id),
                   haptic: "light",
+                },
+                {
+                  label: "Delete",
+                  icon: "trash-outline",
+                  onPress: () => confirmDelete(item),
+                  tone: "danger",
+                  haptic: "warning",
                 },
               ]}
             >

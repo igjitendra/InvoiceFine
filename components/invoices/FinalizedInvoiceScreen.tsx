@@ -13,6 +13,7 @@ import { theme } from "@/constants/theme";
 import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
 import {
   cancelFinalizedInvoice,
+  deleteInvoice,
   loadFinalizedInvoiceSummary,
 } from "@/db/repositories/invoice-finalization";
 import { formatPaise } from "@/lib/currency";
@@ -29,6 +30,7 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
   const [error, setError] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   useEffect(() => {
     let active = true;
     void loadFinalizedInvoiceSummary(id)
@@ -72,6 +74,32 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
                 ),
               )
               .finally(() => setCancelling(false));
+          },
+        },
+      ],
+    );
+  }
+  function confirmDelete() {
+    if (!invoice || deleting) return;
+    Alert.alert(
+      "Delete invoice?",
+      "Only invoices without payment history can be deleted. Product stock will be restored automatically.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete invoice",
+          style: "destructive",
+          onPress: () => {
+            setDeleting(true);
+            void deleteInvoice(id)
+              .then(() => router.replace("/(tabs)/invoices"))
+              .catch((cause: unknown) =>
+                Alert.alert(
+                  "Invoice could not be deleted",
+                  cause instanceof Error ? cause.message : "Please try again.",
+                ),
+              )
+              .finally(() => setDeleting(false));
           },
         },
       ],
@@ -240,6 +268,12 @@ export function FinalizedInvoiceScreen({ id }: { id: string }) {
           onPress={confirmCancel}
         />
       ) : null}
+      <Button
+        label="Delete invoice"
+        variant="danger"
+        loading={deleting}
+        onPress={confirmDelete}
+      />
     </ScreenContainer>
   );
 }

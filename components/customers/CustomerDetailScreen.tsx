@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Linking, Pressable, StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/components/ui/AppText";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -11,7 +12,7 @@ import { strings } from "@/constants/strings";
 import { theme } from "@/constants/theme";
 import { useAppPalette, type AppPalette } from "@/hooks/useAppPalette";
 import { loadCustomerInsights } from "@/db/repositories/customer-insights";
-import { getCustomer } from "@/db/repositories/customers";
+import { archiveCustomer, getCustomer } from "@/db/repositories/customers";
 import { formatPaise } from "@/lib/currency";
 import type { Customer } from "@/types/customer";
 import type { CustomerInsights } from "@/types/customer-insights";
@@ -68,6 +69,32 @@ export function CustomerDetailScreen({ id }: Props) {
     const digits = customer.phone.replace(/\D/g, "");
     const international = digits.length === 10 ? `91${digits}` : digits;
     void open(`https://wa.me/${international}`);
+  }
+  function confirmDelete() {
+    if (!customer) return;
+    Alert.alert(
+      "Delete customer?",
+      insights && insights.outstandingPaise > 0
+        ? "This customer has pending payment. Clear the due invoices before deleting the customer."
+        : "The customer will leave your active list. Existing invoice snapshots remain safe.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete customer",
+          style: "destructive",
+          onPress: () => {
+            void archiveCustomer(id)
+              .then(() => router.replace("/(tabs)/customers"))
+              .catch((cause: unknown) =>
+                Alert.alert(
+                  "Customer could not be deleted",
+                  cause instanceof Error ? cause.message : "Please try again.",
+                ),
+              );
+          },
+        },
+      ],
+    );
   }
   if (loading && !customer)
     return (
@@ -174,6 +201,40 @@ export function CustomerDetailScreen({ id }: Props) {
           tone="purple"
         />
       </View>
+      {insights && insights.outstandingInvoices.length > 0 ? (
+        <>
+          <Text style={styles.section}>Pending payments</Text>
+          <Card style={styles.card}>
+            {insights.outstandingInvoices.map((invoice, index) => (
+              <Pressable
+                key={invoice.id}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: "/invoice/[id]",
+                    params: { id: invoice.id },
+                  })
+                }
+                style={[styles.dueRow, index > 0 && styles.dueDivider]}
+              >
+                <View style={styles.activityCopy}>
+                  <Text style={styles.activityTitle}>{invoice.invoiceNumber}</Text>
+                  <Text style={styles.meta}>
+                    {invoice.invoiceDate} · Paid {formatPaise(invoice.paidPaise)}
+                  </Text>
+                </View>
+                <View style={styles.dueAmount}>
+                  <Text style={[styles.activityLabel, { color: p.warning }]}>Due</Text>
+                  <Text style={[styles.activityTitle, { color: p.warning }]}>
+                    {formatPaise(invoice.outstandingPaise)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={p.disabled} />
+              </Pressable>
+            ))}
+          </Card>
+        </>
+      ) : null}
       <Text style={styles.section}>{strings.customerProfile.activity}</Text>
       <Card style={styles.card}>
         <Pressable
@@ -255,6 +316,7 @@ export function CustomerDetailScreen({ id }: Props) {
           <Text style={styles.detailValue}>{customer.billingAddress}</Text>
         </Card>
       ) : null}
+      <Button label="Delete customer" variant="danger" onPress={confirmDelete} />
     </ScreenContainer>
   );
 }
@@ -412,6 +474,15 @@ const createStyles = (p: AppPalette) =>
       backgroundColor: p.border,
       marginHorizontal: theme.spacing[4],
     },
+    dueRow: {
+      minHeight: 72,
+      padding: theme.spacing[4],
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing[3],
+    },
+    dueDivider: { borderTopWidth: 1, borderTopColor: p.border },
+    dueAmount: { alignItems: "flex-end" },
     ledger: {
       minHeight: 56,
       paddingHorizontal: theme.spacing[4],

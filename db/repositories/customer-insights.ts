@@ -10,7 +10,7 @@ export async function loadCustomerInsights(
   customerId: string,
 ): Promise<CustomerInsights> {
   const db = await getDatabase();
-  const [totals, lastInvoice, lastPayment] = await Promise.all([
+  const [totals, lastInvoice, lastPayment, outstandingInvoices] = await Promise.all([
     db.getFirstAsync<Totals>(
       `SELECT COALESCE(SUM(total_paise),0) total_sales,COALESCE(SUM(paid_paise),0) received,COALESCE(SUM(total_paise-paid_paise-settlement_discount_paise),0) outstanding,COUNT(*) invoice_count FROM invoices WHERE customer_id=? AND status NOT IN('draft','cancelled')`,
       customerId,
@@ -31,6 +31,22 @@ export async function loadCustomerInsights(
       method: string;
     }>(
       `SELECT id,payment_date,amount_paise,method FROM payments WHERE customer_id=? ORDER BY payment_date DESC,created_at DESC LIMIT 1`,
+      customerId,
+    ),
+    db.getAllAsync<{
+      id: string;
+      invoice_number: string;
+      invoice_date: string;
+      total_paise: number;
+      paid_paise: number;
+      outstanding_paise: number;
+    }>(
+      `SELECT id,invoice_number,invoice_date,total_paise,paid_paise,
+        total_paise-paid_paise-settlement_discount_paise outstanding_paise
+       FROM invoices WHERE customer_id=?
+         AND status IN('finalized','partially_paid','overdue')
+         AND total_paise-paid_paise-settlement_discount_paise>0
+       ORDER BY due_date IS NULL,due_date,invoice_date`,
       customerId,
     ),
   ]);
@@ -55,5 +71,13 @@ export async function loadCustomerInsights(
           method: lastPayment.method,
         }
       : null,
+    outstandingInvoices: outstandingInvoices.map((invoice) => ({
+      id: invoice.id,
+      invoiceNumber: invoice.invoice_number,
+      invoiceDate: invoice.invoice_date,
+      totalPaise: invoice.total_paise,
+      paidPaise: invoice.paid_paise,
+      outstandingPaise: invoice.outstanding_paise,
+    })),
   };
 }

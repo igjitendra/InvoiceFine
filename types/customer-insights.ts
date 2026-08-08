@@ -17,4 +17,12 @@ export type CustomerInsights = {
   invoiceCount: number;
   lastInvoice: CustomerInsightInvoice | null;
   lastPayment: CustomerInsightPayment | null;
+  outstandingInvoices: Array<{
+    id: string;
+    invoiceNumber: string;
+    invoiceDate: string;
+    totalPaise: number;
+    paidPaise: number;
+    outstandingPaise: number;
+  }>;
 };
